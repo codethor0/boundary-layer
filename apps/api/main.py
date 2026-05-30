@@ -1,9 +1,14 @@
 """BoundaryLayer API - Open LLM Infrastructure Security Lab."""
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
+from apps.api.config import get_settings
+from apps.api.lifespan import lifespan
+from apps.api.logging_config import configure_logging
 from apps.api.metrics import (
     observe_postgres_write_storm_insert_duration,
     record_authz_denied,
@@ -38,6 +43,17 @@ from apps.api.metrics import (
     set_sse_memory_pressure_mb,
     set_sse_orphaned_streams,
     set_sse_worker_pressure,
+)
+from apps.api.middleware import (
+    RateLimitMiddleware,
+    RequestContextMiddleware,
+    SecurityHeadersMiddleware,
+)
+from apps.api.readiness import evaluate_readiness
+from apps.api.security import (
+    enforce_vulnerable_allowed,
+    verify_api_access,
+    verify_metrics_access,
 )
 from labs.authz import run_authz_lab
 from labs.circuit_breaker import (
@@ -78,11 +94,30 @@ from labs.sse_exhaustion import (
 )
 from labs.tool_router import run_tool_router_lab
 
+settings = get_settings()
+configure_logging(settings)
+
 app = FastAPI(
     title="BoundaryLayer API",
     description="Open LLM Infrastructure Security Lab",
-    version="1.0.10",
+    version=settings.app_version,
+    lifespan=lifespan,
 )
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(RequestContextMiddleware, settings=settings)
+
+if settings.cors_enabled and settings.cors_origin_list:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "X-API-Key", "X-Metrics-Token"],
+    )
+
+if settings.trusted_host_list:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_host_list)
 
 LABS = [
     {
@@ -338,16 +373,35 @@ def _record_lab_metrics(lab_id: str, mode: str, result: dict) -> None:
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "boundary-layer-api", "version": "1.0.10"}
+    current = get_settings()
+    return {
+        "status": "ok",
+        "service": "boundary-layer-api",
+        "version": current.app_version,
+        "environment": current.boundary_layer_env,
+    }
 
 
-@app.get("/metrics")
+@app.get("/ready")
+def ready():
+    is_ready, checks = evaluate_readiness()
+    payload = {
+        "status": "ready" if is_ready else "not_ready",
+        "service": "boundary-layer-api",
+        "checks": checks,
+    }
+    if not is_ready:
+        raise HTTPException(status_code=503, detail=payload)
+    return payload
+
+
+@app.get("/metrics", dependencies=[Depends(verify_metrics_access)])
 def metrics():
     payload = generate_latest()
     return Response(content=payload, media_type=CONTENT_TYPE_LATEST)
 
 
-@app.get("/labs")
+@app.get("/labs", dependencies=[Depends(verify_api_access)])
 def list_labs():
     return {"labs": LABS}
 
@@ -403,6 +457,7 @@ def _strip_internal_keys(result: dict, keys: tuple[str, ...]) -> None:
 
 
 def _run_lab(lab_id: str, request: LabRequest) -> LabResponse:
+    enforce_vulnerable_allowed(request.mode, get_settings())
     runner = LAB_RUNNERS.get(lab_id)
     if runner is None:
         raise HTTPException(status_code=404, detail=f"Lab not found: {lab_id}")
@@ -425,23 +480,40 @@ def _run_lab(lab_id: str, request: LabRequest) -> LabResponse:
     return LabResponse(**result)
 
 
-@app.post("/labs/tool-router/run", response_model=LabResponse)
+@app.post(
+    "/labs/tool-router/run",
+    response_model=LabResponse,
+    dependencies=[Depends(verify_api_access)],
+)
 def run_tool_router(request: LabRequest):
     return _run_lab("tool-router", request)
 
 
-@app.post("/labs/redis/run", response_model=LabResponse)
+@app.post(
+    "/labs/redis/run",
+    response_model=LabResponse,
+    dependencies=[Depends(verify_api_access)],
+)
 def run_redis(request: LabRequest):
     return _run_lab("redis", request)
 
 
-@app.post("/labs/authz/run", response_model=LabResponse)
+@app.post(
+    "/labs/authz/run",
+    response_model=LabResponse,
+    dependencies=[Depends(verify_api_access)],
+)
 def run_authz(request: LabRequest):
     return _run_lab("authz", request)
 
 
-@app.post("/labs/file-upload/run", response_model=LabResponse)
+@app.post(
+    "/labs/file-upload/run",
+    response_model=LabResponse,
+    dependencies=[Depends(verify_api_access)],
+)
 def run_file_upload(request: FileUploadLabRequest):
+    enforce_vulnerable_allowed(request.mode, get_settings())
     if request.file_type not in ALLOWED_FILE_TYPES:
         allowed = ", ".join(sorted(ALLOWED_FILE_TYPES))
         raise HTTPException(
@@ -463,13 +535,22 @@ def run_file_upload(request: FileUploadLabRequest):
     return LabResponse(**result)
 
 
-@app.post("/labs/governance/run", response_model=LabResponse)
+@app.post(
+    "/labs/governance/run",
+    response_model=LabResponse,
+    dependencies=[Depends(verify_api_access)],
+)
 def run_governance(request: LabRequest):
     return _run_lab("governance", request)
 
 
-@app.post("/labs/postgres-write-storm/run", response_model=LabResponse)
+@app.post(
+    "/labs/postgres-write-storm/run",
+    response_model=LabResponse,
+    dependencies=[Depends(verify_api_access)],
+)
 def run_postgres_write_storm(request: WriteStormLabRequest):
+    enforce_vulnerable_allowed(request.mode, get_settings())
     runner = LAB_RUNNERS.get("postgres-write-storm")
     if runner is None:
         raise HTTPException(
@@ -493,8 +574,13 @@ def run_postgres_write_storm(request: WriteStormLabRequest):
     return LabResponse(**result)
 
 
-@app.post("/labs/circuit-breaker/run", response_model=LabResponse)
+@app.post(
+    "/labs/circuit-breaker/run",
+    response_model=LabResponse,
+    dependencies=[Depends(verify_api_access)],
+)
 def run_circuit_breaker(request: CircuitBreakerLabRequest):
+    enforce_vulnerable_allowed(request.mode, get_settings())
     try:
         result = run_circuit_breaker_lab(request.mode, request.requested_work_units)
     except ValueError as exc:
@@ -504,8 +590,13 @@ def run_circuit_breaker(request: CircuitBreakerLabRequest):
     return LabResponse(**result)
 
 
-@app.post("/labs/sse-exhaustion/run", response_model=LabResponse)
+@app.post(
+    "/labs/sse-exhaustion/run",
+    response_model=LabResponse,
+    dependencies=[Depends(verify_api_access)],
+)
 def run_sse_exhaustion(request: SseExhaustionLabRequest):
+    enforce_vulnerable_allowed(request.mode, get_settings())
     try:
         result = run_sse_exhaustion_lab(
             request.mode,
@@ -519,8 +610,13 @@ def run_sse_exhaustion(request: SseExhaustionLabRequest):
     return LabResponse(**result)
 
 
-@app.post("/labs/prompt-cache-isolation/run", response_model=LabResponse)
+@app.post(
+    "/labs/prompt-cache-isolation/run",
+    response_model=LabResponse,
+    dependencies=[Depends(verify_api_access)],
+)
 def run_prompt_cache_isolation(request: PromptCacheIsolationLabRequest):
+    enforce_vulnerable_allowed(request.mode, get_settings())
     try:
         result = run_prompt_cache_isolation_lab(
             request.mode,

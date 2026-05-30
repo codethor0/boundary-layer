@@ -1,18 +1,53 @@
 """Local Alertmanager webhook receiver for BoundaryLayer validation."""
 
-from fastapi import FastAPI, HTTPException
+import secrets
+from typing import Annotated
 
-app = FastAPI(title="BoundaryLayer Alert Webhook", version="0.7.0")
+from fastapi import Depends, FastAPI, Header, HTTPException, status
+
+from apps.alert_webhook.config import get_webhook_settings
+
+app = FastAPI(title="BoundaryLayer Alert Webhook", version="1.1.0")
 
 _stored_alerts: list[dict] = []
 
 
+def verify_webhook_access(
+    authorization: Annotated[str | None, Header()] = None,
+    x_webhook_token: Annotated[str | None, Header()] = None,
+) -> None:
+    settings = get_webhook_settings()
+    if not settings.auth_enabled:
+        return
+
+    provided = None
+    if authorization:
+        scheme, _, token = authorization.partition(" ")
+        if scheme.lower() == "bearer" and token:
+            provided = token.strip()
+    if not provided and x_webhook_token:
+        provided = x_webhook_token.strip()
+
+    expected = settings.auth_token.strip()
+    if not provided or not secrets.compare_digest(provided, expected):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing webhook credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "boundary-layer-alert-webhook"}
+    settings = get_webhook_settings()
+    return {
+        "status": "ok",
+        "service": "boundary-layer-alert-webhook",
+        "auth_enabled": settings.auth_enabled,
+    }
 
 
-@app.post("/alerts")
+@app.post("/alerts", dependencies=[Depends(verify_webhook_access)])
 def receive_alerts(payload: dict):
     alerts = payload.get("alerts")
     if alerts is None:
@@ -31,12 +66,12 @@ def receive_alerts(payload: dict):
     return {"status": "ok", "received": len(alerts)}
 
 
-@app.get("/alerts")
+@app.get("/alerts", dependencies=[Depends(verify_webhook_access)])
 def list_alerts():
     return {"count": len(_stored_alerts), "alerts": list(_stored_alerts)}
 
 
-@app.delete("/alerts")
+@app.delete("/alerts", dependencies=[Depends(verify_webhook_access)])
 def clear_alerts():
     cleared = len(_stored_alerts)
     _stored_alerts.clear()

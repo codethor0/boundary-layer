@@ -15,7 +15,7 @@ BoundaryLayer is an open-source local lab for simulating those risks in a contro
 - Nine deterministic security labs with FastAPI orchestration
 - Live Redis and PostgreSQL integration where relevant
 - Prometheus metrics and Alertmanager alert routing
-- 149 automated tests and a Docker Compose stack
+- 162 automated tests and a Docker Compose stack
 - No paid external LLM APIs required
 
 **Why infrastructure boundaries matter**

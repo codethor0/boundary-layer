@@ -1,10 +1,12 @@
-.PHONY: setup up down test lint validate bundle clean fmt
+.PHONY: setup up down test lint validate validate-prod bundle clean fmt prod-render-config prod-up prod-down
 
 PYTHON ?= python3.12
 VENV ?= .venv
 PIP := $(VENV)/bin/pip
 PYTEST := $(VENV)/bin/pytest
 RUFF := $(VENV)/bin/ruff
+PROD_ENV_FILE ?= .env.production
+PROD_COMPOSE := docker compose --env-file $(PROD_ENV_FILE) -f docker-compose.prod.yml -p boundary-layer-prod
 
 setup:
 	$(PYTHON) -m venv $(VENV)
@@ -22,6 +24,21 @@ up:
 down:
 	docker compose down
 
+prod-render-config:
+	@test -f $(PROD_ENV_FILE) || (echo "Missing $(PROD_ENV_FILE). Copy .env.production.example first." && exit 1)
+	@set -a && . ./$(PROD_ENV_FILE) && set +a && bash deploy/scripts/render-prometheus-config.sh
+	@set -a && . ./$(PROD_ENV_FILE) && set +a && bash deploy/scripts/render-alertmanager-config.sh
+
+prod-up: prod-render-config
+	$(PROD_COMPOSE) up -d --build
+	@echo "Waiting for production stack..."
+	@sleep 8
+	@curl -k -sf https://localhost:8443/health || (echo "Production health check failed" && exit 1)
+	@echo "Production stack is up on https://localhost:8443"
+
+prod-down:
+	$(PROD_COMPOSE) down
+
 test:
 	$(PYTEST) tests/ -v --tb=short
 
@@ -34,6 +51,9 @@ fmt:
 
 validate:
 	bash scripts/validate.sh
+
+validate-prod:
+	bash scripts/validate-prod.sh
 
 bundle:
 	bash scripts/collect-bundle.sh

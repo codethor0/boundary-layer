@@ -70,3 +70,29 @@ def test_post_alerts_invalid_payload():
 
     response = client.post("/alerts", json={"alerts": "not-a-list"})
     assert response.status_code == 422
+
+
+def test_webhook_requires_auth_when_enabled(monkeypatch):
+    from apps.alert_webhook import config
+
+    token = "h" * 32
+    settings = config.WebhookSettings.model_construct(
+        auth_enabled=True,
+        auth_token=token,
+        boundary_layer_env="production",
+    )
+    monkeypatch.setattr(config, "get_webhook_settings", lambda: settings)
+    monkeypatch.setattr(
+        "apps.alert_webhook.main.get_webhook_settings",
+        lambda: settings,
+    )
+
+    denied = client.post("/alerts", json={"alerts": []})
+    assert denied.status_code == 401
+
+    allowed = client.post(
+        "/alerts",
+        json={"alerts": [{"labels": {"alertname": "TestAlert"}}]},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert allowed.status_code == 200

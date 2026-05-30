@@ -1,0 +1,38 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: boundary-layer-local-webhook
+  group_by:
+    - alertname
+    - severity
+  group_wait: 1s
+  group_interval: 5s
+  repeat_interval: 1m
+
+receivers:
+  - name: boundary-layer-local-webhook
+    webhook_configs:
+      - url: http://alert-webhook:8080/alerts
+        send_resolved: true
+        http_config:
+          bearer_token: ${BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN}
+
+  # Uncomment and set real credentials to enable external routing.
+  # - name: slack-production
+  #   slack_configs:
+  #     - api_url: ${SLACK_WEBHOOK_URL}
+  #       channel: ${SLACK_ALERT_CHANNEL}
+  #       send_resolved: true
+  #
+  # - name: pagerduty-production
+  #   pagerduty_configs:
+  #     - routing_key: ${PAGERDUTY_ROUTING_KEY}
+  #       send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: page
+    target_match:
+      severity: warning
+    equal: [alertname]

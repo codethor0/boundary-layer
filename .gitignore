@@ -59,3 +59,9 @@ cursor-prompts/
 *.log
 node_modules/
 coverage/
+
+# Production rendered configs and local TLS material
+deploy/nginx/certs/
+deploy/prometheus/prometheus.prod.yml
+deploy/alertmanager/alertmanager.prod.yml
+.env.production
