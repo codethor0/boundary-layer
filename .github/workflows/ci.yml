@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          make setup
+
+      - name: Run tests
+        run: make test
+
+      - name: Run lint
+        run: make lint
+
+      - name: Verify no tooling or report artifacts are tracked
+        run: |
+          git ls-files | grep -Ei '(^|/)\.cursor/|COMMAND_TRANSCRIPT|VALIDATION_LOG|TEST_RESULTS|IMPLEMENTATION_REPORT|DEPENDENCY_REPORT|NEXT_STEPS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|cursor-prompt|agent-prompt|agent-report' && exit 1 || true
+
+      - name: Secret sanity scan on tracked source
+        run: |
+          grep -RIn \
+            -e "sk-[A-Za-z0-9_-]\{20,\}" \
+            -e "AKIA[0-9A-Z]\{16\}" \
+            -e "-----BEGIN .*PRIVATE KEY-----" \
+            . \
+            --exclude-dir=.git \
+            --exclude-dir=.venv \
+            --exclude-dir=venv \
+            --exclude-dir=__pycache__ \
+            --exclude=*.zip \
+            --exclude=*.tar.gz && exit 1 || true

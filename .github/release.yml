@@ -1,0 +1,18 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+  categories:
+    - title: Labs
+      labels:
+        - lab
+    - title: Documentation
+      labels:
+        - documentation
+    - title: CI and Release
+      labels:
+        - ci
+        - release
+    - title: Other Changes
+      labels:
+        - "*"

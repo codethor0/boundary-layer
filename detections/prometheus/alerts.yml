@@ -1,0 +1,189 @@
+groups:
+  - name: boundary-layer-alerts
+    rules:
+      - alert: PostgresPrimarySaturation
+        expr: pg_stat_activity_count > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: External PostgreSQL primary connection saturation
+          description: >
+            Real PostgreSQL connection count exceeds safe threshold on a primary
+            instance. This is distinct from BoundaryLayer lab-generated write
+            storm metrics (boundary_layer_postgres_write_storm_events_total).
+
+      - alert: BoundaryLayerPostgresWriteStormDetected
+        expr: increase(boundary_layer_postgres_write_storm_events_total[5m]) > 200
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer PostgreSQL write storm activity detected
+          description: Synthetic write storm lab generated more than 200 write events in 5 minutes.
+
+      - alert: BoundaryLayerPostgresWriteStormMitigated
+        expr: increase(boundary_layer_postgres_write_storm_blocked_writes_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer PostgreSQL write storm mitigation triggered
+          description: Hardened mode blocked excess synthetic write events.
+
+      - alert: RedisDangerousCommandAttempt
+        expr: increase(redis_blocked_commands_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: Redis dangerous command attempt detected
+          description: A blocked or dangerous Redis command was attempted.
+
+      - alert: BoundaryLayerInferenceCircuitBreakerOpen
+        expr: boundary_layer_inference_circuit_breaker_state == 1
+        for: 0m
+        labels:
+          severity: page
+        annotations:
+          summary: BoundaryLayer inference circuit breaker is open
+          description: >
+            The circuit breaker simulation entered open state and is shedding
+            synthetic inference work.
+
+      - alert: BoundaryLayerInferenceQueueDepthHigh
+        expr: boundary_layer_inference_simulated_queue_depth > 100
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer simulated inference queue depth is high
+          description: Synthetic inference queue depth exceeded the safe threshold.
+
+      - alert: BoundaryLayerInferenceWorkShed
+        expr: increase(boundary_layer_inference_shed_work_units_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer inference work was shed
+          description: Hardened circuit breaker mode shed excess synthetic work units.
+
+      - alert: BoundaryLayerSSEStreamExhaustionDetected
+        expr: boundary_layer_sse_active_streams{mode="vulnerable"} > 100
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer simulated SSE stream exhaustion detected
+          description: Synthetic vulnerable mode accepted more than 100 active SSE streams.
+
+      - alert: BoundaryLayerSSEOrphanedStreamsDetected
+        expr: boundary_layer_sse_orphaned_streams > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer simulated orphaned SSE streams detected
+          description: Synthetic SSE simulation produced orphaned streams.
+
+      - alert: BoundaryLayerSSEBackpressureTriggered
+        expr: increase(boundary_layer_sse_rejected_streams_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer SSE backpressure triggered
+          description: Hardened SSE mode rejected excess synthetic streams.
+
+      - alert: BoundaryLayerSSECleanupApplied
+        expr: increase(boundary_layer_sse_cleanup_applied_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: info
+        annotations:
+          summary: BoundaryLayer SSE cleanup applied
+          description: Hardened SSE mode applied cleanup controls.
+
+      - alert: BoundaryLayerToolInjectionBlockedSpike
+        expr: increase(boundary_layer_tool_injection_blocked_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Spike in blocked tool injection attempts
+          description: Tool router blocked multiple injection attempts in 5 minutes.
+
+      - alert: BoundaryLayerRedisTamperRejected
+        expr: increase(boundary_layer_redis_tamper_rejected_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Redis tamper attempt rejected
+          description: Hardened Redis lab rejected a tampered session payload.
+
+      - alert: BoundaryLayerPromptDeletionIncomplete
+        expr: increase(boundary_layer_prompt_deletion_orphan_records_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: page
+        annotations:
+          summary: Prompt deletion left orphaned downstream records
+          description: Governance tracker detected incomplete prompt lifecycle deletion.
+
+      - alert: BoundaryLayerPromptCacheCrossTenantBleed
+        expr: increase(boundary_layer_prompt_cache_cross_tenant_bleed_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer prompt cache cross-tenant bleed detected
+          description: Vulnerable prompt cache simulation produced a cross-tenant cache hit.
+
+      - alert: BoundaryLayerPromptCacheIsolationApplied
+        expr: increase(boundary_layer_prompt_cache_isolation_applied_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: info
+        annotations:
+          summary: BoundaryLayer prompt cache isolation applied
+          description: Hardened prompt cache simulation applied tenant-scoped cache namespaces.
+
+      - alert: BoundaryLayerFileUploadHiddenInstructionDetected
+        expr: increase(boundary_layer_file_upload_hidden_instruction_detected_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer file upload hidden instruction detected
+          description: >
+            Hardened file sandbox simulation detected instruction-like content
+            in extracted file text.
+
+      - alert: BoundaryLayerFileUploadEgressBlocked
+        expr: increase(boundary_layer_file_upload_egress_blocked_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer file upload egress blocked
+          description: Hardened file sandbox simulation blocked a synthetic egress attempt.
+
+      - alert: BoundaryLayerFileUploadActiveContentBlocked
+        expr: increase(boundary_layer_file_upload_active_content_blocked_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer file upload active content blocked
+          description: Hardened file sandbox simulation blocked active file content.
+
+      - alert: BoundaryLayerFileUploadContentWrapped
+        expr: increase(boundary_layer_file_upload_untrusted_content_wrapped_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: info
+        annotations:
+          summary: BoundaryLayer file upload content wrapped
+          description: Hardened file sandbox simulation wrapped extracted content as untrusted data.

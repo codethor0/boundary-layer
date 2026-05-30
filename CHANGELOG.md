@@ -1,0 +1,87 @@
+# Changelog
+
+All notable changes to BoundaryLayer are documented here.
+
+## v1.0.3
+
+- Cleaned public repository provenance
+- Removed tooling exposure from public Git history
+- Recreated public release tag from clean author history
+- Confirmed generated reports and prompt artifacts remain excluded from Git
+
+## v1.0.2
+
+- Added GitHub Actions CI workflow for tests, lint, hygiene checks, and secret scanning
+- Added manual Docker validation workflow for full stack `make validate`
+- Added pull request template, issue templates, and GitHub release notes config
+- Updated release documentation and API version to 1.0.2
+
+## v1.0.1
+
+- Removed editor and tooling artifacts from the public repository
+- Added Mermaid architecture diagrams in `docs/DIAGRAMS.md`
+- Confirmed generated reports and transcripts remain bundle-only artifacts
+- Updated bundle script to exclude `.cursor/` from ZIP output
+
+## v1.0.0
+
+- Public GitHub release stabilization
+- Removed generated reports and build transcripts from Git tracking
+- Added CHANGELOG, release checklist, and GitHub release documentation
+- Polished README with badges and public quick start
+- Bundle script generates validation artifacts locally without committing them
+
+## v0.9.0
+
+- File upload sandbox hardening simulation
+- Sandbox, egress, active content, hidden instruction, and content wrapping metrics
+- File upload Prometheus alert rules
+- 149 tests
+
+## v0.8.0
+
+- Prompt Cache Isolation Lab with Redis live mode and fallback
+- Cache bleed and isolation metrics
+- Prompt cache alert rules
+
+## v0.7.0
+
+- Alertmanager in Docker Compose
+- Local alert webhook receiver
+- Validated Prometheus to Alertmanager to webhook delivery
+
+## v0.6.0
+
+- SSE Exhaustion Simulation Lab
+- Stream cap, orphan, worker, memory, and cleanup metrics
+
+## v0.5.0
+
+- Circuit Breaker Simulation Lab
+- Lab-driven circuit breaker gauge and shedding metrics
+
+## v0.4.0
+
+- PostgreSQL Write Storm Lab
+- Write storm metrics and alert rules
+
+## v0.3.0
+
+- Live PostgreSQL governance integration
+- Orphan detection and deletion audit metrics
+
+## v0.2.0
+
+- Prometheus `/metrics` endpoint
+- Live Redis integration for Redis lab
+- Alert rules tied to emitted metric names
+
+## v0.1.1
+
+- Release bundle hygiene fixes
+- Full source export in ZIP bundles
+
+## v0.1.0
+
+- Initial release with five security labs
+- Mock LLM, Docker Compose, and detection config examples
