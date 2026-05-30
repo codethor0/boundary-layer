@@ -9,6 +9,7 @@ All notable changes to BoundaryLayer are documented here.
 - Confirmed all nine labs behave as documented in vulnerable and hardened modes
 - Confirmed invalid inputs fail closed
 - Confirmed generated reports, build transcripts, and prompt artifacts remain excluded from Git
+- Fixed bundle verification false positive that rejected `.env.example` as a tracked `.env` file
 
 ## v1.0.8
 

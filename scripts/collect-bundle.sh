@@ -219,7 +219,12 @@ BAD_PATTERNS=(
   "agent-prompts/"
 )
 for pattern in "${BAD_PATTERNS[@]}"; do
-  if unzip -l "$ZIP_PATH" | grep -q "${pattern}"; then
+  if [[ "$pattern" == ".env" ]]; then
+    if unzip -l "$ZIP_PATH" | grep -E '(^|/)\.env$' >/dev/null; then
+      echo "ERROR: Bundle contains excluded path pattern: ${pattern}" >&2
+      exit 1
+    fi
+  elif unzip -l "$ZIP_PATH" | grep -q "${pattern}"; then
     echo "ERROR: Bundle contains excluded path pattern: ${pattern}" >&2
     exit 1
   fi
