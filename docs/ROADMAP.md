@@ -87,6 +87,10 @@
 - Reworked logo with angular boundary stack concept
 - README architecture diagrams and launch explanation polish
 
+## v1.0.8 (Complete)
+
+- Final live Docker release gate documentation and validation
+
 ## Future
 
 - Commented external Alertmanager receiver templates

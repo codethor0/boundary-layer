@@ -46,6 +46,14 @@ Release owners should confirm:
   git ls-files | grep -Ei '(^|/)\.cursor/|COMMAND_TRANSCRIPT|VALIDATION_LOG|TEST_RESULTS|IMPLEMENTATION_REPORT|DEPENDENCY_REPORT|NEXT_STEPS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|cursor-prompt|agent-prompt|agent-report|cursor_boundarylayer|project_requiremen' && exit 1 || true
   ```
 
+## Live release gate (v1.0.8)
+
+- [ ] Run full live Docker gate per [LIVE_RELEASE_GATE.md](LIVE_RELEASE_GATE.md)
+- [ ] Confirm 18 lab JSON outputs have required shape
+- [ ] Confirm Prometheus targets and required alert rules load
+- [ ] Confirm `BoundaryLayerInferenceCircuitBreakerOpen` delivery within 60 seconds
+- [ ] Inspect service log tails for tracebacks or fatal errors
+
 ## Public provenance (v1.0.3)
 
 - [ ] Confirm commit history shows intended project owner identity only

@@ -2,6 +2,14 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.0.8
+
+- Added final live Docker release-gate documentation
+- Re-ran full end-to-end validation across all services and labs
+- Verified Redis, PostgreSQL, Prometheus, Alertmanager, and local webhook behavior
+- Verified all nine lab endpoints in vulnerable and hardened mode
+- Confirmed generated reports, build transcripts, and prompt artifacts remain excluded from Git
+
 ## v1.0.7
 
 - Reworked the visual identity with stronger hand-authored SVG logo assets

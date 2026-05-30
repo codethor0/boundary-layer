@@ -5,7 +5,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-BUNDLE_NAME="boundary-layer-bundle-v1.0.7-${TIMESTAMP}"
+BUNDLE_NAME="boundary-layer-bundle-v1.0.8-${TIMESTAMP}"
 STAGING_DIR="$(mktemp -d "/tmp/${BUNDLE_NAME}.XXXXXX")"
 DOWNLOADS_DIR="${HOME}/Downloads"
 ZIP_PATH="${DOWNLOADS_DIR}/${BUNDLE_NAME}.zip"
@@ -33,13 +33,13 @@ This file is included in local release bundles only. It is not part of the publi
 
 ## Release
 
-- Version: v1.0.7
+- Version: v1.0.8
 - Commit: $(git rev-parse HEAD)
 - Branch: $(git branch --show-current)
 
 ## Scope
 
-BoundaryLayer v1.0.7 launch logo and README architecture polish. Documentation and logo assets only. Nine security labs unchanged.
+BoundaryLayer v1.0.8 final live Docker release gate. Documentation and validation only. Nine security labs unchanged.
 
 ## Validation
 

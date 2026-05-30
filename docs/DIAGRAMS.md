@@ -1,6 +1,6 @@
 # Architecture Diagrams
 
-Mermaid diagrams for BoundaryLayer runtime topology, lab flows, trust boundaries, observability, and release validation. All diagrams reflect current v1.0.7 behavior.
+Mermaid diagrams for BoundaryLayer runtime topology, lab flows, trust boundaries, observability, and release validation. All diagrams reflect current v1.0.8 behavior.
 
 The README includes five core diagrams under **Architecture at a Glance**. This document contains the full set.
 

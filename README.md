@@ -5,7 +5,7 @@
 </p>
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.0.7-blue)
+![Version](https://img.shields.io/badge/version-v1.0.8-blue)
 ![Tests](https://img.shields.io/badge/tests-149%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
@@ -244,7 +244,7 @@ make validate
 
 ## End-to-End Validation
 
-Full live Docker validation is documented in [docs/E2E_VALIDATION.md](docs/E2E_VALIDATION.md). The authoritative local gate is:
+Full live Docker validation is documented in [docs/E2E_VALIDATION.md](docs/E2E_VALIDATION.md). The pre-release live Docker gate is documented in [docs/LIVE_RELEASE_GATE.md](docs/LIVE_RELEASE_GATE.md). The authoritative local gate is:
 
 ```bash
 make validate
