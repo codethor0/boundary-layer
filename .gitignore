@@ -32,6 +32,7 @@ cursor_boundarylayer_project_requiremen*.md
 *implementation-prompt*
 *master-prompt*
 *build-transcript*
+build-transcript*
 artifacts/
 *.zip
 *.tar.gz

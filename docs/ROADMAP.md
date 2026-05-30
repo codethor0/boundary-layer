@@ -82,9 +82,10 @@
 - End-to-end validation documentation
 - README badge and CI visibility polish
 
-## v1.0.6 (Complete)
+## v1.0.7 (Complete)
 
-- Aligned API health version with public release version
+- Reworked logo with angular boundary stack concept
+- README architecture diagrams and launch explanation polish
 
 ## Future
 

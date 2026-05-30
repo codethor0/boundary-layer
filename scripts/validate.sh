@@ -621,6 +621,34 @@ else
   exit 1
 fi
 
+echo "==> Logo SVG validation"
+python3 - <<'PY'
+from pathlib import Path
+
+required = [
+    "assets/logo/boundarylayer-mark.svg",
+    "assets/logo/boundarylayer-wordmark.svg",
+    "assets/logo/boundarylayer-logo.svg",
+    "assets/logo/boundarylayer-logo-dark.svg",
+    "assets/logo/boundarylayer-social-preview.svg",
+]
+for path in required:
+    text = Path(path).read_text()
+    lower = text.lower()
+    assert "<svg" in lower, f"{path} is not svg"
+    assert "base64" not in lower, f"{path} contains base64"
+    assert "<script" not in lower, f"{path} contains script"
+    assert "<image" not in lower, f"{path} embeds an image"
+    for line in text.splitlines():
+        line_lower = line.lower()
+        if "http://" in line_lower or "https://" in line_lower:
+            if "xmlns" in line_lower and "w3.org" in line_lower:
+                continue
+            raise AssertionError(f"{path} contains external url: {line.strip()}")
+print("logo svg validation passed")
+PY
+log_step "Logo SVG validation" "python logo svg checks" "PASS"
+
 echo "==> Secret scan"
 SECRET_PATTERNS='(AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{20,}|-----BEGIN (RSA |EC )?PRIVATE KEY-----)'
 if rg -n "$SECRET_PATTERNS" --glob '!.env' --glob '!*.md' --glob '!COMMAND_TRANSCRIPT.txt' . ; then

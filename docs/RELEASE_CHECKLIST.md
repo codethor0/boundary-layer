@@ -22,7 +22,8 @@ Use this checklist before tagging a BoundaryLayer release or publishing a GitHub
 - [ ] Verify no editor or tooling artifacts are tracked (`.cursor/`, `.vscode/`, `.idea/`)
 - [ ] Verify `.env` is not tracked
 - [ ] Verify `git status` is clean before tagging
-- [ ] Confirm logo assets render in README (`assets/logo/`)
+- [ ] Confirm logo SVG validation passes in `make validate`
+- [ ] Confirm README architecture diagrams render on GitHub
 - [ ] Confirm [E2E_VALIDATION.md](E2E_VALIDATION.md) matches current endpoints
 
 ## Bundle (local only)

@@ -149,6 +149,20 @@ Generated reports, build transcripts, and editor tooling artifacts belong in loc
 
 Run `make bundle` after validation to create a review bundle in `~/Downloads/`. Bundles must not include `.cursor/`.
 
+## v1.0.7 release notes template
+
+```markdown
+## BoundaryLayer v1.0.7
+
+Final launch gate: logo redesign, README architecture diagrams, and full E2E validation.
+
+### Highlights
+
+- Stronger hand-authored SVG logo assets with concept review
+- Core Mermaid diagrams in README
+- Expanded README explanation and E2E validation documentation
+```
+
 ## v1.0.6 release notes template
 
 ```markdown
