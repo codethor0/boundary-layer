@@ -201,3 +201,5 @@ After Prometheus and Alertmanager route a firing alert (may take up to 60 second
 ```
 
 Label and annotation text may vary slightly with Prometheus rule evaluation timing.
+
+For live Docker verification commands, see [E2E_VALIDATION.md](E2E_VALIDATION.md).

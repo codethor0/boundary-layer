@@ -27,6 +27,11 @@ GIT_STATUS.txt
 NEXT_STEPS.md
 TREE.txt
 docker-compose-logs.txt
+cursor_boundarylayer_project_requiremen*.md
+*project_requiremen*.md
+*implementation-prompt*
+*master-prompt*
+*build-transcript*
 artifacts/
 *.zip
 *.tar.gz

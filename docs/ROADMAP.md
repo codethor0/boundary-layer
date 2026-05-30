@@ -69,14 +69,20 @@
 - CHANGELOG, release checklist, GitHub release guide
 - README polish and badges
 
-## v1.0.2 (Complete)
+## v1.0.4 (Complete)
 
-- GitHub Actions CI for tests, lint, hygiene, and secret scanning
-- Manual Docker validation workflow
-- Pull request and issue templates
+- Public demo walkthrough, terminal examples, launch post draft
+- README launch path and repository hygiene guidance
+- CI secret-scan false positive fix
+
+## v1.0.5 (Complete)
+
+- Hand-authored SVG logo and visual identity assets
+- Thirteen Mermaid architecture diagrams
+- End-to-end validation documentation
+- README badge and CI visibility polish
 
 ## Future
 
 - Commented external Alertmanager receiver templates
-- CI workflow for validation
-- Architecture diagrams
+- Optional PNG exports of logo assets for platforms that require raster images

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 80" role="img" aria-label="BoundaryLayer logo dark">
+  <rect width="520" height="80" fill="#020617"/>
+  <g transform="translate(8,8)">
+    <rect x="8" y="10" width="48" height="10" rx="2" fill="#2563EB"/>
+    <rect x="8" y="27" width="48" height="10" rx="2" fill="#38BDF8"/>
+    <rect x="8" y="44" width="48" height="10" rx="2" fill="#14B8A6"/>
+    <rect x="28" y="24" width="8" height="16" rx="1" fill="#020617"/>
+    <path d="M14 32 L28 32" stroke="#38BDF8" stroke-width="3" stroke-linecap="round"/>
+    <path d="M36 32 L50 32" stroke="#22C55E" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="32" cy="32" r="3" fill="#22C55E"/>
+  </g>
+  <text x="88" y="50" fill="#F8FAFC" font-family="system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="-0.5">BoundaryLayer</text>
+</svg>

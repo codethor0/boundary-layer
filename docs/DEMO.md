@@ -118,4 +118,4 @@ make down
 - No external alert integration is used.
 - All lab inputs and outputs are synthetic.
 
-For compact JSON examples, see [EXAMPLES.md](EXAMPLES.md). For architecture diagrams, see [DIAGRAMS.md](DIAGRAMS.md).
+For compact JSON examples, see [EXAMPLES.md](EXAMPLES.md). For full live Docker verification, see [E2E_VALIDATION.md](E2E_VALIDATION.md). For architecture diagrams, see [DIAGRAMS.md](DIAGRAMS.md).

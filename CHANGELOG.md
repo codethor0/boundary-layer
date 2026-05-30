@@ -2,6 +2,14 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.0.5
+
+- Added hand-authored SVG logo assets and visual identity documentation
+- Expanded Mermaid architecture diagrams with end-to-end runtime, lab, observability, trust boundary, and CI flows
+- Added end-to-end validation documentation for live Docker testing
+- Verified README badges, CI visibility, and public repository hygiene
+- Confirmed generated reports, build transcripts, and prompt artifacts remain excluded from Git
+
 ## v1.0.4
 
 - Added public demo walkthrough

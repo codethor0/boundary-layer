@@ -1,9 +1,14 @@
 # BoundaryLayer
 
+<p align="center">
+  <img src="assets/logo/boundarylayer-logo.svg" alt="BoundaryLayer logo" width="720">
+</p>
+
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.0.4-blue)
+![Version](https://img.shields.io/badge/version-v1.0.5-blue)
 ![Tests](https://img.shields.io/badge/tests-149%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
+![Docker](https://img.shields.io/badge/docker-compose-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **An open LLM infrastructure security lab**
@@ -16,7 +21,11 @@ BoundaryLayer is an open-source local security lab for simulating, detecting, an
 
 **Repository:** https://github.com/codethor0/boundary-layer
 
-**Documentation:** [Demo walkthrough](docs/DEMO.md) | [Terminal examples](docs/EXAMPLES.md) | [Architecture diagrams](docs/DIAGRAMS.md) | [Controls map](docs/CONTROLS_MAP.md)
+**Documentation:** [Demo walkthrough](docs/DEMO.md) | [Terminal examples](docs/EXAMPLES.md) | [E2E validation](docs/E2E_VALIDATION.md) | [Architecture diagrams](docs/DIAGRAMS.md) | [Controls map](docs/CONTROLS_MAP.md)
+
+## Visual identity
+
+Logo assets live in [assets/logo/](assets/logo/README.md). SVG mark, wordmark, light and dark logos, and a social preview card are included for README, docs, and launch materials.
 
 ## Try it in 5 minutes
 
@@ -85,7 +94,7 @@ BoundaryLayer does not require proprietary IDE tooling, external LLM APIs, or ex
 
 ## Architecture
 
-See [docs/DIAGRAMS.md](docs/DIAGRAMS.md) for full Mermaid diagrams. At a high level:
+See [docs/DIAGRAMS.md](docs/DIAGRAMS.md) for thirteen Mermaid diagrams covering runtime topology, lab flows, trust boundaries, observability, and CI validation. At a high level:
 
 ```mermaid
 flowchart LR

@@ -8,7 +8,7 @@ Use this checklist before tagging a BoundaryLayer release or publishing a GitHub
 - [ ] Run `make test` (149 tests passing)
 - [ ] Run `make lint`
 - [ ] Run `docker compose down -v && make up`
-- [ ] Run `make validate`
+- [ ] Run `make validate` or follow [E2E_VALIDATION.md](E2E_VALIDATION.md) for live Docker checks
 - [ ] Run secret scan (included in `make validate`)
 - [ ] Verify Prometheus health at http://localhost:9090/-/healthy
 - [ ] Verify Alertmanager health at http://localhost:9093/-/healthy
@@ -22,7 +22,8 @@ Use this checklist before tagging a BoundaryLayer release or publishing a GitHub
 - [ ] Verify no editor or tooling artifacts are tracked (`.cursor/`, `.vscode/`, `.idea/`)
 - [ ] Verify `.env` is not tracked
 - [ ] Verify `git status` is clean before tagging
-- [ ] Verify README quick start works from a fresh clone
+- [ ] Confirm logo assets render in README (`assets/logo/`)
+- [ ] Confirm [E2E_VALIDATION.md](E2E_VALIDATION.md) matches current endpoints
 
 ## Bundle (local only)
 

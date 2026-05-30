@@ -149,6 +149,21 @@ Generated reports, build transcripts, and editor tooling artifacts belong in loc
 
 Run `make bundle` after validation to create a review bundle in `~/Downloads/`. Bundles must not include `.cursor/`.
 
+## v1.0.5 release notes template
+
+```markdown
+## BoundaryLayer v1.0.5
+
+Visual identity, expanded architecture diagrams, and end-to-end validation documentation.
+
+### Highlights
+
+- Hand-authored SVG logo assets
+- Thirteen Mermaid diagrams in docs/DIAGRAMS.md
+- Live Docker E2E validation guide in docs/E2E_VALIDATION.md
+- README badge and visual identity polish
+```
+
 ## v1.0.3 release notes template
 
 ```markdown
