@@ -1,7 +1,7 @@
 # BoundaryLayer
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.0.3-blue)
+![Version](https://img.shields.io/badge/version-v1.0.4-blue)
 ![Tests](https://img.shields.io/badge/tests-149%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -15,6 +15,31 @@ The model is only the interpreter. The boundary decides the blast radius.
 BoundaryLayer is an open-source local security lab for simulating, detecting, and hardening infrastructure-level risks in LLM applications. Most AI security demos stop at prompt injection. BoundaryLayer asks what happens after the model gets tricked: tool routing, session state, authorization, file extraction, data lifecycle, write pressure, streaming, inference backpressure, cache isolation, and alert delivery.
 
 **Repository:** https://github.com/codethor0/boundary-layer
+
+**Documentation:** [Demo walkthrough](docs/DEMO.md) | [Terminal examples](docs/EXAMPLES.md) | [Architecture diagrams](docs/DIAGRAMS.md) | [Controls map](docs/CONTROLS_MAP.md)
+
+## Try it in 5 minutes
+
+```bash
+git clone https://github.com/codethor0/boundary-layer.git
+cd boundary-layer
+make setup
+make up
+make validate
+```
+
+## Demo path
+
+1. Run Redis vulnerable mode.
+2. Run Redis hardened mode.
+3. Trigger the circuit breaker alert.
+4. View alert webhook delivery.
+
+See [docs/DEMO.md](docs/DEMO.md) for step-by-step commands.
+
+## Repository hygiene
+
+Generated reports, command transcripts, local bundles, editor files, and build prompts are intentionally excluded from Git. They may exist locally or inside review bundles, but they are not part of the public repository.
 
 ## Why this exists
 

@@ -8,11 +8,44 @@
 
 ## Suggested description
 
+Open-source LLM infrastructure security lab for simulating and hardening AI system blast-radius risks.
+
+Longer description for release notes or About fields:
+
 BoundaryLayer is an open-source LLM infrastructure security lab for simulating, detecting, and hardening risks across tool routing, Redis, PostgreSQL, file uploads, prompt governance, SSE, circuit breakers, prompt cache isolation, Prometheus, and Alertmanager.
 
 ## Suggested topics
 
 `llm-security`, `ai-security`, `appsec`, `devsecops`, `prometheus`, `alertmanager`, `redis`, `postgresql`, `fastapi`, `security-lab`, `prompt-injection`, `zero-trust`
+
+### Set topics with GitHub CLI
+
+If `gh` is authenticated:
+
+```bash
+gh repo edit codethor0/boundary-layer \
+  --description "Open-source LLM infrastructure security lab for simulating and hardening AI system blast-radius risks." \
+  --add-topic llm-security \
+  --add-topic ai-security \
+  --add-topic appsec \
+  --add-topic devsecops \
+  --add-topic prometheus \
+  --add-topic alertmanager \
+  --add-topic redis \
+  --add-topic postgresql \
+  --add-topic fastapi \
+  --add-topic security-lab \
+  --add-topic prompt-injection \
+  --add-topic zero-trust
+```
+
+### Set topics manually
+
+1. Open https://github.com/codethor0/boundary-layer
+2. Click the gear icon next to About
+3. Paste the suggested description above
+4. Add the topics listed in this section
+5. Save changes
 
 ## Initial setup
 

@@ -33,11 +33,11 @@ jobs:
 
       - name: Verify no tooling or report artifacts are tracked
         run: |
-          git ls-files | grep -Ei '(^|/)\.cursor/|COMMAND_TRANSCRIPT|VALIDATION_LOG|TEST_RESULTS|IMPLEMENTATION_REPORT|DEPENDENCY_REPORT|NEXT_STEPS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|cursor-prompt|agent-prompt|agent-report' && exit 1 || true
+          git ls-files | grep -Ei '(^|/)\.cursor/|COMMAND_TRANSCRIPT|VALIDATION_LOG|TEST_RESULTS|IMPLEMENTATION_REPORT|DEPENDENCY_REPORT|NEXT_STEPS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|cursor-prompt|agent-prompt|agent-report|cursor_boundarylayer|project_requiremen' && exit 1 || true
 
       - name: Secret sanity scan on tracked source
         run: |
-          grep -RIn \
+          if grep -RIn \
             -e "sk-[A-Za-z0-9_-]\{20,\}" \
             -e "AKIA[0-9A-Z]\{16\}" \
             -e "-----BEGIN .*PRIVATE KEY-----" \
@@ -46,5 +46,10 @@ jobs:
             --exclude-dir=.venv \
             --exclude-dir=venv \
             --exclude-dir=__pycache__ \
+            --exclude=ci.yml \
+            --exclude=validate.sh \
             --exclude=*.zip \
-            --exclude=*.tar.gz && exit 1 || true
+            --exclude=*.tar.gz; then
+            echo "Potential secret pattern found in tracked source"
+            exit 1
+          fi

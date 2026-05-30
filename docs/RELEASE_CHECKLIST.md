@@ -33,10 +33,15 @@ Use this checklist before tagging a BoundaryLayer release or publishing a GitHub
 
 ## CI and hygiene
 
+Release owners should confirm:
+
+- [ ] GitHub Actions CI workflow passes on `main` (see https://github.com/codethor0/boundary-layer/actions)
+- [ ] Manual Docker Validate workflow is available (`.github/workflows/docker-validate.yml`)
+- [ ] Local `make validate` remains authoritative for full-stack release validation
 - [ ] Confirm GitHub Actions CI passes on `main` (or will pass after merge)
 - [ ] Run local hygiene check:
   ```bash
-  git ls-files | grep -Ei '(^|/)\.cursor/|COMMAND_TRANSCRIPT|VALIDATION_LOG|TEST_RESULTS|IMPLEMENTATION_REPORT|DEPENDENCY_REPORT|NEXT_STEPS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|cursor-prompt|agent-prompt|agent-report' && exit 1 || true
+  git ls-files | grep -Ei '(^|/)\.cursor/|COMMAND_TRANSCRIPT|VALIDATION_LOG|TEST_RESULTS|IMPLEMENTATION_REPORT|DEPENDENCY_REPORT|NEXT_STEPS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|cursor-prompt|agent-prompt|agent-report|cursor_boundarylayer|project_requiremen' && exit 1 || true
   ```
 
 ## Public provenance (v1.0.3)

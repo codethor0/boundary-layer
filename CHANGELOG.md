@@ -2,6 +2,16 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.0.4
+
+- Added public demo walkthrough
+- Added compact terminal output examples
+- Expanded README launch path
+- Added launch post draft
+- Added repository topic guidance
+- Confirmed public repository hygiene checks
+- Fixed CI secret scan false positives on workflow and validation scripts
+
 ## v1.0.3
 
 - Cleaned public repository provenance
