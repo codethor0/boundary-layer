@@ -1,62 +1,62 @@
 # Logo Concept Review
 
-Three hand-authored SVG concepts for BoundaryLayer public launch. No raster images, scripts, or external resources.
+Three hand-authored SVG concepts for BoundaryLayer v1.0.10 visual refresh. Plain SVG only: no raster images, scripts, external resources, or base64.
 
-## Concept A: Contour Stack
+## Concept A: Strata Conduit
 
 File: `concepts/boundarylayer-concept-a.svg`
 
-Nested rounded rectangles with a central gate and horizontal crossing path.
+Horizontal infrastructure strata with a vertical inspection conduit and checkpoint nodes at each boundary crossing. Reads as layered blast-radius segmentation with controlled vertical flow.
 
 | Criterion | Score (1-5) | Notes |
 |-----------|-------------|-------|
-| Memorability | 3 | Clear layers, but resembles generic nested boxes |
-| GitHub avatar readability | 4 | Strong at 32x32 |
-| Technical meaning | 4 | Reads as stacked boundaries |
-| Originality | 2 | Common nested-frame pattern |
-| Open-source feel | 3 | Neutral, slightly generic |
-| README fit | 3 | Works but not distinctive |
-| Small-size legibility | 4 | Simple strokes survive scaling |
-| Avoidance of security clichés | 5 | No shield or lock |
+| Memorability | 5 | Distinct stacked-band silhouette unlike common security icons |
+| Originality | 5 | Strata plus conduit is unique in this repo and uncommon in OSS marks |
+| GitHub avatar readability | 5 | Bold bands and central conduit survive 32x32 |
+| Technical meaning | 5 | Strong layer, boundary, and inspection metaphor |
+| Small-size legibility | 5 | Simple geometry, no fragile arcs |
+| README fit | 5 | Aligns with infrastructure and blast-radius narrative |
+| Open-source feel | 5 | Engineering diagram aesthetic, not corporate clip-art |
+| Avoidance of clichés | 5 | No shield, lock, hexagon stack, or robot imagery |
 
-## Concept B: Angular Boundary Stack
+## Concept B: Contour Ingress
 
 File: `concepts/boundarylayer-concept-b.svg`
 
-Nested angular hexagonal layers with a controlled gate and crossing path. Reads as a topological boundary map.
+Nested rounded-square contours with corner gate cuts and a diagonal crossing path through successive trust zones.
 
 | Criterion | Score (1-5) | Notes |
 |-----------|-------------|-------|
-| Memorability | 5 | Distinct silhouette, not a cliché |
-| GitHub avatar readability | 4 | Angular edges remain visible at 32x32 |
-| Technical meaning | 5 | Strong trust-zone and perimeter metaphor |
-| Originality | 4 | Unique without being decorative noise |
-| Open-source feel | 4 | Engineering-first, not corporate bland |
-| README fit | 5 | Pairs well with architecture diagrams |
-| Small-size legibility | 4 | Gate and path still readable |
-| Avoidance of security clichés | 5 | No shield, lock, or robot imagery |
+| Memorability | 4 | Readable but diagonal path can blur at very small sizes |
+| Originality | 4 | Corner-gate motif is strong but busier than Concept A |
+| GitHub avatar readability | 3 | Diagonal line and corner cuts merge at 32x32 |
+| Technical meaning | 4 | Suggests perimeter topology and staged ingress |
+| Small-size legibility | 3 | Multiple corner cuts reduce clarity when scaled down |
+| README fit | 4 | Fits boundary story but less immediately legible |
+| Open-source feel | 4 | Technical, slightly abstract |
+| Avoidance of clichés | 5 | Avoids shield and lock patterns |
 
-## Concept C: Perimeter Gate
+## Concept C: Chevron Perimeter
 
 File: `concepts/boundarylayer-concept-c.svg`
 
-Broken ring segments around a core with a crossing path.
+Nested chevron perimeters narrowing toward a central vertical conduit.
 
 | Criterion | Score (1-5) | Notes |
 |-----------|-------------|-------|
-| Memorability | 4 | Ring motif is recognizable |
-| GitHub avatar readability | 3 | Arc gaps can blur at small sizes |
-| Technical meaning | 4 | Suggests perimeter and core |
-| Originality | 3 | Ring logos are common in infra tooling |
-| Open-source feel | 3 | Slightly generic network icon |
-| README fit | 3 | Less aligned with layered boundary story |
-| Small-size legibility | 3 | Arc segments merge at 32x32 |
-| Avoidance of security clichés | 4 | Avoids lock/shield but feels like a network badge |
+| Memorability | 4 | Chevron stack is recognizable |
+| Originality | 3 | Triangular perimeter motifs appear in infra tooling |
+| GitHub avatar readability | 4 | Central conduit remains visible |
+| Technical meaning | 4 | Suggests funneling traffic through nested perimeters |
+| Small-size legibility | 4 | Fewer elements than Concept B |
+| README fit | 3 | Less aligned with horizontal infrastructure layers |
+| Open-source feel | 3 | Slightly badge-like |
+| Avoidance of clichés | 4 | Avoids lock/shield but feels like a funnel icon |
 
 ## Selected concept
 
-**Concept B: Angular Boundary Stack**
+**Concept A: Strata Conduit**
 
-Rationale: Best balance of memorability, technical meaning, and originality. The nested angular layers communicate infrastructure boundaries and blast-radius control. The central gate and crossing path express inspected, shaped traffic without resorting to security clichés. It scales better than Concept C and is more distinctive than Concept A.
+Rationale: Best balance of memorability, originality, and small-size legibility. Horizontal strata communicate infrastructure layers and blast-radius segmentation. The vertical conduit with checkpoint nodes expresses inspected, constrained flow through each boundary without resorting to security clichés. It is more distinctive than the prior hexagonal stack and scales better than the diagonal contour design.
 
-Final production assets in `assets/logo/` are derived from Concept B.
+Final production assets in `assets/logo/` are derived from Concept A.

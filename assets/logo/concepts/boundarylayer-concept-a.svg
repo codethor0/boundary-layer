@@ -1,10 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="BoundaryLayer concept A contour stack">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="BoundaryLayer concept A strata conduit">
   <rect width="64" height="64" fill="none"/>
-  <rect x="6" y="6" width="52" height="52" rx="6" fill="none" stroke="#0B1F3A" stroke-width="3"/>
-  <rect x="12" y="12" width="40" height="40" rx="5" fill="none" stroke="#2563EB" stroke-width="2.5"/>
-  <rect x="18" y="18" width="28" height="28" rx="4" fill="none" stroke="#14B8A6" stroke-width="2"/>
-  <rect x="28" y="22" width="8" height="20" fill="#F8FAFC"/>
-  <line x1="10" y1="32" x2="26" y2="32" stroke="#38BDF8" stroke-width="3" stroke-linecap="round"/>
-  <line x1="38" y1="32" x2="54" y2="32" stroke="#22C55E" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="32" cy="32" r="2.5" fill="#38BDF8"/>
+  <rect x="5" y="7" width="54" height="15" rx="3" fill="none" stroke="#0B1F3A" stroke-width="2.5"/>
+  <rect x="9" y="24" width="46" height="13" rx="3" fill="none" stroke="#1D4ED8" stroke-width="2.5"/>
+  <rect x="13" y="39" width="38" height="11" rx="2" fill="none" stroke="#14B8A6" stroke-width="2"/>
+  <rect x="27" y="5" width="10" height="50" fill="#F8FAFC"/>
+  <line x1="32" y1="5" x2="32" y2="21" stroke="#38BDF8" stroke-width="4" stroke-linecap="round"/>
+  <line x1="32" y1="26" x2="32" y2="36" stroke="#0EA5E9" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="32" y1="41" x2="32" y2="55" stroke="#22C55E" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="21" r="3" fill="#2563EB"/>
+  <circle cx="32" cy="36" r="2.5" fill="#14B8A6"/>
+  <circle cx="32" cy="50" r="2" fill="#22C55E"/>
 </svg>

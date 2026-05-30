@@ -81,7 +81,7 @@ from labs.tool_router import run_tool_router_lab
 app = FastAPI(
     title="BoundaryLayer API",
     description="Open LLM Infrastructure Security Lab",
-    version="1.0.9",
+    version="1.0.10",
 )
 
 LABS = [
@@ -338,7 +338,7 @@ def _record_lab_metrics(lab_id: str, mode: str, result: dict) -> None:
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "boundary-layer-api", "version": "1.0.9"}
+    return {"status": "ok", "service": "boundary-layer-api", "version": "1.0.10"}
 
 
 @app.get("/metrics")

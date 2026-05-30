@@ -91,6 +91,10 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.0.10 (Complete)
+
+- Logo redesign with Strata Conduit concept and exploratory validation polish
+
 ## v1.0.9 (Complete)
 
 - Deep end-to-end QA documentation and bug-hunting validation pass

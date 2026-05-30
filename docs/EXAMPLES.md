@@ -12,7 +12,7 @@ curl -sf http://localhost:8000/health
 {
   "status": "ok",
   "service": "boundary-layer-api",
-  "version": "1.0.9"
+  "version": "1.0.10"
 }
 ```
 

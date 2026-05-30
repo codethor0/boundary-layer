@@ -4,17 +4,17 @@ Hand-authored SVG assets for BoundaryLayer. All files are plain SVG with simple 
 
 ## Selected concept
 
-**Concept B: Angular Boundary Stack** (see [CONCEPT_REVIEW.md](CONCEPT_REVIEW.md))
+**Concept A: Strata Conduit** (see [CONCEPT_REVIEW.md](CONCEPT_REVIEW.md))
 
-Nested angular hexagonal layers represent infrastructure trust zones. A central gate and crossing path express inspected, shaped traffic and blast-radius control without shield, lock, or robot clichés.
+Horizontal infrastructure strata represent layered trust zones and blast-radius segmentation. A vertical inspection conduit with checkpoint nodes at each boundary expresses controlled, inspected flow without shield, lock, hexagon, or robot clichés.
 
 ## Asset list
 
 | File | Purpose |
 |------|---------|
-| `concepts/boundarylayer-concept-a.svg` | Contour stack concept (archive) |
-| `concepts/boundarylayer-concept-b.svg` | Angular boundary stack concept (selected) |
-| `concepts/boundarylayer-concept-c.svg` | Perimeter gate concept (archive) |
+| `concepts/boundarylayer-concept-a.svg` | Strata conduit concept (selected) |
+| `concepts/boundarylayer-concept-b.svg` | Contour ingress concept (archive) |
+| `concepts/boundarylayer-concept-c.svg` | Chevron perimeter concept (archive) |
 | `boundarylayer-mark.svg` | Icon-only mark for favicons and compact UI |
 | `boundarylayer-wordmark.svg` | Text-only wordmark for light backgrounds |
 | `boundarylayer-logo.svg` | Mark plus wordmark for README and light backgrounds |
@@ -25,13 +25,14 @@ Nested angular hexagonal layers represent infrastructure trust zones. A central 
 
 | Name | Hex | Usage |
 |------|-----|-------|
-| Navy | `#0B1F3A` | Outer boundary stroke on light backgrounds |
-| Deep Blue | `#1D4ED8` | Middle boundary layer |
-| Blue | `#2563EB` | Accents and dark-background outer layer |
-| Cyan | `#38BDF8` | Ingress crossing path |
-| Teal | `#14B8A6` | Inner boundary layer |
-| Green | `#22C55E` | Egress crossing path accent |
-| Light | `#F8FAFC` | Gate cutout on light backgrounds |
+| Navy | `#0B1F3A` | Outer stratum stroke on light backgrounds |
+| Deep Blue | `#1D4ED8` | Middle stratum stroke |
+| Blue | `#2563EB` | Inspection node accent |
+| Sky | `#0EA5E9` | Mid-conduit segment |
+| Cyan | `#38BDF8` | Ingress conduit segment |
+| Teal | `#14B8A6` | Inner stratum stroke |
+| Green | `#22C55E` | Egress conduit segment |
+| Light | `#F8FAFC` | Conduit cutout on light backgrounds |
 | Slate | `#64748B` | Secondary text on social preview |
 | Dark | `#020617` | Dark logo and social card background |
 
@@ -46,7 +47,7 @@ Do not commit raster exports to the repository unless explicitly required.
 
 ## Small-size guidance
 
-The mark uses bold strokes and a simple gate silhouette so it remains readable at 32x32. Avoid scaling below 24px without testing.
+The mark uses bold stratum bands and a central conduit so it remains readable at 32x32. Avoid scaling below 24px without testing.
 
 ## Accessibility
 
@@ -56,6 +57,6 @@ The mark uses bold strokes and a simple gate silhouette so it remains readable a
 
 ## Inspection and editing
 
-These files are safe to inspect and edit in any text editor or vector tool. They contain only `polygon`, `rect`, `line`, `circle`, `path`, `text`, and `g` elements. No trademark is claimed.
+These files are safe to inspect and edit in any text editor or vector tool. They contain only `rect`, `line`, `circle`, `path`, `polygon`, `text`, and `g` elements. No trademark is claimed.
 
 Logo SVG validation runs as part of `make validate`.

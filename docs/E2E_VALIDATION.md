@@ -48,7 +48,7 @@ curl -sf http://localhost:8081/health
 Expected API health:
 
 ```json
-{"status":"ok","service":"boundary-layer-api","version":"1.0.9"}
+{"status":"ok","service":"boundary-layer-api","version":"1.0.10"}
 ```
 
 Version string must match the current release tag.

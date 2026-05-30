@@ -2,6 +2,13 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.0.10
+
+- Redesigned logo with Strata Conduit concept: layered infrastructure strata and vertical inspection conduit
+- Updated logo concepts, production SVG assets, and visual identity documentation
+- Re-ran exploratory testing and full validation across the Docker stack
+- Confirmed generated reports, build transcripts, and prompt artifacts remain excluded from Git
+
 ## v1.0.9
 
 - Added deeper QA documentation for API contracts, invalid inputs, metrics, live Redis, live PostgreSQL, Prometheus, Alertmanager, and restart testing

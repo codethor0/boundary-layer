@@ -5,7 +5,7 @@
 </p>
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.0.9-blue)
+![Version](https://img.shields.io/badge/version-v1.0.10-blue)
 ![Tests](https://img.shields.io/badge/tests-149%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
@@ -256,7 +256,7 @@ Terminal output examples: [docs/EXAMPLES.md](docs/EXAMPLES.md).
 
 ## Visual Identity
 
-Logo assets live in [assets/logo/](assets/logo/README.md). The selected mark is an angular boundary stack derived from [Concept B](assets/logo/CONCEPT_REVIEW.md). SVG mark, wordmark, light and dark logos, and a social preview card are included.
+Logo assets live in [assets/logo/](assets/logo/README.md). The selected mark is a strata conduit stack derived from [Concept A](assets/logo/CONCEPT_REVIEW.md). SVG mark, wordmark, light and dark logos, and a social preview card are included.
 
 ## Repository Hygiene
 
