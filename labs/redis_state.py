@@ -13,6 +13,7 @@ SESSION_HMAC_SECRET = os.environ.get(
 REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
 REDIS_DB = int(os.environ.get("REDIS_DB", "0"))
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", "")
 REDIS_KEY_PREFIX = "boundary_layer:lab:redis:"
 REDIS_TTL_SECONDS = 300
 
@@ -76,6 +77,7 @@ def _get_redis_client():
         host=REDIS_HOST,
         port=REDIS_PORT,
         db=REDIS_DB,
+        password=REDIS_PASSWORD or None,
         decode_responses=True,
         socket_connect_timeout=2,
     )

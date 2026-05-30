@@ -91,6 +91,11 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.1.0 (Complete)
+
+- Production deployment profile with API auth, metrics protection, rate limiting, and TLS ingress
+- Alembic migrations, readiness endpoint, and production validation script
+
 ## v1.0.10 (Complete)
 
 - Logo redesign with Strata Conduit concept and exploratory validation polish
@@ -101,5 +106,4 @@
 
 ## Future
 
-- Commented external Alertmanager receiver templates
 - Optional PNG exports of logo assets for platforms that require raster images

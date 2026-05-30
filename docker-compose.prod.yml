@@ -1,0 +1,178 @@
+# Production deployment for BoundaryLayer
+# Requires rendered configs: make prod-render-config
+# Requires TLS certs: bash deploy/nginx/generate-certs.sh
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      BOUNDARY_LAYER_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      API_LOG_LEVEL: info
+      BOUNDARY_LAYER_AUTH_ENABLED: "true"
+      BOUNDARY_LAYER_API_KEY: ${BOUNDARY_LAYER_API_KEY}
+      BOUNDARY_LAYER_METRICS_TOKEN: ${BOUNDARY_LAYER_METRICS_TOKEN}
+      BOUNDARY_LAYER_METRICS_AUTH_REQUIRED: "true"
+      BOUNDARY_LAYER_ALLOW_VULNERABLE: "false"
+      BOUNDARY_LAYER_RATE_LIMIT_ENABLED: "true"
+      BOUNDARY_LAYER_RATE_LIMIT_REQUESTS: "120"
+      BOUNDARY_LAYER_RATE_LIMIT_WINDOW_SECONDS: "60"
+      BOUNDARY_LAYER_LOG_JSON: "true"
+      BOUNDARY_LAYER_RUN_MIGRATIONS: "true"
+      BOUNDARY_LAYER_TRUSTED_HOSTS: boundary-layer.local,nginx,localhost,api
+      MOCK_LLM_URL: http://mock-llm:8080
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_DB: "0"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      BOUNDARY_LAYER_REDIS_LIVE: "true"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: boundary_layer
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: boundary_layer
+      BOUNDARY_LAYER_POSTGRES_LIVE: "true"
+      SESSION_HMAC_SECRET: ${SESSION_HMAC_SECRET}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      mock-llm:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - boundary_layer_internal
+
+  mock-llm:
+    build:
+      context: .
+      dockerfile: apps/mock_llm/Dockerfile
+    environment:
+      MOCK_LLM_HOST: 0.0.0.0
+      MOCK_LLM_PORT: 8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - boundary_layer_internal
+
+  alert-webhook:
+    build:
+      context: .
+      dockerfile: apps/alert_webhook/Dockerfile
+    environment:
+      BOUNDARY_LAYER_ENV: production
+      BOUNDARY_LAYER_ALERT_WEBHOOK_AUTH_ENABLED: "true"
+      BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN: ${BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - boundary_layer_internal
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - boundary_layer_internal
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: boundary_layer
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: boundary_layer
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boundary_layer -d boundary_layer"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - boundary_layer_internal
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    volumes:
+      - ./deploy/prometheus/prometheus.prod.yml:/etc/prometheus/prometheus.yml:ro
+      - ./detections/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    depends_on:
+      api:
+        condition: service_healthy
+      alertmanager:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - boundary_layer_internal
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    volumes:
+      - ./deploy/alertmanager/alertmanager.prod.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --web.external-url=http://localhost:9093
+    depends_on:
+      alert-webhook:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - boundary_layer_internal
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      prometheus:
+        condition: service_started
+      alertmanager:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - boundary_layer_internal
+
+networks:
+  boundary_layer_internal:
+    driver: bridge
+
+volumes:
+  postgres_data:

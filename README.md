@@ -5,8 +5,8 @@
 </p>
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.0.10-blue)
-![Tests](https://img.shields.io/badge/tests-149%20passing-brightgreen)
+![Version](https://img.shields.io/badge/version-v1.1.0-blue)
+![Tests](https://img.shields.io/badge/tests-162%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -42,6 +42,20 @@ Focus areas include tool routing, Redis session integrity, flat authorization, f
 - It is not a production security product or WAF replacement
 
 BoundaryLayer is for defensive education, secure engineering, and controlled local testing only.
+
+## Production Deployment (v1.1.0)
+
+BoundaryLayer now ships a production deployment profile with API key authentication, metrics token protection, rate limiting, structured JSON logging, Alembic migrations, TLS ingress via Nginx, authenticated alert webhooks, and Slack/PagerDuty alert templates.
+
+Local lab mode (`make up`) remains unchanged. Production mode uses `docker-compose.prod.yml`:
+
+```bash
+cp .env.production.example .env.production
+bash deploy/nginx/generate-certs.sh
+make prod-up
+```
+
+See [docs/PRODUCTION.md](docs/PRODUCTION.md) for full deployment guidance.
 
 ## Architecture at a Glance
 
@@ -250,7 +264,7 @@ Full live Docker validation is documented in [docs/E2E_VALIDATION.md](docs/E2E_V
 make validate
 ```
 
-This runs 149 tests, lint, hygiene checks, all lab endpoints, Redis and PostgreSQL live checks, Prometheus rules, and Alertmanager delivery validation including `BoundaryLayerInferenceCircuitBreakerOpen`.
+This runs 162 tests, lint, hygiene checks, all lab endpoints, Redis and PostgreSQL live checks, Prometheus rules, and Alertmanager delivery validation including `BoundaryLayerInferenceCircuitBreakerOpen`.
 
 Terminal output examples: [docs/EXAMPLES.md](docs/EXAMPLES.md).
 
@@ -269,7 +283,8 @@ Generated reports, command transcripts, local bundles, editor files, and build p
 | `make setup` | Create virtualenv and install dependencies |
 | `make up` | Build and start Docker Compose services |
 | `make down` | Stop Docker Compose services |
-| `make test` | Run pytest (149 tests) |
+| `make test` | Run pytest (162 tests) |
+| `make validate-prod` | Run production stack validation (requires `.env.production`) |
 | `make lint` | Run ruff lint and format checks |
 | `make validate` | Full validation pipeline |
 | `make bundle` | Create local review ZIP in `~/Downloads/` |

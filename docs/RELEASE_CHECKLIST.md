@@ -5,7 +5,7 @@ Use this checklist before tagging a BoundaryLayer release or publishing a GitHub
 ## Pre-release validation
 
 - [ ] Run `make setup`
-- [ ] Run `make test` (149 tests passing)
+- [ ] Run `make test` (162 tests passing)
 - [ ] Run `make lint`
 - [ ] Run `docker compose down -v && make up`
 - [ ] Run `make validate` or follow [E2E_VALIDATION.md](E2E_VALIDATION.md) for live Docker checks

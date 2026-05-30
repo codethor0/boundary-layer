@@ -2,6 +2,17 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.1.0
+
+- Added production deployment profile with API authentication, metrics protection, and rate limiting
+- Added TLS ingress via Nginx, Alembic migrations, structured JSON logging, and production Compose stack
+- Added authenticated alert webhook receiver and Slack/PagerDuty Alertmanager templates
+- Added Redis password support for secured production Redis deployments
+- Local lab mode (`docker-compose.yml`) remains backward compatible with auth disabled by default
+
+- Added `/ready` dependency health endpoint and `make validate-prod` production gate
+- Added alert webhook authentication tests and production stack validation script
+
 ## v1.0.10
 
 - Redesigned logo with Strata Conduit concept: layered infrastructure strata and vertical inspection conduit
