@@ -5,7 +5,7 @@
 </p>
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.0.5-blue)
+![Version](https://img.shields.io/badge/version-v1.0.6-blue)
 ![Tests](https://img.shields.io/badge/tests-149%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)

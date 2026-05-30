@@ -48,10 +48,10 @@ curl -sf http://localhost:8081/health
 Expected API health:
 
 ```json
-{"status":"ok","service":"boundary-layer-api","version":"1.0.3"}
+{"status":"ok","service":"boundary-layer-api","version":"1.0.6"}
 ```
 
-Version string may change by release; status must be `ok`.
+Version string must match the current release tag.
 
 ## Lab endpoint checks
 

@@ -149,6 +149,20 @@ Generated reports, build transcripts, and editor tooling artifacts belong in loc
 
 Run `make bundle` after validation to create a review bundle in `~/Downloads/`. Bundles must not include `.cursor/`.
 
+## v1.0.6 release notes template
+
+```markdown
+## BoundaryLayer v1.0.6
+
+Version consistency and final launch gate.
+
+### Highlights
+
+- Aligned API health version with the public release version
+- Re-ran full live Docker validation
+- Confirmed CI, badges, diagrams, logo assets, and public repository hygiene remain clean
+```
+
 ## v1.0.5 release notes template
 
 ```markdown

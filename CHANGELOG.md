@@ -2,6 +2,12 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.0.6
+
+- Aligned API health version with the public release version
+- Re-ran full live Docker validation
+- Confirmed CI, badges, diagrams, logo assets, and public repository hygiene remain clean
+
 ## v1.0.5
 
 - Added hand-authored SVG logo assets and visual identity documentation

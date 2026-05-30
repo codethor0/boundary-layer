@@ -82,6 +82,10 @@
 - End-to-end validation documentation
 - README badge and CI visibility polish
 
+## v1.0.6 (Complete)
+
+- Aligned API health version with public release version
+
 ## Future
 
 - Commented external Alertmanager receiver templates
