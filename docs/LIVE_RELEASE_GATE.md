@@ -120,4 +120,4 @@ See [E2E_VALIDATION.md](E2E_VALIDATION.md) for command details.
 - No external alert integrations are used.
 - Synthetic lab data only.
 
-For demo walkthrough, see [DEMO.md](DEMO.md). For architecture context, see [DIAGRAMS.md](DIAGRAMS.md).
+For demo walkthrough, see [DEMO.md](DEMO.md). For architecture context, see [DIAGRAMS.md](DIAGRAMS.md). For deeper bug-hunting QA beyond this gate, see [DEEP_QA.md](DEEP_QA.md).

@@ -2,6 +2,14 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.0.9
+
+- Added deeper QA documentation for API contracts, invalid inputs, metrics, live Redis, live PostgreSQL, Prometheus, Alertmanager, and restart testing
+- Re-ran deeper end-to-end bug-hunting validation across the full Docker stack
+- Confirmed all nine labs behave as documented in vulnerable and hardened modes
+- Confirmed invalid inputs fail closed
+- Confirmed generated reports, build transcripts, and prompt artifacts remain excluded from Git
+
 ## v1.0.8
 
 - Added final live Docker release-gate documentation

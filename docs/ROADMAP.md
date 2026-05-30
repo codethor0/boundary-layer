@@ -91,6 +91,10 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.0.9 (Complete)
+
+- Deep end-to-end QA documentation and bug-hunting validation pass
+
 ## Future
 
 - Commented external Alertmanager receiver templates

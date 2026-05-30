@@ -46,6 +46,17 @@ Release owners should confirm:
   git ls-files | grep -Ei '(^|/)\.cursor/|COMMAND_TRANSCRIPT|VALIDATION_LOG|TEST_RESULTS|IMPLEMENTATION_REPORT|DEPENDENCY_REPORT|NEXT_STEPS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|cursor-prompt|agent-prompt|agent-report|cursor_boundarylayer|project_requiremen' && exit 1 || true
   ```
 
+## Deep QA (v1.0.9)
+
+- [ ] Run deeper QA per [DEEP_QA.md](DEEP_QA.md)
+- [ ] Confirm invalid inputs fail closed (422)
+- [ ] Confirm metrics families present after lab runs
+- [ ] Confirm Redis keys are namespaced under `boundary_layer:lab:*`
+- [ ] Confirm PostgreSQL governance and write storm state matches expected behavior
+- [ ] Confirm Prometheus targets healthy and six required alert rules load
+- [ ] Confirm restart recovery (API and observability stack)
+- [ ] Inspect service log tails for tracebacks or fatal errors
+
 ## Live release gate (v1.0.8)
 
 - [ ] Run full live Docker gate per [LIVE_RELEASE_GATE.md](LIVE_RELEASE_GATE.md)

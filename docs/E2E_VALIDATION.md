@@ -48,7 +48,7 @@ curl -sf http://localhost:8081/health
 Expected API health:
 
 ```json
-{"status":"ok","service":"boundary-layer-api","version":"1.0.8"}
+{"status":"ok","service":"boundary-layer-api","version":"1.0.9"}
 ```
 
 Version string must match the current release tag.
@@ -176,4 +176,4 @@ Expected: Prometheus text format with `boundary_layer_` metric names after lab r
 - No external alert integrations are used.
 - Synthetic lab data only.
 
-For a deeper pre-release pass before public promotion, see [LIVE_RELEASE_GATE.md](LIVE_RELEASE_GATE.md).
+For a deeper pre-release pass before public promotion, see [LIVE_RELEASE_GATE.md](LIVE_RELEASE_GATE.md) and [DEEP_QA.md](DEEP_QA.md).
