@@ -5,7 +5,8 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-BUNDLE_NAME="boundary-layer-bundle-v1.1.0-${TIMESTAMP}"
+APP_VERSION="$("${REPO_ROOT}/.venv/bin/python3" -c 'from apps.api.config import Settings; print(Settings().app_version)' 2>/dev/null || grep -E 'app_version: str = ' "${REPO_ROOT}/apps/api/config.py" | sed -E 's/.*"([^"]+)".*/\1/')"
+BUNDLE_NAME="boundary-layer-bundle-v${APP_VERSION}-${TIMESTAMP}"
 STAGING_DIR="$(mktemp -d "/tmp/${BUNDLE_NAME}.XXXXXX")"
 DOWNLOADS_DIR="${HOME}/Downloads"
 ZIP_PATH="${DOWNLOADS_DIR}/${BUNDLE_NAME}.zip"
@@ -33,13 +34,13 @@ This file is included in local release bundles only. It is not part of the publi
 
 ## Release
 
-- Version: v1.1.0
+- Version: v${APP_VERSION}
 - Commit: $(git rev-parse HEAD)
 - Branch: $(git branch --show-current)
 
 ## Scope
 
-BoundaryLayer v1.1.0 production deployment profile. API authentication, TLS ingress, migrations, and external alert templates. Nine security labs unchanged in hardened mode contract.
+BoundaryLayer production-like local validation profile and nine security labs. This bundle is for local review only.
 
 ## Validation
 
@@ -217,6 +218,10 @@ BAD_PATTERNS=(
   "prompt-artifacts/"
   "cursor-prompts/"
   "agent-prompts/"
+  "cursor_boundarylayer"
+  "project_requiremen"
+  "COMMAND_TRANSCRIPT"
+  "node_modules/"
 )
 for pattern in "${BAD_PATTERNS[@]}"; do
   if [[ "$pattern" == ".env" ]]; then

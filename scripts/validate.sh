@@ -96,6 +96,10 @@ run_or_fail() {
 
 init_log
 
+http_code() {
+  curl -s -o /dev/null -w "%{http_code}" "$@" 2>/dev/null || true
+}
+
 echo "==> Formatting check"
 run_or_fail "Ruff format check" "${RUFF} format --check apps/ labs/ tests/"
 
@@ -447,8 +451,10 @@ for metric in \
   fi
 done
 
-INVALID_TENANT_CMD="curl -sf -o /dev/null -w '%{http_code}' -X POST ${API_URL}/labs/prompt-cache-isolation/run -H 'Content-Type: application/json' -d '{\"mode\":\"vulnerable\",\"tenant_a\":\"\"}'"
-INVALID_TENANT_CODE=$(eval "$INVALID_TENANT_CMD" || true)
+INVALID_TENANT_CMD="POST ${API_URL}/labs/prompt-cache-isolation/run empty tenant_a"
+INVALID_TENANT_CODE="$(http_code -X POST "${API_URL}/labs/prompt-cache-isolation/run" \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"vulnerable","tenant_a":""}')"
 if [[ "${INVALID_TENANT_CODE}" == "422" ]]; then
   log_step "Prompt cache invalid tenant rejected" "$INVALID_TENANT_CMD" "PASS"
 else
@@ -552,13 +558,71 @@ for metric in \
   fi
 done
 
-INVALID_FILE_TYPE_CMD="curl -sf -o /dev/null -w '%{http_code}' -X POST ${API_URL}/labs/file-upload/run -H 'Content-Type: application/json' -d '{\"mode\":\"vulnerable\",\"file_type\":\"exe\"}'"
-INVALID_FILE_TYPE_CODE=$(eval "$INVALID_FILE_TYPE_CMD" || true)
+INVALID_FILE_TYPE_CMD="POST ${API_URL}/labs/file-upload/run invalid file_type"
+INVALID_FILE_TYPE_CODE="$(http_code -X POST "${API_URL}/labs/file-upload/run" \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"vulnerable","file_type":"exe"}')"
 if [[ "${INVALID_FILE_TYPE_CODE}" == "422" ]]; then
   log_step "File upload invalid file_type rejected" "$INVALID_FILE_TYPE_CMD" "PASS"
 else
   log_step "File upload invalid file_type rejected" "$INVALID_FILE_TYPE_CMD" "FAIL" \
     "Expected HTTP 422, got ${INVALID_FILE_TYPE_CODE}"
+  exit 1
+fi
+
+echo "==> Postgres backup/restore roundtrip"
+BACKUP_OUT="$(bash scripts/backup-postgres.sh)"
+BACKUP_FILE="$(echo "${BACKUP_OUT}" | awk '/Backup written to / {print $4}')"
+if [[ ! -f "${BACKUP_FILE}" ]]; then
+  log_step "Postgres backup file created" "bash scripts/backup-postgres.sh" "FAIL" \
+    "Backup file missing: ${BACKUP_FILE}"
+  exit 1
+fi
+WS_BEFORE="$(docker compose exec -T postgres psql -U boundary_layer -d boundary_layer -tAc \
+  "SELECT COUNT(*) FROM write_storm_events;")"
+docker compose exec -T postgres psql -U boundary_layer -d boundary_layer -c \
+  "DROP TABLE IF EXISTS write_storm_events CASCADE;" >/dev/null
+bash scripts/restore-postgres.sh "${BACKUP_FILE}" >/dev/null 2>&1
+WS_AFTER="$(docker compose exec -T postgres psql -U boundary_layer -d boundary_layer -tAc \
+  "SELECT COUNT(*) FROM write_storm_events;")"
+if [[ "${WS_AFTER}" -ge "${WS_BEFORE}" ]]; then
+  log_step "Postgres restore roundtrip" \
+    "drop write_storm_events then restore ${BACKUP_FILE}" "PASS"
+else
+  log_step "Postgres restore roundtrip" \
+    "drop write_storm_events then restore ${BACKUP_FILE}" "FAIL" \
+    "Expected >= ${WS_BEFORE} rows after restore, got ${WS_AFTER}"
+  exit 1
+fi
+
+echo "==> API restart recovery"
+docker compose restart api >/dev/null
+API_READY=false
+for _ in $(seq 1 30); do
+  if curl -sf "${API_URL}/health" >/dev/null 2>&1; then
+    API_READY=true
+    break
+  fi
+  sleep 1
+done
+if [[ "${API_READY}" != "true" ]]; then
+  log_step "API restart recovery" "docker compose restart api" "FAIL" \
+    "API /health did not recover within 30 seconds"
+  exit 1
+fi
+RESTART_LAB_CMD="curl -sf -X POST ${API_URL}/labs/redis/run -H 'Content-Type: application/json' -d '{\"mode\":\"hardened\"}'"
+RESTART_LAB_RESP="$(eval "${RESTART_LAB_CMD}")"
+if echo "${RESTART_LAB_RESP}" | grep -q '"blocked":true'; then
+  log_step "Hardened lab after API restart" "${RESTART_LAB_CMD}" "PASS"
+else
+  log_step "Hardened lab after API restart" "${RESTART_LAB_CMD}" "FAIL" \
+    "Unexpected lab response after restart"
+  exit 1
+fi
+if curl -sf "${API_URL}/metrics" | grep -q boundary_layer_lab_runs_total; then
+  log_step "Metrics after API restart" "curl -sf ${API_URL}/metrics" "PASS"
+else
+  log_step "Metrics after API restart" "curl -sf ${API_URL}/metrics" "FAIL"
   exit 1
 fi
 

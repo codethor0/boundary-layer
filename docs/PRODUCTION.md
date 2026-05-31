@@ -1,6 +1,6 @@
 # Production Deployment
 
-BoundaryLayer v1.3.0 adds a production deployment profile while preserving the local lab stack in `docker-compose.yml`.
+BoundaryLayer v1.3.2 includes a **production-like local validation profile** while preserving the local lab stack in `docker-compose.yml`. This profile helps you test auth, TLS ingress, rate limits, and observability lockdown on a machine you control. It is not a hosted production SaaS offering.
 
 ## What Production Adds
 
@@ -9,7 +9,7 @@ BoundaryLayer v1.3.0 adds a production deployment profile while preserving the l
 | API authentication | Disabled by default | Required API key (Bearer or `X-API-Key`) |
 | Metrics access | Open | Bearer token required |
 | Vulnerable lab mode | Enabled | Disabled |
-| Rate limiting | Disabled | Redis-backed (120 req/min default) + nginx burst limit |
+| Rate limiting | Disabled | Redis-backed (120 req/min default) + nginx burst limit; fails closed if Redis unavailable |
 | Structured logging | Plain text | JSON logs |
 | Database migrations | On-demand `init_db()` | Alembic on startup |
 | TLS ingress | None | Nginx on `:8443` |
@@ -107,7 +107,9 @@ alembic upgrade head
 - Rotate API, metrics, webhook, Redis, Postgres, and HMAC secrets regularly
 - Keep Redis and PostgreSQL off public networks (production compose does this by default)
 - Use a secrets manager (Vault, AWS Secrets Manager, etc.) instead of plain `.env.production` in real environments — see [SECRETS.md](SECRETS.md)
-- Schedule Postgres backups — see [BACKUP_RESTORE.md](BACKUP_RESTORE.md)
+- Schedule Postgres backups and test restore — see [BACKUP_RESTORE.md](BACKUP_RESTORE.md)
+- Production-like compose sets `BOUNDARY_LAYER_TRUST_PROXY_HEADERS=true`. Nginx must be the TLS ingress so the API uses the rightmost `X-Forwarded-For` hop. Do not expose the API container directly on a host port with proxy header trust enabled.
+- Redis-backed rate limiting fails closed (HTTP 503) when Redis is unavailable in the production-like profile. Development mode fails open for local lab availability.
 
 ## Makefile Targets
 

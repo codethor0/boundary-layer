@@ -12,7 +12,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from apps.api.config import Settings, get_settings
-from apps.api.rate_limit import build_rate_limiter
+from apps.api.rate_limit import RateLimitUnavailable, build_rate_limiter
 
 logger = logging.getLogger("boundary_layer.api")
 
@@ -92,10 +92,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._limiter = None
         self._backend = None
 
-    def _client_key(self, request: Request) -> str:
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
+    def _client_key(self, request: Request, settings: Settings) -> str:
+        if settings.trust_proxy_headers:
+            forwarded = request.headers.get("X-Forwarded-For")
+            if forwarded:
+                parts = [part.strip() for part in forwarded.split(",") if part.strip()]
+                if parts:
+                    # Nginx appends the real client IP as the rightmost hop.
+                    return parts[-1]
         if request.client:
             return request.client.host
         return "unknown"
@@ -103,7 +107,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def _get_limiter(self, settings: Settings):
         if self._limiter is None or self._backend != settings.rate_limit_backend:
             self._backend = settings.rate_limit_backend
-            self._limiter = build_rate_limiter(settings.rate_limit_backend)
+            fail_open = not settings.is_production
+            self._limiter = build_rate_limiter(
+                settings.rate_limit_backend,
+                fail_open=fail_open,
+            )
         return self._limiter
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
@@ -115,8 +123,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         window = settings.rate_limit_window_seconds
         limit = settings.rate_limit_requests
-        key = self._client_key(request)
-        allowed, remaining = self._get_limiter(settings).allow(key, limit, window)
+        key = self._client_key(request, settings)
+        try:
+            allowed, remaining = self._get_limiter(settings).allow(key, limit, window)
+        except RateLimitUnavailable:
+            return JSONResponse(
+                status_code=503,
+                content={"detail": "Rate limiting unavailable"},
+            )
 
         if not allowed:
             return JSONResponse(

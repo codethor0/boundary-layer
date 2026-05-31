@@ -10,6 +10,23 @@ API_URL="${API_URL:-https://localhost:8443}"
 CURL=(curl --config /dev/null -k -s)
 CURL_FAIL=(curl --config /dev/null -k -sf)
 
+http_code() {
+  curl --config /dev/null -k -s -o /dev/null -w "%{http_code}" "$@" 2>/dev/null || true
+}
+
+wait_for_prod_health() {
+  for _ in $(seq 1 60); do
+    if [[ "$(http_code "${API_URL}/health")" == "200" ]]; then
+      return 0
+    fi
+    sleep 2
+  done
+  echo "Timed out waiting for production API health at ${API_URL}" >&2
+  "${PROD_COMPOSE[@]}" ps >&2 || true
+  "${PROD_COMPOSE[@]}" logs --no-color --tail=80 redis api >&2 || true
+  return 1
+}
+
 if [[ ! -f "${PROD_ENV_FILE}" ]]; then
   echo "Missing ${PROD_ENV_FILE}. Copy .env.production.example and set secrets." >&2
   exit 1
@@ -56,7 +73,7 @@ docker compose down --remove-orphans >/dev/null 2>&1 || true
 
 echo "==> Starting production stack"
 "${PROD_COMPOSE[@]}" up -d --build
-sleep 15
+wait_for_prod_health
 
 echo "==> TLS health check"
 "${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.3.2"'
@@ -137,14 +154,33 @@ done
   http://localhost:8080/alerts | grep -q BoundaryLayerInferenceCircuitBreakerOpen
 
 echo "==> Postgres backup smoke test"
-bash scripts/backup-postgres.sh
+backup_out="$(bash scripts/backup-postgres.sh)"
+echo "${backup_out}"
+backup_file="$(echo "${backup_out}" | awk '/Backup written to / {print $4}')"
+if [[ ! -f "${backup_file}" ]]; then
+  echo "Backup file missing: ${backup_file}" >&2
+  exit 1
+fi
+
+echo "==> Postgres restore roundtrip"
+ws_before="$("${PROD_COMPOSE[@]}" exec -T postgres psql -U boundary_layer -d boundary_layer -tAc \
+  "SELECT COUNT(*) FROM write_storm_events;")"
+"${PROD_COMPOSE[@]}" exec -T postgres psql -U boundary_layer -d boundary_layer -c \
+  "DROP TABLE IF EXISTS write_storm_events CASCADE;" >/dev/null
+bash scripts/restore-postgres.sh "${backup_file}" >/dev/null 2>&1
+ws_after="$("${PROD_COMPOSE[@]}" exec -T postgres psql -U boundary_layer -d boundary_layer -tAc \
+  "SELECT COUNT(*) FROM write_storm_events;")"
+if [[ "${ws_after}" -lt "${ws_before}" ]]; then
+  echo "Restore roundtrip failed: expected >= ${ws_before} rows, got ${ws_after}" >&2
+  exit 1
+fi
 
 echo "==> Rate limit returns 429 not 503 under burst"
 declare -A rate_counts=()
 for _ in $(seq 1 120); do
-  code="$("${CURL[@]}" -o /dev/null -w "%{http_code}" \
+  code="$(http_code \
     -H "Authorization: Bearer ${BOUNDARY_LAYER_API_KEY}" \
-    "${API_URL}/labs")" || true
+    "${API_URL}/labs")"
   rate_counts["${code}"]=$(( ${rate_counts["${code}"]:-0} + 1 ))
 done
 [[ -n "${rate_counts[429]:-}" ]] || {

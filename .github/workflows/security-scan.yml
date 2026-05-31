@@ -42,13 +42,14 @@ jobs:
       - name: Build production images
         run: docker compose -f docker-compose.prod.yml -p boundary-layer-prod build api alert-webhook mock-llm
       - name: Scan API image
-        uses: aquasecurity/trivy-action@0.28.0
+        # Pin to immutable release v0.35.0 (see Aqua Trivy March 2026 advisory).
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         with:
           image-ref: boundary-layer-prod-api
           severity: CRITICAL,HIGH
           exit-code: "1"
       - name: Scan alert webhook image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         with:
           image-ref: boundary-layer-prod-alert-webhook
           severity: CRITICAL,HIGH

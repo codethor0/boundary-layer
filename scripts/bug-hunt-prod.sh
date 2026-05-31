@@ -35,7 +35,7 @@ check() {
 }
 
 http_code() {
-  "${CURL[@]}" -o /dev/null -w "%{http_code}" "$@" || true
+  "${CURL[@]}" -o /dev/null -w "%{http_code}" "$@" 2>/dev/null || true
 }
 
 ensure_prod_stack() {

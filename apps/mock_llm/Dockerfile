@@ -2,6 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# hadolint ignore=DL3008: curl version pinning is unstable across python:3.12-slim rebuilds.
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 1000 boundarylayer \

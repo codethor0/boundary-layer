@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from apps.alert_webhook.main import _stored_alerts
 from apps.alert_webhook.main import app as webhook_app
-from apps.api.rate_limit import RedisRateLimiter
+from apps.api.rate_limit import RateLimitUnavailable, RedisRateLimiter
 
 webhook_client = TestClient(webhook_app)
 
@@ -19,15 +19,24 @@ def clear_webhook_alerts():
     _stored_alerts.clear()
 
 
-def test_redis_rate_limiter_survives_redis_failure():
+def test_redis_rate_limiter_fail_open_in_local_lab_mode():
     redis_client = MagicMock()
     redis_client.pipeline.side_effect = ConnectionError("redis unavailable")
-    limiter = RedisRateLimiter(redis_client)
+    limiter = RedisRateLimiter(redis_client, fail_open=True)
 
     allowed, remaining = limiter.allow("client-a", limit=10, window=60)
 
     assert allowed is True
     assert remaining == 10
+
+
+def test_redis_rate_limiter_fail_closed_in_production_like_mode():
+    redis_client = MagicMock()
+    redis_client.pipeline.side_effect = ConnectionError("redis unavailable")
+    limiter = RedisRateLimiter(redis_client, fail_open=False)
+
+    with pytest.raises(RateLimitUnavailable):
+        limiter.allow("client-a", limit=10, window=60)
 
 
 def test_webhook_rejects_batches_when_store_is_full(monkeypatch):

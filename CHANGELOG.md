@@ -2,6 +2,14 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.3.3 (unreleased)
+
+- Fix Production Validate CI Redis healthcheck and CI secret generation
+- Fix Security Scan CI (Trivy action pin, Hadolint DL3008)
+- Harden rate limiting: fail-closed in production-like profile, safe X-Forwarded-For handling
+- Add restore roundtrip and API restart validation to validation gates
+- Document dev stack insecurity and mock LLM integration scope
+
 ## v1.3.2
 
 - Upgrade FastAPI to 0.136.3 to resolve Starlette CVEs flagged by pip-audit
