@@ -1,0 +1,55 @@
+name: Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  hadolint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: apps/api/Dockerfile
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: apps/alert_webhook/Dockerfile
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: apps/mock_llm/Dockerfile
+
+  pip-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pip-audit
+        run: python -m pip install --upgrade pip pip-audit
+      - name: Audit Python dependencies
+        run: pip-audit -r apps/api/requirements.txt
+
+  trivy-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production images
+        run: docker compose -f docker-compose.prod.yml -p boundary-layer-prod build api alert-webhook mock-llm
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: boundary-layer-prod-api
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+      - name: Scan alert webhook image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: boundary-layer-prod-alert-webhook
+          severity: CRITICAL,HIGH
+          exit-code: "1"

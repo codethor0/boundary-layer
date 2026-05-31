@@ -1,6 +1,6 @@
 # Production Deployment
 
-BoundaryLayer v1.2.0 adds a production deployment profile while preserving the local lab stack in `docker-compose.yml`.
+BoundaryLayer v1.3.0 adds a production deployment profile while preserving the local lab stack in `docker-compose.yml`.
 
 ## What Production Adds
 
@@ -19,6 +19,9 @@ BoundaryLayer v1.2.0 adds a production deployment profile while preserving the l
 | OpenAPI / docs | Enabled | Disabled |
 | Observability UI | Localhost ports | Internal-only (not exposed via nginx) |
 | Container hardening | Dev defaults | Non-root, read-only rootfs, resource limits |
+| Data-plane TLS | Disabled | Postgres `sslmode=require`, Redis TLS-only port |
+| Secrets / backup | Manual | Vault/AWS SM examples, `make backup` / `make restore` |
+| Security scanning | Local only | Hadolint, pip-audit, Trivy in CI |
 
 ## Quick Start (Production Profile)
 
@@ -29,11 +32,14 @@ cp .env.production.example .env.production
 # Edit every CHANGE_ME value
 ```
 
-2. Generate TLS certificate (local/staging):
+2. Generate TLS material:
 
 ```bash
 bash deploy/nginx/generate-certs.sh
+bash deploy/tls/generate-internal-ca.sh
 ```
+
+See [TLS.md](TLS.md) for CA-backed ingress certs and rotation.
 
 3. Render observability configs:
 
@@ -100,7 +106,8 @@ alembic upgrade head
 - Replace self-signed certs with CA-backed certificates for real deployments
 - Rotate API, metrics, webhook, Redis, Postgres, and HMAC secrets regularly
 - Keep Redis and PostgreSQL off public networks (production compose does this by default)
-- Use a secrets manager (Vault, AWS Secrets Manager, etc.) instead of plain `.env.production` in real environments
+- Use a secrets manager (Vault, AWS Secrets Manager, etc.) instead of plain `.env.production` in real environments — see [SECRETS.md](SECRETS.md)
+- Schedule Postgres backups — see [BACKUP_RESTORE.md](BACKUP_RESTORE.md)
 
 ## Makefile Targets
 
@@ -109,4 +116,7 @@ make prod-render-config   # Render prometheus + alertmanager configs
 make prod-up              # Start production stack
 make prod-down            # Stop production stack
 make validate-prod        # Full production profile validation (stops prod stack when done)
+make validate-e2e         # Full test + lint + prod + local validation gate
+make backup               # pg_dump backup to backups/postgres/
+make restore BACKUP=...   # Restore from backup file
 ```

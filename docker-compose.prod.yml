@@ -1,6 +1,7 @@
 # Production deployment for BoundaryLayer
 # Requires rendered configs: make prod-render-config
 # Requires TLS certs: bash deploy/nginx/generate-certs.sh
+# Requires internal data-plane TLS: bash deploy/tls/generate-internal-ca.sh
 
 x-app-security: &app-security
   security_opt:
@@ -37,14 +38,20 @@ services:
       REDIS_PORT: "6379"
       REDIS_DB: "0"
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_TLS_ENABLED: "true"
+      REDIS_SSL_CA_CERT: /app/tls/ca.crt
       BOUNDARY_LAYER_REDIS_LIVE: "true"
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
       POSTGRES_USER: boundary_layer
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: boundary_layer
+      POSTGRES_SSLMODE: require
+      POSTGRES_SSL_ROOT_CERT: /app/tls/ca.crt
       BOUNDARY_LAYER_POSTGRES_LIVE: "true"
       SESSION_HMAC_SECRET: ${SESSION_HMAC_SECRET}
+    volumes:
+      - ./deploy/tls/internal:/app/tls:ro
     depends_on:
       redis:
         condition: service_healthy
@@ -110,9 +117,38 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - "${REDIS_PASSWORD}"
+      - --tls-port
+      - "6379"
+      - --port
+      - "0"
+      - --tls-cert-file
+      - /etc/redis/tls/redis-server.crt
+      - --tls-key-file
+      - /etc/redis/tls/redis-server.key
+      - --tls-ca-cert-file
+      - /etc/redis/tls/ca.crt
+      - --tls-auth-clients
+      - "no"
+    volumes:
+      - ./deploy/tls/internal:/etc/redis/tls:ro
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "--tls",
+          "--cacert",
+          "/etc/redis/tls/ca.crt",
+          "-a",
+          "${REDIS_PASSWORD}",
+          "ping",
+        ]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -130,6 +166,7 @@ services:
       POSTGRES_USER: boundary_layer
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: boundary_layer
+    entrypoint: ["/usr/local/bin/boundary-layer-postgres-entrypoint.sh"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U boundary_layer -d boundary_layer"]
       interval: 5s
@@ -142,6 +179,8 @@ services:
       - no-new-privileges:true
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./deploy/tls/internal:/etc/postgresql/tls-input:ro
+      - ./deploy/tls/postgres-entrypoint.sh:/usr/local/bin/boundary-layer-postgres-entrypoint.sh:ro
     networks:
       - boundary_layer_internal
 

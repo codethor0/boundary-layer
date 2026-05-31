@@ -2,6 +2,13 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.3.0
+
+- Add internal Postgres/Redis TLS, ingress cert rotation tooling, and TLS runbook
+- Add secrets manager examples (Vault, AWS SM), backup/restore scripts, and runbooks
+- Add Hadolint, pip-audit, and Trivy security scanning in CI
+- Add `make validate-e2e` for full local + production end-to-end validation gate
+
 ## v1.2.0
 
 - Harden production containers with non-root users, read-only root filesystems, and resource limits

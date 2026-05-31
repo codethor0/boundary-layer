@@ -5,7 +5,7 @@
 </p>
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.2.0-blue)
+![Version](https://img.shields.io/badge/version-v1.3.0-blue)
 ![Tests](https://img.shields.io/badge/tests-162%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
@@ -43,7 +43,7 @@ Focus areas include tool routing, Redis session integrity, flat authorization, f
 
 BoundaryLayer is for defensive education, secure engineering, and controlled local testing only.
 
-## Production Deployment (v1.2.0)
+## Production Deployment (v1.3.0)
 
 BoundaryLayer now ships a production deployment profile with API key authentication, metrics token protection, rate limiting, structured JSON logging, Alembic migrations, TLS ingress via Nginx, authenticated alert webhooks, and Slack/PagerDuty alert templates.
 
@@ -264,7 +264,7 @@ Full live Docker validation is documented in [docs/E2E_VALIDATION.md](docs/E2E_V
 make validate
 ```
 
-This runs 169 tests, lint, hygiene checks, all lab endpoints, Redis and PostgreSQL live checks, Prometheus rules, and Alertmanager delivery validation including `BoundaryLayerInferenceCircuitBreakerOpen`.
+This runs 173 tests, lint, hygiene checks, all lab endpoints, Redis and PostgreSQL live checks, Prometheus rules, and Alertmanager delivery validation including `BoundaryLayerInferenceCircuitBreakerOpen`.
 
 Terminal output examples: [docs/EXAMPLES.md](docs/EXAMPLES.md).
 
@@ -283,7 +283,9 @@ Generated reports, command transcripts, local bundles, editor files, and build p
 | `make setup` | Create virtualenv and install dependencies |
 | `make up` | Build and start Docker Compose services |
 | `make down` | Stop Docker Compose services |
-| `make test` | Run pytest (169 tests) |
+| `make test` | Run pytest (173 tests) |
+| `make validate-e2e` | Full test + lint + prod + local validation |
+| `make backup` | Backup Postgres to `backups/postgres/` |
 | `make validate-prod` | Run production stack validation (requires `.env.production`) |
 | `make lint` | Run ruff lint and format checks |
 | `make validate` | Full validation pipeline |

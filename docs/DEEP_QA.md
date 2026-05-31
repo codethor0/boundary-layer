@@ -24,7 +24,7 @@ make lint
 make up
 ```
 
-Expected: 169 tests passing, lint clean, all seven Compose services running (health checks healthy where defined).
+Expected: 173 tests passing, lint clean, all seven Compose services running (health checks healthy where defined).
 
 ## API contract testing
 
