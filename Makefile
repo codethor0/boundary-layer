@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example bundle clean fmt help prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke bundle clean fmt help prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -81,6 +81,9 @@ production-saas-check:
 
 production-saas-check-example:
 	bash scripts/production-saas-check-example.sh
+
+production-saas-auth-smoke:
+	bash scripts/production-saas-auth-smoke.sh
 
 backup:
 	bash scripts/backup-postgres.sh

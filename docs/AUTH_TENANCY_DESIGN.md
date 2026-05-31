@@ -1,6 +1,6 @@
 # Authentication and Tenancy Design
 
-Design document for a future hosted Production SaaS. **Not implemented in v1.3.5.**
+Design document for a future hosted Production SaaS. **Phase 1 implemented:** JWT middleware, tenant/membership/audit schema, and production-saas route protection. **Not a full hosted SaaS launch.**
 
 ## Recommendation: OIDC-first
 
@@ -86,9 +86,9 @@ If a browser UI is added:
 
 ## Implementation checklist
 
-1. Choose OIDC provider and register API audience.
-2. Add User, Tenant, Membership models (see `TENANCY_DATA_MODEL.md`).
-3. Implement JWT middleware and tenant context dependency.
-4. Migrate lab tables to tenant-scoped schema (Alembic).
-5. Add integration tests for cross-tenant denial.
-6. Add admin audit log pipeline.
+1. Choose OIDC provider and register API audience. **[Phase 2]**
+2. Add User, Tenant, Membership models (see `TENANCY_DATA_MODEL.md`). **[Done: schema + helpers]**
+3. Implement JWT middleware and tenant context dependency. **[Done: production-saas profile]**
+4. Migrate lab tables to tenant-scoped schema (Alembic). **[Not started]**
+5. Add integration tests for cross-tenant denial. **[Partial: prompt-cache + auth tests]**
+6. Add admin audit log pipeline. **[Foundation only]**

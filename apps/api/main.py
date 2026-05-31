@@ -1,11 +1,12 @@
 """BoundaryLayer API - Open LLM Infrastructure Security Lab."""
 
-from fastapi import Depends, FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
+from apps.api.auth import local_lab_auth_context, resolve_request_tenant
 from apps.api.config import get_settings
 from apps.api.lifespan import lifespan
 from apps.api.logging_config import configure_logging
@@ -45,6 +46,7 @@ from apps.api.metrics import (
     set_sse_worker_pressure,
 )
 from apps.api.middleware import (
+    AuthContextMiddleware,
     ProductionLockdownMiddleware,
     RateLimitMiddleware,
     RequestContextMiddleware,
@@ -53,6 +55,7 @@ from apps.api.middleware import (
 from apps.api.readiness import evaluate_readiness
 from apps.api.security import (
     enforce_vulnerable_allowed,
+    get_request_auth_context,
     verify_api_access,
     verify_metrics_access,
 )
@@ -111,6 +114,7 @@ app = FastAPI(
 app.add_middleware(ProductionLockdownMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
+app.add_middleware(AuthContextMiddleware)
 app.add_middleware(RequestContextMiddleware, settings=settings)
 
 if settings.cors_enabled and settings.cors_origin_list:
@@ -635,12 +639,18 @@ def run_sse_exhaustion(request: SseExhaustionLabRequest):
     response_model=LabResponse,
     dependencies=[Depends(verify_api_access)],
 )
-def run_prompt_cache_isolation(request: PromptCacheIsolationLabRequest):
+def run_prompt_cache_isolation(
+    request: PromptCacheIsolationLabRequest,
+    http_request: Request,
+):
     enforce_vulnerable_allowed(request.mode, get_settings())
+    settings = get_settings()
+    auth_context = get_request_auth_context(http_request) or local_lab_auth_context()
+    tenant_a = resolve_request_tenant(settings, auth_context, request.tenant_a)
     try:
         result = run_prompt_cache_isolation_lab(
             request.mode,
-            request.tenant_a,
+            tenant_a,
             request.tenant_b,
             request.prompt_prefix,
         )

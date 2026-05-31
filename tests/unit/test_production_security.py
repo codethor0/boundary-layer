@@ -10,6 +10,7 @@ from apps.api import config
 from apps.api.config import get_settings
 from apps.api.main import app
 from apps.api.security import enforce_vulnerable_allowed, verify_api_access
+from tests.helpers.auth_tenancy import make_request
 
 
 @pytest.fixture(autouse=True)
@@ -50,6 +51,7 @@ def test_verify_api_access_rejects_missing_key():
     )
     with pytest.raises(HTTPException) as exc:
         verify_api_access(
+            request=make_request(),
             authorization=None,
             x_api_key=None,
             settings=settings,
@@ -65,6 +67,7 @@ def test_verify_api_access_accepts_bearer_token():
         boundary_layer_env="development",
     )
     verify_api_access(
+        request=make_request(authorization=f"Bearer {api_key}"),
         authorization=f"Bearer {api_key}",
         x_api_key=None,
         settings=settings,

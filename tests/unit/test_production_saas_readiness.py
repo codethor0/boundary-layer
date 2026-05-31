@@ -26,7 +26,13 @@ def _production_like_env(monkeypatch):
 def _production_saas_env(monkeypatch):
     _production_like_env(monkeypatch)
     monkeypatch.setenv("BOUNDARY_LAYER_PROFILE", "production-saas")
-    monkeypatch.setenv("BOUNDARY_LAYER_AUTH_PROVIDER", "oidc-example")
+    monkeypatch.setenv("BOUNDARY_LAYER_AUTH_PROVIDER", "oidc-test")
+    monkeypatch.setenv("OIDC_ISSUER_URL", "https://issuer.example.com")
+    monkeypatch.setenv("OIDC_AUDIENCE", "boundary-layer-api")
+    monkeypatch.setenv(
+        "OIDC_JWKS_URL", "https://issuer.example.com/.well-known/jwks.json"
+    )
+    monkeypatch.setenv("OIDC_ALGORITHMS", "HS256")
     monkeypatch.setenv(
         "DATABASE_URL",
         "postgresql://boundary_layer:example@postgres.example:5432/boundary_layer",
@@ -34,7 +40,7 @@ def _production_saas_env(monkeypatch):
     monkeypatch.setenv("REDIS_URL", "rediss://:example@redis.example:6379/0")
     monkeypatch.setenv(
         "BOUNDARY_LAYER_SECRET_KEY",
-        "example-production-saas-secret-key-32chars",
+        "production-saas-phase1-secret-key-minimum-32",
     )
     monkeypatch.setenv("BOUNDARY_LAYER_ALLOWED_ORIGINS", "https://app.example.com")
     monkeypatch.setenv("BOUNDARY_LAYER_PUBLIC_BASE_URL", "https://app.example.com")
@@ -120,10 +126,15 @@ def test_production_saas_check_passes_with_mocked_env():
         {
             "BOUNDARY_LAYER_PROFILE": "production-saas",
             "BOUNDARY_LAYER_ENV": "production",
-            "BOUNDARY_LAYER_AUTH_PROVIDER": "oidc-example",
+            "BOUNDARY_LAYER_AUTH_ENABLED": "true",
+            "BOUNDARY_LAYER_AUTH_PROVIDER": "oidc",
+            "OIDC_ISSUER_URL": "https://issuer.example.com",
+            "OIDC_AUDIENCE": "boundary-layer-api",
+            "OIDC_JWKS_URL": "https://issuer.example.com/.well-known/jwks.json",
+            "OIDC_ALGORITHMS": "RS256",
             "DATABASE_URL": "postgresql://boundary_layer:example@postgres.example:5432/boundary_layer",
             "REDIS_URL": "rediss://:example@redis.example:6379/0",
-            "BOUNDARY_LAYER_SECRET_KEY": "example-production-saas-secret-key-32chars",
+            "BOUNDARY_LAYER_SECRET_KEY": "production-saas-phase1-secret-key-minimum-32",
             "BOUNDARY_LAYER_ALLOWED_ORIGINS": "https://app.example.com",
             "BOUNDARY_LAYER_PUBLIC_BASE_URL": "https://app.example.com",
             "BOUNDARY_LAYER_SECURE_COOKIES": "true",
@@ -138,3 +149,46 @@ def test_production_saas_check_passes_with_mocked_env():
         }
     )
     assert report.ready is True
+
+
+def test_production_saas_requires_oidc_issuer_url(monkeypatch):
+    _production_saas_env(monkeypatch)
+    monkeypatch.setenv("OIDC_ISSUER_URL", "")
+    with pytest.raises(ValueError, match="OIDC_ISSUER_URL"):
+        config.Settings()
+
+
+def test_production_saas_requires_oidc_jwks_url(monkeypatch):
+    _production_saas_env(monkeypatch)
+    monkeypatch.setenv("OIDC_JWKS_URL", "")
+    with pytest.raises(ValueError, match="OIDC_JWKS_URL"):
+        config.Settings()
+
+
+def test_production_saas_requires_oidc_audience(monkeypatch):
+    _production_saas_env(monkeypatch)
+    monkeypatch.setenv("OIDC_AUDIENCE", "")
+    with pytest.raises(ValueError, match="OIDC_AUDIENCE"):
+        config.Settings()
+
+
+def test_production_saas_rejects_wildcard_origins(monkeypatch):
+    _production_saas_env(monkeypatch)
+    monkeypatch.setenv("BOUNDARY_LAYER_ALLOWED_ORIGINS", "*")
+    with pytest.raises(ValueError, match="wildcards"):
+        config.Settings()
+
+
+def test_production_saas_rejects_insecure_algorithms(monkeypatch):
+    _production_saas_env(monkeypatch)
+    monkeypatch.setenv("OIDC_ALGORITHMS", "none,HS256")
+    with pytest.raises(ValueError, match="OIDC_ALGORITHMS"):
+        config.Settings()
+
+
+def test_local_lab_does_not_require_oidc(monkeypatch):
+    monkeypatch.delenv("BOUNDARY_LAYER_PROFILE", raising=False)
+    monkeypatch.delenv("OIDC_ISSUER_URL", raising=False)
+    settings = config.Settings()
+    assert settings.boundary_layer_profile == "local-lab"
+    assert settings.oidc_issuer_url == ""

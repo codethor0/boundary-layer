@@ -1,6 +1,6 @@
 # Tenancy Data Model
 
-Proposed schema for hosted Production SaaS. **Current lab tables are single-tenant and unchanged in v1.3.5.**
+Proposed schema for hosted Production SaaS. **Phase 1 implemented:** `tenants`, `users`, `tenant_memberships`, and `audit_events` tables with helpers in `apps/api/tenancy.py` and migration `002_tenancy`. **Lab tables remain single-tenant and unchanged.**
 
 ## Core entities
 

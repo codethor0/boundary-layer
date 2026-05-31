@@ -11,6 +11,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from apps.api.auth import local_lab_auth_context
 from apps.api.config import Settings, get_settings
 from apps.api.rate_limit import RateLimitUnavailable, build_rate_limiter
 
@@ -68,6 +69,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
         )
         return response
+
+
+class AuthContextMiddleware(BaseHTTPMiddleware):
+    """Attach local-lab auth context without requiring credentials."""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        settings = get_settings()
+        if settings.is_local_lab and not hasattr(request.state, "auth_context"):
+            request.state.auth_context = local_lab_auth_context()
+        return await call_next(request)
 
 
 class ProductionLockdownMiddleware(BaseHTTPMiddleware):

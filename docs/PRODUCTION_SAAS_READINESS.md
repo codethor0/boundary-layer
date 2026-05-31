@@ -16,17 +16,17 @@ BoundaryLayer **ships and validates** the first two modes today. **Production Sa
 
 | Metric | Before this pass | After this pass |
 |--------|------------------|-----------------|
-| Production SaaS readiness | **1/10** | **2/10** |
+| Production SaaS readiness | **1/10** | **3/10** |
 
-The score improves only because guardrails, design docs, and a fail-closed `production-saas` profile gate exist. No multi-tenant hosted product is implemented.
+The score improves because Phase 1 adds OIDC/JWT auth scaffolding, tenant/membership/audit tables, route protection in `production-saas` profile, and cross-tenant denial tests. There is still no hosted deployment, managed services, immutable audit pipeline, or operational validation.
 
 ## Gap audit matrix
 
 | Category | Score | Current state | Gap | Risk | Required work for 10/10 | Priority | Approach |
 |----------|-------|---------------|-----|------|-------------------------|----------|----------|
-| Authentication | 2/10 | API key auth in production-like profile only | No OIDC, no user accounts, no SSO | Anonymous or shared-key access in lab | OIDC provider, JWT validation, user lifecycle | P0 | Auth0/Clerk/Cognito + FastAPI middleware |
-| Authorization | 2/10 | Single shared API key | No RBAC, no tenant-scoped roles | Privilege escalation across tenants | Role model + policy enforcement layer | P0 | RBAC middleware + membership table |
-| Tenant isolation | 1/10 | Single-tenant lab schema | No `tenant_id` on lab tables | Cross-tenant data bleed | Tenant-scoped queries, RLS or app-layer filters | P0 | See `TENANCY_DATA_MODEL.md` |
+| Authentication | 3/10 | JWT/OIDC middleware in production-saas profile; `oidc-test` HS256 path for tests | No live IdP integration, no user signup | Anonymous access in local-lab only | Full OIDC provider integration + user lifecycle | P0 | Auth0/Clerk/Cognito + FastAPI middleware |
+| Authorization | 3/10 | Role claims + membership check in production-saas | No policy engine, no tenant_admin UI | Privilege escalation if misconfigured | Role model + policy enforcement layer | P0 | RBAC middleware + membership table |
+| Tenant isolation | 2/10 | Tenant schema + prompt-cache tenant guard in production-saas | Lab tables not tenant-scoped yet | Cross-tenant data bleed in unscoped tables | Tenant-scoped queries, RLS or app-layer filters | P0 | See `TENANCY_DATA_MODEL.md` |
 | Session security | 1/10 | Stateless API key only | No browser sessions | Session fixation, theft | Secure cookies, rotation, CSRF if UI added | P1 | HttpOnly Secure SameSite cookies |
 | API security | 3/10 | Rate limit + auth in prod-like | No WAF, no mTLS service mesh | Abuse, credential stuffing | WAF, mTLS, schema validation at edge | P0 | Cloud WAF + API gateway |
 | Secrets management | 2/10 | `.env.production` local file | No secret manager | Leaked secrets in images/env | Cloud secret manager, rotation | P0 | AWS SM / GCP SM / Vault |
@@ -39,7 +39,7 @@ The score improves only because guardrails, design docs, and a fail-closed `prod
 | CI/CD | 4/10 | GitHub Actions test/lint/scan/prod validate | No staging/prod deploy pipeline | Untested deploys | Staging deploy, smoke, manual prod approval | P0 | See `CI_CD_PRODUCTION_PLAN.md` |
 | Observability | 4/10 | Prometheus metrics + local webhook | No centralized logs/traces | Blind spots in prod | OpenTelemetry, log aggregation | P1 | OTel + Grafana/Datadog |
 | Alerting | 3/10 | Prometheus rules + Alertmanager placeholder | No on-call routing | Missed incidents | PagerDuty/Opsgenie integration | P1 | Alertmanager receivers |
-| Audit logging | 1/10 | Config flag only in production-saas gate | No audit log store | No forensic trail | Immutable audit log pipeline | P0 | Append-only audit table + SIEM |
+| Audit logging | 2/10 | `audit_events` table + auth decision writes in production-saas | Not immutable, not SIEM-integrated | No forensic trail at scale | Immutable audit log pipeline | P0 | Append-only audit table + SIEM |
 | Rate limiting and abuse prevention | 3/10 | Redis/memory limiter in prod-like | No global abuse detection | DoS, brute force | Edge rate limits + account lockout | P0 | WAF + app limiter + CAPTCHA at signup |
 | Backup and restore | 4/10 | pg_dump scripts, fresh-volume lab proof | No off-host DR | Volume loss | Automated backups, tested restore | P0 | Managed DB backups + quarterly DR test |
 | Disaster recovery | 1/10 | Not implemented | No failover region | Extended outage | Multi-region or warm standby runbook | P2 | DR runbook + RTO/RPO targets |
@@ -104,7 +104,9 @@ python -m apps.api.config_check
 
 When `BOUNDARY_LAYER_PROFILE=production-saas`, startup fails unless configured:
 
-- `BOUNDARY_LAYER_AUTH_PROVIDER`
+- `BOUNDARY_LAYER_AUTH_PROVIDER` (`oidc` or `oidc-test` for deterministic tests)
+- `BOUNDARY_LAYER_AUTH_ENABLED=true`
+- `OIDC_ISSUER_URL`, `OIDC_AUDIENCE`, `OIDC_JWKS_URL`, `OIDC_ALGORITHMS`
 - `DATABASE_URL`
 - `REDIS_URL`
 - `BOUNDARY_LAYER_SECRET_KEY` (32+ chars)
