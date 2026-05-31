@@ -62,6 +62,9 @@ coverage/
 
 # Production rendered configs and local TLS material
 deploy/nginx/certs/
+deploy/nginx/certs/archive/
+deploy/tls/internal/
 deploy/prometheus/prometheus.prod.yml
 deploy/alertmanager/alertmanager.prod.yml
 .env.production
+backups/

@@ -71,16 +71,9 @@ def _redis_key() -> str:
 
 
 def _get_redis_client():
-    import redis
+    from apps.api.redis_client import get_redis_client
 
-    client = redis.Redis(
-        host=REDIS_HOST,
-        port=REDIS_PORT,
-        db=REDIS_DB,
-        password=REDIS_PASSWORD or None,
-        decode_responses=True,
-        socket_connect_timeout=2,
-    )
+    client = get_redis_client()
     client.ping()
     return client
 

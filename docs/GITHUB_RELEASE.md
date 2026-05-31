@@ -118,7 +118,7 @@ First public release of BoundaryLayer, an open-source LLM infrastructure securit
 - Nine security labs with vulnerable and hardened modes
 - Live Redis and PostgreSQL integration
 - Prometheus metrics and Alertmanager local alert routing
-- 162 passing tests
+- 173 passing tests
 - Docker Compose local stack
 
 ### Quick start

@@ -47,6 +47,9 @@ if [[ ! -f deploy/nginx/certs/boundary-layer.crt ]]; then
   bash deploy/nginx/generate-certs.sh
 fi
 
+echo "==> Generating internal Postgres/Redis TLS material"
+bash deploy/tls/generate-internal-ca.sh
+
 echo "==> Stopping local and production stacks if running"
 docker compose down --remove-orphans >/dev/null 2>&1 || true
 "${PROD_COMPOSE[@]}" down -v --remove-orphans >/dev/null 2>&1 || true
@@ -56,7 +59,7 @@ echo "==> Starting production stack"
 sleep 15
 
 echo "==> TLS health check"
-"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.2.0"'
+"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.3.0"'
 
 echo "==> Readiness check"
 "${CURL_FAIL[@]}" \
@@ -132,6 +135,9 @@ done
   curl -sf \
   -H "Authorization: Bearer ${BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN}" \
   http://localhost:8080/alerts | grep -q BoundaryLayerInferenceCircuitBreakerOpen
+
+echo "==> Postgres backup smoke test"
+bash scripts/backup-postgres.sh
 
 echo "==> Stopping production stack"
 "${PROD_COMPOSE[@]}" down -v --remove-orphans >/dev/null 2>&1 || true

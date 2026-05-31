@@ -91,6 +91,10 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.3.0 (Complete)
+
+- Full production hardening: data-plane TLS, CA rotation, secrets/backup runbooks, security scanning CI, E2E gate
+
 ## v1.2.0 (Complete)
 
 - Production hardening pass: non-root containers, Redis rate limiting, ingress lockdown, CI prod gate
@@ -110,7 +114,4 @@
 
 ## Future
 
-- CA-backed TLS certificate automation and rotation runbook
-- Image vulnerability scanning in CI (Trivy/Hadolint)
-- Optional Postgres/Redis TLS for hostile-network deployments
 - Optional PNG exports of logo assets for platforms that require raster images

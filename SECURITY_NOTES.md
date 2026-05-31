@@ -34,6 +34,9 @@ BoundaryLayer is for defensive education, secure engineering, and controlled loc
 - Prometheus and Alertmanager UIs are internal-only (not proxied through nginx)
 - Application containers run as non-root with read-only root filesystems
 - CI runs `make validate-prod` on main via `.github/workflows/prod-validate.yml`
+- Postgres and Redis connections use TLS inside the production Docker network
+- Ingress TLS supports CA-backed certificate install and rotation scripts
+- Hadolint, pip-audit, and Trivy image scans run in CI
 
 See [docs/PRODUCTION.md](docs/PRODUCTION.md) for deployment steps.
 

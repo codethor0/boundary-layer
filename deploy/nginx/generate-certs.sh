@@ -5,9 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CERT_DIR="${SCRIPT_DIR}/certs"
 mkdir -p "${CERT_DIR}"
 
-openssl req -x509 -nodes -days 825 -newkey rsa:2048 \
-  -keyout "${CERT_DIR}/boundary-layer.key" \
+openssl ecparam -name prime256v1 -genkey -noout -out "${CERT_DIR}/boundary-layer.key"
+openssl req -x509 -nodes -days 825 -key "${CERT_DIR}/boundary-layer.key" \
   -out "${CERT_DIR}/boundary-layer.crt" \
   -subj "/CN=boundary-layer.local/O=BoundaryLayer/C=US"
 
-echo "Generated self-signed certificate in ${CERT_DIR}"
+echo "Generated ECDSA self-signed certificate in ${CERT_DIR}"
+echo "For CA-backed production certs, use deploy/nginx/install-external-certs.sh"

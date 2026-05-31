@@ -90,18 +90,29 @@ def governance_prompt_id() -> str:
     return f"{GOVERNANCE_ID_PREFIX}prompt-001"
 
 
+def postgres_connect_kwargs() -> dict[str, object]:
+    kwargs: dict[str, object] = {
+        "host": POSTGRES_HOST,
+        "port": POSTGRES_PORT,
+        "dbname": POSTGRES_DB,
+        "user": POSTGRES_USER,
+        "password": POSTGRES_PASSWORD,
+        "connect_timeout": 2,
+    }
+    sslmode = os.environ.get("POSTGRES_SSLMODE", "prefer").strip()
+    if sslmode and sslmode.lower() != "disable":
+        kwargs["sslmode"] = sslmode
+    root_cert = os.environ.get("POSTGRES_SSL_ROOT_CERT", "").strip()
+    if root_cert:
+        kwargs["sslrootcert"] = root_cert
+    return kwargs
+
+
 @contextmanager
 def get_connection():
     import psycopg2
 
-    conn = psycopg2.connect(
-        host=POSTGRES_HOST,
-        port=POSTGRES_PORT,
-        dbname=POSTGRES_DB,
-        user=POSTGRES_USER,
-        password=POSTGRES_PASSWORD,
-        connect_timeout=2,
-    )
+    conn = psycopg2.connect(**postgres_connect_kwargs())
     try:
         yield conn
         conn.commit()

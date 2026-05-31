@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint validate validate-prod bundle clean fmt prod-render-config prod-up prod-down
+.PHONY: setup up down test lint validate validate-prod validate-e2e bundle clean fmt prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -54,6 +54,16 @@ validate:
 
 validate-prod:
 	bash scripts/validate-prod.sh
+
+validate-e2e:
+	bash scripts/validate-e2e.sh
+
+backup:
+	bash scripts/backup-postgres.sh
+
+restore:
+	@test -n "$(BACKUP)" || (echo "Usage: make restore BACKUP=backups/postgres/file.sql.gz" && exit 1)
+	bash scripts/restore-postgres.sh "$(BACKUP)"
 
 bundle:
 	bash scripts/collect-bundle.sh
