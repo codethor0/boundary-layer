@@ -1,12 +1,21 @@
 # Dependency Report
 
-## Phase 3 additions
+## Phase 4 additions
 
-No new runtime dependencies were added in Phase 3.
+No new **required** runtime dependencies were added in Phase 4.
 
-JWKS validation uses existing `PyJWT` and `cryptography` packages already pinned in `apps/api/requirements.txt`.
+Cloud adapter SDKs are **optional** and loaded lazily:
 
-Object storage and secret manager scaffolds are interface-only and do not add cloud SDKs (`boto3`, `google-cloud-storage`, etc.) in this pass.
+| Adapter | Optional package |
+|---------|------------------|
+| S3 / R2 | `boto3` |
+| GCS | `google-cloud-storage` |
+| AWS Secrets Manager | `boto3` |
+| GCP Secret Manager | `google-cloud-secret-manager` |
+| Azure Key Vault | `azure-identity`, `azure-keyvault-secrets` |
+| Vault | `hvac` |
+
+Object storage and secret manager adapters fail clearly when optional SDKs are not installed. Local lab and CI do not require cloud SDKs.
 
 ## Known advisories (unchanged)
 

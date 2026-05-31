@@ -32,6 +32,22 @@ jobs:
       - name: Staging mocked readiness
         run: make production-saas-staging-readiness-example
 
+      - name: Managed services mocked readiness
+        run: make production-saas-managed-services-example
+
+      - name: Staging deploy dry run
+        run: |
+          export BOUNDARY_LAYER_PROFILE=production-saas
+          export BOUNDARY_LAYER_ENV=staging
+          export DATABASE_URL='postgresql://example:example@db.staging.example:5432/boundary_layer?sslmode=require'
+          export REDIS_URL='rediss://:example@redis.staging.example:6379/0'
+          export SECRET_MANAGER_PROVIDER=aws
+          export SECRET_MANAGER_PROJECT_OR_PATH=boundary-layer/staging
+          export OBJECT_STORAGE_BUCKET=boundary-layer-staging-artifacts-example
+          export BOUNDARY_LAYER_PUBLIC_BASE_URL=https://staging.example.com
+          export STAGING_RELEASE_IMAGE=ghcr.io/example/boundary-layer:staging-placeholder
+          make staging-deploy-dry-run
+
       - name: Secret scan
         run: |
           if command -v rg >/dev/null 2>&1; then
@@ -39,7 +55,7 @@ jobs:
               --glob '!.github/**' --glob '!docs/**' .
           fi
 
-      - name: Validate Prometheus YAML
+      - name: Validate YAML
         run: |
           python - <<'PY'
           import yaml
@@ -48,6 +64,7 @@ jobs:
               "detections/prometheus/prometheus.yml",
               "detections/alertmanager/alertmanager.yml",
               ".github/workflows/staging-readiness.yml",
+              ".github/workflows/staging-deploy.yml",
           ]:
               with open(path, "r", encoding="utf-8") as handle:
                   yaml.safe_load(handle)

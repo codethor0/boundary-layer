@@ -1,0 +1,47 @@
+name: Staging Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Run deployment steps in dry-run mode only
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+jobs:
+  staging-deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate deploy prerequisites
+        run: |
+          echo "Staging deploy workflow is manual-only and dry-run by default."
+          echo "TODO: wire cloud credentials via GitHub Environment secrets."
+          echo "TODO: apply Terraform from infra/terraform/envs/staging after review."
+          test -f infra/terraform/envs/staging/terraform.tfvars.example
+
+      - name: Dry run gate
+        if: ${{ inputs.dry_run == 'true' }}
+        run: |
+          export BOUNDARY_LAYER_PROFILE=production-saas
+          export BOUNDARY_LAYER_ENV=staging
+          export DATABASE_URL='postgresql://placeholder:placeholder@db.staging.example:5432/boundary_layer?sslmode=require'
+          export REDIS_URL='rediss://:placeholder@redis.staging.example:6379/0'
+          export SECRET_MANAGER_PROVIDER=aws
+          export SECRET_MANAGER_PROJECT_OR_PATH=boundary-layer/staging
+          export OBJECT_STORAGE_BUCKET=boundary-layer-staging-artifacts-example
+          export BOUNDARY_LAYER_PUBLIC_BASE_URL=https://staging.example.com
+          export STAGING_RELEASE_IMAGE=ghcr.io/example/boundary-layer:staging-placeholder
+          bash scripts/staging-deploy-dry-run.sh
+
+      - name: Deploy blocked
+        if: ${{ inputs.dry_run != 'true' }}
+        run: |
+          echo "Real staging deploy is not implemented in this repository pass." >&2
+          exit 1

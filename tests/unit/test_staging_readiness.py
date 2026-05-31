@@ -49,6 +49,8 @@ def _staging_env(**overrides: str) -> dict[str, str]:
         "BOUNDARY_LAYER_AUDIT_LOG_ENABLED": "true",
         "SECRET_MANAGER_PROVIDER": "aws",
         "SECRET_MANAGER_PROJECT_OR_PATH": "boundary-layer/staging",
+        "SECRET_ROTATION_REQUIRED": "true",
+        "SECRET_CACHE_TTL_SECONDS": "300",
         "BOUNDARY_LAYER_API_KEY": "production-api-key-minimum-24-chars",
         "POSTGRES_PASSWORD": "production-postgres-password",
         "REDIS_PASSWORD": "production-redis-password-16",

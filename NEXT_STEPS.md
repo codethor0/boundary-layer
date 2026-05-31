@@ -1,21 +1,23 @@
 # Next Steps
 
-BoundaryLayer v1.3.5 remains a **complete local defensive security lab**. Production SaaS Phase 3 adds staging-readiness scaffolding but **hosted SaaS is not shipped**.
+BoundaryLayer v1.3.5 remains a **complete local defensive security lab**. Production SaaS Phase 4 adds managed-service adapter interfaces and staging deployment proof scripts but **hosted SaaS is not shipped**.
 
-## Immediate priorities (Production SaaS Phase 4)
+## Immediate priorities (Production SaaS Phase 5)
 
-1. **Apply IaC to a staging account** — managed Postgres, Redis, object storage, secret manager, private networking.
-2. **Register live OIDC provider for staging** — Auth0/Clerk/Cognito with RS256/JWKS; retire `oidc-test` outside unit tests.
-3. **Implement cloud storage adapter** — S3/GCS/R2 behind `StorageBackend` with presigned uploads.
-4. **Implement secret manager adapter** — AWS/GCP/Azure/Doppler/Vault lookup with rotation hooks.
-5. **Deploy staging environment** — container service + CI deploy gate + smoke against live endpoints.
-6. **Immutable audit pipeline** — append-only retention and SIEM export.
+1. **Apply IaC to a staging account** — provision managed Postgres, Redis, object storage, secret manager, VPC.
+2. **Deploy staging environment** — container service with live OIDC provider and smoke tests.
+3. **Validate live managed-service connectivity** — run `RUN_LIVE_STAGING_CHECKS=true` against real endpoints.
+4. **Implement immutable audit sink** — see [docs/AUDIT_SIEM_PLAN.md](docs/AUDIT_SIEM_PLAN.md).
+5. **Enable edge WAF/abuse controls** — see [docs/WAF_ABUSE_CONTROLS.md](docs/WAF_ABUSE_CONTROLS.md).
+6. **CI/CD staging deploy pipeline** — automated deploy + smoke with GitHub Environment secrets.
 
-## Validation commands (Phase 3)
+## Validation commands (Phase 4)
 
 ```bash
-make production-saas-staging-readiness-check    # expects NOT READY locally
-make production-saas-staging-readiness-example  # mocked structural pass
+make production-saas-managed-services-check    # expects NOT READY locally
+make production-saas-managed-services-example  # STRUCTURALLY READY (mocked)
+make staging-deploy-dry-run                    # dry run only (requires env)
+make staging-release-gate                      # strict gate; smoke optional
 ```
 
 ## Do not do yet
@@ -27,10 +29,12 @@ make production-saas-staging-readiness-example  # mocked structural pass
 
 ## Recommended next surgical prompt
 
-**BoundaryLayer Production SaaS Phase 4 — Live Staging Deploy and Managed Service Adapters**
+**BoundaryLayer Production SaaS Phase 5 — Live Staging Deploy and Managed Service Validation**
 
 ## References
 
 - [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md)
+- [docs/AUDIT_SIEM_PLAN.md](docs/AUDIT_SIEM_PLAN.md)
+- [docs/WAF_ABUSE_CONTROLS.md](docs/WAF_ABUSE_CONTROLS.md)
 - [infra/README.md](infra/README.md)
 - [docs/CI_CD_PRODUCTION_PLAN.md](docs/CI_CD_PRODUCTION_PLAN.md)

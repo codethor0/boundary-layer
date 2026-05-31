@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke production-saas-tenant-isolation-smoke production-saas-staging-readiness-check production-saas-staging-readiness-example bundle clean fmt help prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke production-saas-tenant-isolation-smoke production-saas-staging-readiness-check production-saas-staging-readiness-example production-saas-managed-services-check production-saas-managed-services-example production-saas-managed-services-live-check staging-deploy-dry-run staging-smoke-check staging-release-gate bundle clean fmt help prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -94,6 +94,24 @@ production-saas-staging-readiness-check:
 production-saas-staging-readiness-example:
 	bash scripts/production-saas-staging-readiness-example.sh
 
+production-saas-managed-services-check:
+	bash scripts/production-saas-managed-services-check.sh
+
+production-saas-managed-services-example:
+	bash scripts/production-saas-managed-services-example.sh
+
+production-saas-managed-services-live-check:
+	bash scripts/production-saas-managed-services-live-check.sh
+
+staging-deploy-dry-run:
+	bash scripts/staging-deploy-dry-run.sh
+
+staging-smoke-check:
+	bash scripts/staging-smoke-check.sh
+
+staging-release-gate:
+	bash scripts/staging-release-gate.sh
+
 backup:
 	bash scripts/backup-postgres.sh
 
@@ -127,5 +145,11 @@ help:
 	@echo "  make production-saas-tenant-isolation-smoke Cross-tenant isolation unit smoke"
 	@echo "  make production-saas-staging-readiness-check Staging deploy config check (NOT READY locally)"
 	@echo "  make production-saas-staging-readiness-example Mocked staging readiness pass"
+	@echo "  make production-saas-managed-services-check Managed service policy check (NOT READY locally)"
+	@echo "  make production-saas-managed-services-example Mocked managed service structural pass"
+	@echo "  make production-saas-managed-services-live-check Live connectivity (requires RUN_LIVE_STAGING_CHECKS=true)"
+	@echo "  make staging-deploy-dry-run Staging deploy dry run (no cloud deploy)"
+	@echo "  make staging-smoke-check Staging HTTP smoke (requires STAGING_BASE_URL)"
+	@echo "  make staging-release-gate Staging release gate (strict; smoke optional)"
 	@echo "  make validate-e2e   Full test + lint + prod + local validation"
 	@echo "  make bundle         Create local review ZIP in ~/Downloads/"

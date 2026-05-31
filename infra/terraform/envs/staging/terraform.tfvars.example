@@ -1,0 +1,11 @@
+# Example staging tfvars — placeholders only. Do not commit real values.
+
+environment              = "staging"
+project_name             = "boundary-layer"
+region                   = "us-east-1"
+container_image          = "ghcr.io/example/boundary-layer:staging-placeholder"
+postgres_instance_class  = "db.t4g.medium"
+redis_node_type          = "cache.t4g.small"
+object_storage_bucket    = "boundary-layer-staging-artifacts-example"
+secret_manager_path      = "boundary-layer/staging"
+public_base_url          = "https://staging.example.com"
