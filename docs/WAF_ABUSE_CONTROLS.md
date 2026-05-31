@@ -7,11 +7,11 @@ BoundaryLayer does **not** ship edge WAF, bot management, or tenant abuse contro
 | Control | Status |
 |---------|--------|
 | Application rate limiting | Partial (production-like profile) |
-| Tenant-scoped rate limits | Config scaffolding only |
+| Per-tenant concurrency/rate config | Config validated (`TENANT_CONCURRENCY_LIMIT`, `TENANT_RATE_LIMIT_PER_MINUTE`) |
 | Edge WAF | Not implemented |
 | Bot management | Not implemented |
 | Abuse alerting | Config scaffolding only |
-| Payload/file size limits | Config scaffolding only |
+| Payload/file size limits | Partial (production-saas request body guard) |
 | Upload malware scanning | Not implemented |
 
 ## Target controls
@@ -47,7 +47,7 @@ MAX_REQUEST_BODY_BYTES=1048576
 MAX_FILE_UPLOAD_BYTES=5242880
 ```
 
-These fields are documented and validated structurally where safe. Runtime enforcement is **not** fully implemented in this pass.
+These fields are documented and validated structurally where safe. In-app request body size enforcement applies in production-saas when `MAX_REQUEST_BODY_BYTES > 0`. True WAF enforcement must happen at the edge; in-app controls are secondary.
 
 ## Runbook outline (future)
 

@@ -16,9 +16,9 @@ BoundaryLayer **ships and validates** the first two modes today. **Production Sa
 
 | Metric | Before this pass | After this pass |
 |--------|------------------|-----------------|
-| Production SaaS readiness | **5/10** | **6/10** |
+| Production SaaS readiness | **6/10** | **6/10** (live staging not validated in this pass) |
 
-The score improves through Phase 4 cloud storage and secret manager adapter interfaces (lazy SDK imports), managed-service policy checks, staging deploy dry-run scripts, expanded IaC module skeleton, audit/SIEM and WAF/abuse design docs, and CI workflow upgrades. There is still no live staging deployment, applied IaC, live managed-service connectivity proof, immutable audit/SIEM, or operational validation.
+The score remains **6/10** because live staging deployment and managed-service connectivity were **not** run against real infrastructure in this pass. Phase 5 adds explicit structural vs live validation gates, staging environment contract, live managed-service checks (gated by `RUN_LIVE_STAGING_CHECKS=true`), staging smoke structural/live modes, release gate reporting, manual CI live-validation workflow, IaC validate/plan scripts, container image checks, audit export interface shells, and in-app request body size guard for production-saas. Score may move to **7/10** or **8/10** only after live checks pass with operational evidence.
 
 ## Gap audit matrix
 
@@ -101,6 +101,12 @@ make production-saas-staging-readiness-check   # staging deploy config (NOT READ
 make production-saas-staging-readiness-example  # mocked staging pass for CI/docs
 make production-saas-managed-services-check   # managed service policy (NOT READY locally)
 make production-saas-managed-services-example # mocked structural pass
+make production-saas-managed-services-live-check  # live only when RUN_LIVE_STAGING_CHECKS=true
+make staging-smoke-structural                 # env validation only
+make staging-smoke-live                         # HTTP smoke (live, gated)
+make staging-release-gate                       # local + structural; live optional
+make infra-validate                             # terraform fmt/validate when installed
+make container-image-check                      # Dockerfile/build smoke
 make staging-deploy-dry-run                   # dry run only (requires env)
 python -m apps.api.config_check
 python -m apps.api.staging_check
@@ -128,6 +134,19 @@ When `BOUNDARY_LAYER_PROFILE=production-saas`, startup fails unless configured:
 - `SECRET_MANAGER_PROVIDER`, `SECRET_MANAGER_PROJECT_OR_PATH`, `SECRET_ROTATION_REQUIRED=true`, `SECRET_CACHE_TTL_SECONDS`
 - `BOUNDARY_LAYER_AUDIT_LOG_ENABLED=true`
 - Plus production env secrets when `BOUNDARY_LAYER_ENV=production` (`BOUNDARY_LAYER_API_KEY`, datastore passwords)
+
+### Phase 5 live staging validation gates (structural default; live gated)
+
+- `docs/STAGING_ENVIRONMENT_CONTRACT.md` — staging env contract (no real values committed)
+- `apps/api/managed_services.py` — explicit `structural` vs `live` modes; live checks gated by `RUN_LIVE_STAGING_CHECKS=true`
+- `scripts/staging-smoke-structural.sh`, `staging-smoke-live.sh`, updated release gate with skip/pass reporting
+- `.github/workflows/staging-live-validation.yml` — manual `workflow_dispatch` only; `environment: staging`
+- `scripts/infra-validate.sh`, `infra-plan-staging.sh` — plan-only safety (`CONFIRM_STAGING_PLAN=true`)
+- `scripts/container-image-check.sh`, `docs/CONTAINER_RELEASE.md`
+- `apps/api/audit_export.py` — audit sink interface; external sinks fail closed
+- `apps/api/middleware.py` — request body size guard for production-saas (`MAX_REQUEST_BODY_BYTES`)
+
+**Live staging validation status:** skipped unless real staging credentials and `RUN_LIVE_STAGING_CHECKS=true` are configured. Do not claim live pass when skipped.
 
 ### Phase 4 adapters (SDK optional; not live-connected)
 
@@ -163,4 +182,5 @@ Production SaaS work is **additive** and **profile-gated**.
 - [DEPLOYMENT_ARCHITECTURE.md](DEPLOYMENT_ARCHITECTURE.md)
 - [SAAS_SECURITY_CHECKLIST.md](SAAS_SECURITY_CHECKLIST.md)
 - [CI_CD_PRODUCTION_PLAN.md](CI_CD_PRODUCTION_PLAN.md)
-- [PRODUCTION.md](PRODUCTION.md)
+- [STAGING_ENVIRONMENT_CONTRACT.md](STAGING_ENVIRONMENT_CONTRACT.md)
+- [CONTAINER_RELEASE.md](CONTAINER_RELEASE.md)

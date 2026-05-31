@@ -158,7 +158,9 @@ BoundaryLayer is **not** a hosted Production SaaS product. The supported release
 |------|---------|--------|
 | Local lab | `local-lab` | Supported (`make up`, `make validate`) |
 | Production-like local validation | `production-like` | Supported (`make prod-up`, `make validate-prod`) |
-| Hosted Production SaaS | `production-saas` | **Not shipped** — staging validation, cloud adapters (SDK optional), managed-service checks, deploy dry-run |
+| Hosted Production SaaS | `production-saas` | **Not shipped** — structural staging gates + optional live validation (gated) |
+
+Production SaaS score: **6/10** (live staging not validated unless `RUN_LIVE_STAGING_CHECKS=true` against real infrastructure).
 
 See [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md) and [NEXT_STEPS.md](NEXT_STEPS.md).
 
@@ -171,8 +173,16 @@ make production-saas-staging-readiness-check  # staging config check (NOT READY 
 make production-saas-staging-readiness-example  # mocked staging structural pass
 make production-saas-managed-services-check     # managed service policy (NOT READY locally)
 make production-saas-managed-services-example   # mocked managed service structural pass
+make production-saas-managed-services-live-check  # live connectivity (RUN_LIVE_STAGING_CHECKS=true)
+make staging-smoke-structural                   # staging smoke env validation only
+make staging-smoke-live                         # live HTTP smoke (gated)
+make staging-release-gate                       # local + structural; reports live skip/pass
+make infra-validate                             # terraform fmt/validate when installed
+make container-image-check                      # Dockerfile/build smoke
 make staging-deploy-dry-run                     # dry run only (requires env)
 ```
+
+See [docs/STAGING_ENVIRONMENT_CONTRACT.md](docs/STAGING_ENVIRONMENT_CONTRACT.md) for live staging variables (never commit real values).
 
 ## Production Deployment (production-like profile, v1.3.5)
 

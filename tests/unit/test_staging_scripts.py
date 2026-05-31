@@ -25,10 +25,23 @@ def _run(
     )
 
 
-def test_staging_smoke_check_missing_base_url():
-    result = _run("staging-smoke-check.sh")
+def test_staging_smoke_structural_passes_with_defaults():
+    result = _run("staging-smoke-structural.sh")
+    assert result.returncode == 0
+    assert "STRUCTURAL STAGING SMOKE PASS" in result.stdout
+
+
+def test_staging_smoke_live_missing_flag():
+    result = _run(
+        "staging-smoke-live.sh",
+        {
+            "STAGING_BASE_URL": "https://staging.example.com",
+            "STAGING_TEST_ACCESS_TOKEN_TENANT_A": "token-a-minimum-24-characters",
+            "STAGING_METRICS_AUTH_TOKEN": "metrics-token-minimum-24-chars",
+        },
+    )
     assert result.returncode != 0
-    assert "STAGING_BASE_URL" in result.stderr
+    assert "RUN_LIVE_STAGING_CHECKS" in result.stdout + result.stderr
 
 
 def test_staging_deploy_dry_run_missing_env():
@@ -61,10 +74,17 @@ def test_managed_services_live_check_requires_flag():
     assert "RUN_LIVE_STAGING_CHECKS" in result.stdout + result.stderr
 
 
-def test_staging_release_gate_runs_without_live_staging(monkeypatch_env=None):
-    result = _run("staging-release-gate.sh")
+def test_staging_release_gate_reports_skipped_live():
+    content = (ROOT / "scripts" / "staging-release-gate.sh").read_text(encoding="utf-8")
+    assert "LIVE STAGING CHECKS SKIPPED" in content
+    assert "LIVE STAGING CHECKS PASS" in content
+    assert "STRUCTURAL STAGING CHECKS PASS" in content
+
+
+def test_infra_plan_requires_confirmation():
+    result = _run("infra-plan-staging.sh")
     assert result.returncode != 0
-    assert "staging release gate" in result.stdout.lower()
+    assert "CONFIRM_STAGING_PLAN" in result.stdout + result.stderr
 
 
 def test_terraform_module_placeholders_exist():

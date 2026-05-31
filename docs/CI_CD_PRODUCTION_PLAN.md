@@ -13,8 +13,11 @@ Required pipeline for hosted Production SaaS. **Deploy stages are not implemente
 | Trivy container scan | Security Scan | Done |
 | Production-like validate | Production Validate | Done |
 | Staging readiness (mocked) | staging-readiness.yml | Done |
+| Staging live validation (manual) | staging-live-validation.yml | Done (dispatch only; requires `environment: staging` secrets) |
 
-The `staging-readiness.yml` workflow runs unit tests, lint, mocked `production-saas-check-example`, mocked `production-saas-staging-readiness-example`, secret scan, and YAML validation. It does **not** deploy and does **not** require cloud credentials.
+The `staging-readiness.yml` workflow runs unit tests, lint, mocked structural checks, secret scan, and YAML validation. It does **not** deploy and does **not** require cloud credentials.
+
+The `staging-live-validation.yml` workflow is **manual dispatch only**. It runs structural checks always, then live managed-service and HTTP smoke checks only when GitHub Environment `staging` secrets are configured (`RUN_LIVE_STAGING_CHECKS=true`). It never prints secrets.
 
 ## Required for Production SaaS (not implemented)
 
@@ -53,6 +56,9 @@ PR -> test/lint/scan -> merge main -> build image -> deploy staging -> smoke
 | `make production-saas-check` | Production config gate |
 | `make production-saas-staging-readiness-check` | Staging deploy config gate |
 | `make production-saas-staging-readiness-example` | Mocked staging structural validation in CI |
+| `make staging-smoke-structural` | Staging smoke env validation (no remote calls) |
+| `make staging-smoke-live` | Live staging HTTP smoke (gated) |
+| `make staging-release-gate` | Combined local + structural gate with live skip/pass reporting |
 | `make validate` | Extended integration (lab only) |
 
 ## Secrets in CI

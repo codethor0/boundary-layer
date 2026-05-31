@@ -1,0 +1,83 @@
+name: Staging Live Validation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  staging-live-validation:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/api/requirements-dev.txt
+
+      - name: Unit tests and lint
+        run: |
+          make test
+          make lint
+
+      - name: Structural staging checks
+        run: |
+          make production-saas-staging-readiness-example
+          make production-saas-managed-services-example
+          make staging-smoke-structural
+
+      - name: Live managed services check
+        if: ${{ secrets.DATABASE_URL != '' }}
+        env:
+          RUN_LIVE_STAGING_CHECKS: "true"
+          BOUNDARY_LAYER_PROFILE: production-saas
+          BOUNDARY_LAYER_ENV: staging
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          SECRET_MANAGER_PROVIDER: ${{ secrets.SECRET_MANAGER_PROVIDER }}
+          SECRET_MANAGER_PROJECT_OR_PATH: ${{ secrets.SECRET_MANAGER_PROJECT_OR_PATH }}
+          SECRET_ROTATION_REQUIRED: "true"
+          SECRET_CACHE_TTL_SECONDS: "300"
+          BOUNDARY_LAYER_FILE_STORAGE_BACKEND: s3
+          OBJECT_STORAGE_BUCKET: ${{ secrets.OBJECT_STORAGE_BUCKET }}
+          OBJECT_STORAGE_REGION: ${{ secrets.OBJECT_STORAGE_REGION }}
+          OBJECT_STORAGE_PREFIX: tenants/
+          BOUNDARY_LAYER_SECRET_KEY: ${{ secrets.BOUNDARY_LAYER_SECRET_KEY }}
+          BOUNDARY_LAYER_ALLOWED_ORIGINS: ${{ secrets.BOUNDARY_LAYER_ALLOWED_ORIGINS }}
+          BOUNDARY_LAYER_PUBLIC_BASE_URL: ${{ secrets.BOUNDARY_LAYER_PUBLIC_BASE_URL }}
+          BOUNDARY_LAYER_SECURE_COOKIES: "true"
+          BOUNDARY_LAYER_TRUST_PROXY_HEADERS: "true"
+          BOUNDARY_LAYER_METRICS_TOKEN: ${{ secrets.BOUNDARY_LAYER_METRICS_TOKEN }}
+          BOUNDARY_LAYER_AUDIT_LOG_ENABLED: "true"
+          BOUNDARY_LAYER_AUTH_ENABLED: "true"
+          BOUNDARY_LAYER_AUTH_PROVIDER: oidc
+          OIDC_ISSUER_URL: ${{ secrets.OIDC_ISSUER_URL }}
+          OIDC_AUDIENCE: ${{ secrets.OIDC_AUDIENCE }}
+          OIDC_JWKS_URL: ${{ secrets.OIDC_JWKS_URL }}
+          OIDC_TENANT_CLAIM: ${{ secrets.OIDC_TENANT_CLAIM }}
+          OIDC_ROLES_CLAIM: ${{ secrets.OIDC_ROLES_CLAIM }}
+          REDIS_KEY_PREFIX: boundary_layer:tenant
+          DB_SSL_MODE: require
+          BOUNDARY_LAYER_API_KEY: ${{ secrets.BOUNDARY_LAYER_API_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          SESSION_HMAC_SECRET: ${{ secrets.SESSION_HMAC_SECRET }}
+        run: make production-saas-managed-services-live-check
+
+      - name: Live staging smoke
+        if: ${{ secrets.STAGING_BASE_URL != '' && secrets.STAGING_TEST_ACCESS_TOKEN_TENANT_A != '' }}
+        env:
+          RUN_LIVE_STAGING_CHECKS: "true"
+          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+          STAGING_TEST_ACCESS_TOKEN_TENANT_A: ${{ secrets.STAGING_TEST_ACCESS_TOKEN_TENANT_A }}
+          STAGING_TEST_ACCESS_TOKEN_TENANT_B: ${{ secrets.STAGING_TEST_ACCESS_TOKEN_TENANT_B }}
+          STAGING_METRICS_AUTH_TOKEN: ${{ secrets.STAGING_METRICS_AUTH_TOKEN }}
+        run: make staging-smoke-live
+
+      - name: Live checks skipped notice
+        if: ${{ secrets.DATABASE_URL == '' }}
+        run: echo "LIVE STAGING CHECKS SKIPPED — staging environment secrets not configured"

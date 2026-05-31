@@ -179,6 +179,10 @@ def _settings_kwargs(merged: dict[str, str]) -> dict[str, object]:
         "abuse_alerting_enabled": _env_bool(merged.get("ABUSE_ALERTING_ENABLED")),
         "max_request_body_bytes": int(merged.get("MAX_REQUEST_BODY_BYTES", "0")),
         "max_file_upload_bytes": int(merged.get("MAX_FILE_UPLOAD_BYTES", "0")),
+        "tenant_concurrency_limit": int(merged.get("TENANT_CONCURRENCY_LIMIT", "0")),
+        "tenant_rate_limit_per_minute": int(
+            merged.get("TENANT_RATE_LIMIT_PER_MINUTE", "0")
+        ),
         "allow_local_managed_endpoints": _env_bool(
             merged.get("BOUNDARY_LAYER_ALLOW_LOCAL_MANAGED_ENDPOINTS")
         ),

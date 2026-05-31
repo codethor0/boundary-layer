@@ -1,10 +1,13 @@
 """Managed service readiness unit tests."""
 
+from unittest.mock import patch
+
 import pytest
 
 from apps.api import config
 from apps.api.managed_services import (
     LIVE_CHECKS_ENV,
+    LiveCheckResult,
     check_database_url_policy,
     check_object_storage_policy,
     check_redis_url_policy,
@@ -110,7 +113,17 @@ def test_live_checks_skipped_by_default(monkeypatch):
 
 def test_live_checks_flag_respected(monkeypatch):
     monkeypatch.setenv(LIVE_CHECKS_ENV, "true")
-    report = evaluate_managed_services_readiness(_managed_env(), mocked=True, live=True)
+    fake_results = [LiveCheckResult("jwks", True, "ok")]
+    with patch(
+        "apps.api.managed_services.run_live_connectivity_checks",
+        return_value=fake_results,
+    ):
+        report = evaluate_managed_services_readiness(
+            _managed_env(),
+            mocked=True,
+            live=True,
+            mode="live",
+        )
     assert report.live is True
 
 

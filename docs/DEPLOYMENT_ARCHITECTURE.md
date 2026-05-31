@@ -89,10 +89,30 @@ Internet -> WAF/CDN -> HTTPS LB -> API containers -> Private VPC
 
 Never share secrets or databases across environments.
 
-## Infrastructure-as-code skeleton (Phase 3)
+## Phase 5 staging validation (no deploy)
+
+Structural gates (no cloud credentials):
+
+```bash
+make staging-smoke-structural
+make staging-release-gate
+make infra-validate
+make container-image-check
+```
+
+Live gates (requires real staging secrets and `RUN_LIVE_STAGING_CHECKS=true`):
+
+```bash
+make production-saas-managed-services-live-check
+make staging-smoke-live
+```
+
+See [STAGING_ENVIRONMENT_CONTRACT.md](STAGING_ENVIRONMENT_CONTRACT.md). If live checks are skipped, Production SaaS score remains capped at **6/10**.
+
+## Infrastructure-as-code skeleton (Phase 3–5)
 
 Documented under `infra/terraform/`:
 
 - Intended modules: container service, managed PostgreSQL, managed Redis, object storage, secret manager, VPC, WAF/edge, logging/metrics, alert routing, CI/CD deploy role
 - **Warning:** This skeleton is not applied and is not production-ready. No provider credentials, account IDs, or real domains are included.
-- Optional local check: `terraform fmt -check` when Terraform is installed (not required for local lab validation)
+- Optional local checks: `make infra-validate`, `CONFIRM_STAGING_PLAN=true make infra-plan-staging` (plan only)

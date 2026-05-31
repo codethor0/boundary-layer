@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke production-saas-tenant-isolation-smoke production-saas-staging-readiness-check production-saas-staging-readiness-example production-saas-managed-services-check production-saas-managed-services-example production-saas-managed-services-live-check staging-deploy-dry-run staging-smoke-check staging-release-gate bundle clean fmt help prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke production-saas-tenant-isolation-smoke production-saas-staging-readiness-check production-saas-staging-readiness-example production-saas-managed-services-check production-saas-managed-services-example production-saas-managed-services-live-check staging-deploy-dry-run staging-smoke-check staging-smoke-structural staging-smoke-live staging-release-gate infra-validate infra-plan-staging container-image-check bundle clean fmt help prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -109,8 +109,23 @@ staging-deploy-dry-run:
 staging-smoke-check:
 	bash scripts/staging-smoke-check.sh
 
+staging-smoke-structural:
+	bash scripts/staging-smoke-structural.sh
+
+staging-smoke-live:
+	bash scripts/staging-smoke-live.sh
+
 staging-release-gate:
 	bash scripts/staging-release-gate.sh
+
+infra-validate:
+	bash scripts/infra-validate.sh
+
+infra-plan-staging:
+	bash scripts/infra-plan-staging.sh
+
+container-image-check:
+	bash scripts/container-image-check.sh
 
 backup:
 	bash scripts/backup-postgres.sh
@@ -149,7 +164,12 @@ help:
 	@echo "  make production-saas-managed-services-example Mocked managed service structural pass"
 	@echo "  make production-saas-managed-services-live-check Live connectivity (requires RUN_LIVE_STAGING_CHECKS=true)"
 	@echo "  make staging-deploy-dry-run Staging deploy dry run (no cloud deploy)"
-	@echo "  make staging-smoke-check Staging HTTP smoke (requires STAGING_BASE_URL)"
-	@echo "  make staging-release-gate Staging release gate (strict; smoke optional)"
+	@echo "  make staging-smoke-check Staging smoke (mode from STAGING_SMOKE_MODE or RUN_LIVE_STAGING_CHECKS)"
+	@echo "  make staging-smoke-structural Validate staging smoke env without remote calls"
+	@echo "  make staging-smoke-live Live staging HTTP smoke (requires RUN_LIVE_STAGING_CHECKS=true)"
+	@echo "  make staging-release-gate Staging release gate with explicit live skip/pass reporting"
+	@echo "  make infra-validate Terraform fmt/module skeleton validation"
+	@echo "  make infra-plan-staging Terraform plan only (requires CONFIRM_STAGING_PLAN=true)"
+	@echo "  make container-image-check Dockerfile/build/local container health smoke"
 	@echo "  make validate-e2e   Full test + lint + prod + local validation"
 	@echo "  make bundle         Create local review ZIP in ~/Downloads/"

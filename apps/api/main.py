@@ -49,6 +49,7 @@ from apps.api.middleware import (
     AuthContextMiddleware,
     ProductionLockdownMiddleware,
     RateLimitMiddleware,
+    RequestBodySizeMiddleware,
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
 )
@@ -113,6 +114,7 @@ app = FastAPI(
 
 app.add_middleware(ProductionLockdownMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestBodySizeMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AuthContextMiddleware)
 app.add_middleware(RequestContextMiddleware, settings=settings)

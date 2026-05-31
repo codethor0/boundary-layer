@@ -1,4 +1,4 @@
-# BoundaryLayer Infrastructure
+# Infrastructure
 
 This directory contains **Infrastructure-as-Code skeletons only**.
 
@@ -28,4 +28,13 @@ BoundaryLayer has **not** applied this infrastructure to any cloud account. Ther
 | WAF / edge | Not provisioned |
 | Live staging deploy | Not performed |
 
-See `terraform/README.md` for module layout and safety warnings.
+## Validation scripts (no apply)
+
+```bash
+make infra-validate      # terraform fmt -check / validate when installed
+make infra-plan-staging  # plan only; requires CONFIRM_STAGING_PLAN=true
+```
+
+`infra-plan-staging.sh` never runs `terraform apply` and never reads credentials from committed files.
+
+See `terraform/README.md` for backend recommendations, permissions, and safety warnings.
