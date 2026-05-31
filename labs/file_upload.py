@@ -57,6 +57,7 @@ def run_file_upload_lab(
     contains_hidden_instruction: bool = True,
     contains_active_content: bool = True,
     egress_attempted: bool = True,
+    tenant_id: str = "local-lab",
 ) -> dict:
     _validate_file_type(file_type)
     extracted_text = _synthetic_extract(

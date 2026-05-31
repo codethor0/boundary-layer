@@ -1,5 +1,7 @@
 """Authentication unit tests."""
 
+from unittest.mock import patch
+
 import pytest
 from fastapi import HTTPException
 
@@ -145,9 +147,11 @@ def test_resolve_request_tenant_denies_cross_tenant_in_production_saas():
         },
         settings,
     )
-    with pytest.raises(HTTPException) as exc:
-        resolve_request_tenant(settings, ctx, "tenant-b")
-    assert exc.value.status_code == 403
+    with patch("apps.api.tenancy.record_tenant_access_denied") as mock_denied:
+        with pytest.raises(HTTPException) as exc:
+            resolve_request_tenant(settings, ctx, "tenant-b")
+        assert exc.value.status_code == 403
+        mock_denied.assert_called_once()
 
 
 def test_resolve_request_tenant_allows_admin_override():

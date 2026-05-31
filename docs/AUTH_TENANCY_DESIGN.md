@@ -1,6 +1,6 @@
 # Authentication and Tenancy Design
 
-Design document for a future hosted Production SaaS. **Phase 1 implemented:** JWT middleware, tenant/membership/audit schema, and production-saas route protection. **Not a full hosted SaaS launch.**
+Design document for a future hosted Production SaaS. **Phase 1 implemented:** JWT middleware, tenant/membership/audit schema, and production-saas route protection. **Phase 2 implemented:** tenant-scoped lab data paths, Redis namespaces, request context, cross-tenant denial tests. **Not a full hosted SaaS launch.**
 
 ## Recommendation: OIDC-first
 
@@ -12,6 +12,19 @@ Flow:
 2. API validates JWT access tokens (issuer, audience, signature, expiry).
 3. API resolves `tenant_id` and `roles` from token claims plus membership table.
 4. Every request carries server-resolved tenant context; never trust client-supplied tenant IDs alone.
+
+## Production-saas tenant isolation invariants (Phase 2)
+
+In `production-saas` profile:
+
+1. Tenant identity must come from verified `AuthContext` (JWT + membership).
+2. Request body `tenant_id` / `tenant_a` must never override the verified tenant unless the caller has `platform_admin`.
+3. Every PostgreSQL row created by a production-saas lab request includes `tenant_id`.
+4. Every PostgreSQL query for production-saas lab paths filters by `tenant_id`.
+5. Every Redis key used by production-saas labs uses `boundary_layer:tenant:{tenant_id}:lab:{lab_name}:...`.
+6. Cross-tenant read/write/delete attempts return 403 and emit audit evidence.
+7. Local-lab mode continues using deterministic synthetic tenant IDs (`local-lab`) without authentication.
+8. `production-like` mode preserves existing validation behavior unless explicitly upgraded.
 
 ## JWT validation model
 
@@ -63,8 +76,8 @@ If a browser UI is added:
 
 ### Redis
 
-- Key pattern: `bl:{tenant_id}:{namespace}:{key}`.
-- Never use global keys for tenant data in SaaS mode.
+- Key pattern: `boundary_layer:tenant:{tenant_id}:lab:{lab_name}:{key}` (implemented for redis and prompt-cache labs in production-saas).
+- Never use global keys for tenant data in SaaS mode (vulnerable lab modes disabled in production-saas).
 
 ### Object storage
 

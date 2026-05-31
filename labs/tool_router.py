@@ -31,7 +31,7 @@ def _simulate_tool_from_context(context: str) -> tuple[str, dict]:
     return "summarize_invoice", {"invoice_id": "INV-001"}
 
 
-def run_tool_router_lab(mode: str) -> dict:
+def run_tool_router_lab(mode: str, tenant_id: str = "local-lab") -> dict:
     events: list[str] = []
     events.append("Loaded poisoned retrieval chunk into tool router context")
 

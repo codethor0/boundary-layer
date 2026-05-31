@@ -48,7 +48,10 @@ def test_redis_live_mode_writes_to_namespaced_keys(mock_get_client, monkeypatch)
 
     result = run_redis_lab("hardened")
     assert result["blocked"] is True
-    assert any("boundary_layer:lab:redis:" in event for event in result["events"])
+    assert any(
+        "boundary_layer:tenant:" in event and ":lab:redis:" in event
+        for event in result["events"]
+    )
     assert mock_client.setex.called
     assert mock_client.set.called
 

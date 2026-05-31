@@ -9,10 +9,13 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
+from apps.api.auth import LOCAL_LAB_TENANT_ID, AuthContext
 from apps.api.config import Settings
 from apps.api.db import get_connection
 
 logger = logging.getLogger("boundary_layer.api.tenancy")
+
+TENANT_REDIS_PREFIX = "boundary_layer:tenant"
 
 TENANCY_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS tenants (
@@ -247,6 +250,71 @@ def list_audit_events_for_tenant(
     return events
 
 
+def build_tenant_redis_key(tenant_id: str, lab_name: str, key: str) -> str:
+    """Build a tenant-scoped Redis key for production SaaS isolation."""
+    normalized_tenant = normalize_lab_tenant_id(tenant_id)
+    normalized_lab = lab_name.strip().replace(":", "_")
+    normalized_key = key.strip().lstrip(":")
+    return (
+        f"{TENANT_REDIS_PREFIX}:{normalized_tenant}:lab:"
+        f"{normalized_lab}:{normalized_key}"
+    )
+
+
+def normalize_lab_tenant_id(tenant_id: str | None) -> str:
+    if tenant_id and tenant_id.strip():
+        return tenant_id.strip()
+    return LOCAL_LAB_TENANT_ID
+
+
+def assert_tenant_scope(tenant_id: str | None, settings: Settings) -> str:
+    normalized = normalize_lab_tenant_id(tenant_id)
+    if settings.is_production_saas and not tenant_id:
+        raise ValueError("tenant_id is required in production-saas database paths")
+    return normalized
+
+
+def require_same_tenant_or_admin(
+    settings: Settings,
+    auth_context: AuthContext,
+    target_tenant_id: str,
+) -> None:
+    target = normalize_lab_tenant_id(target_tenant_id)
+    if auth_context.is_platform_admin():
+        return
+    if auth_context.tenant_id != target:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cross-tenant access denied",
+        )
+
+
+def record_tenant_access_denied(
+    settings: Settings,
+    reason: str,
+    auth_context: AuthContext | None = None,
+    requested_tenant_id: str | None = None,
+) -> None:
+    from apps.api.metrics import (
+        record_auth_decision,
+        record_tenant_access_denied_metric,
+    )
+
+    record_tenant_access_denied_metric(reason)
+    record_auth_decision("denied", reason)
+    record_auth_audit_event(
+        settings,
+        action="auth_cross_tenant_denied",
+        result="denied",
+        tenant_id=auth_context.tenant_id if auth_context else None,
+        actor_subject=auth_context.subject if auth_context else None,
+        metadata={
+            "reason": reason,
+            "requested_tenant_id": requested_tenant_id,
+        },
+    )
+
+
 def record_auth_audit_event(
     settings: Settings,
     action: str,
@@ -254,13 +322,13 @@ def record_auth_audit_event(
     tenant_id: str | None = None,
     actor_subject: str | None = None,
     metadata: dict[str, Any] | None = None,
-) -> None:
+) -> str | None:
     if not settings.audit_log_enabled:
-        return
+        return None
     if not settings.is_production_saas:
-        return
+        return None
     try:
-        insert_audit_event(
+        event_id = insert_audit_event(
             action=action,
             result=result,
             tenant_id=tenant_id,
@@ -268,6 +336,14 @@ def record_auth_audit_event(
             resource_type="auth",
             metadata=metadata,
         )
+        from apps.api.metrics import record_audit_event_metric, record_auth_decision
+
+        record_audit_event_metric(action, result)
+        if action == "auth_allowed":
+            record_auth_decision("allowed", "authenticated")
+        elif action.startswith("auth_"):
+            record_auth_decision("denied", action.removeprefix("auth_"))
+        return event_id
     except Exception:
         logger.exception("audit event insert failed for action=%s", action)
         raise HTTPException(

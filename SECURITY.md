@@ -29,7 +29,7 @@ The default `docker-compose.yml` dev stack (`make up`) is for **local learning o
 
 Use `docker-compose.prod.yml` only on machines you control, with secrets from `.env.production` and the guidance in [docs/PRODUCTION.md](docs/PRODUCTION.md). Even the production-like profile is a **local validation profile**, not a complete SaaS hardening program.
 
-Setting `BOUNDARY_LAYER_PROFILE=production-saas` enables OIDC JWT authentication on lab routes, tenant/membership checks, and a fail-closed startup gate. It is not configured in the default local lab. Run `make production-saas-check` to see readiness (expects NOT READY locally) and `make production-saas-auth-smoke` for deterministic auth unit tests.
+Setting `BOUNDARY_LAYER_PROFILE=production-saas` enables OIDC JWT authentication on lab routes, tenant/membership checks, tenant-scoped lab data paths (PostgreSQL and Redis where applicable), cross-tenant denial with audit evidence, and a fail-closed startup gate. It is not configured in the default local lab. Run `make production-saas-check` to see readiness (expects NOT READY locally), `make production-saas-auth-smoke` for auth unit tests, and `make production-saas-tenant-isolation-smoke` for cross-tenant isolation unit tests.
 
 ## Rate Limiting and Proxy Headers
 

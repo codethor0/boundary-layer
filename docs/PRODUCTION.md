@@ -1,6 +1,6 @@
 # Production Deployment
 
-BoundaryLayer v1.3.5 includes a **production-like local validation profile** while preserving the local lab stack in `docker-compose.yml`. The `production-saas` profile adds Phase 1 OIDC JWT auth scaffolding and tenant tables — **not** a hosted SaaS launch.
+BoundaryLayer v1.3.5 includes a **production-like local validation profile** while preserving the local lab stack in `docker-compose.yml`. The `production-saas` profile adds Phase 1 OIDC JWT auth scaffolding and Phase 2 tenant-scoped lab data paths — **not** a hosted SaaS launch.
 
 ## Production SaaS (not shipped)
 

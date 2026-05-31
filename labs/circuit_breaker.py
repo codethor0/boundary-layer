@@ -39,6 +39,7 @@ def _simulate_failures_vulnerable(requested_work_units: int) -> int:
 def run_circuit_breaker_lab(
     mode: str,
     requested_work_units: int = DEFAULT_REQUESTED_WORK_UNITS,
+    tenant_id: str = "local-lab",
 ) -> dict:
     _validate_requested_work_units(requested_work_units)
     events: list[str] = []
