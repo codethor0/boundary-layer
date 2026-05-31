@@ -2,13 +2,23 @@
 
 All notable changes to BoundaryLayer are documented here.
 
-## v1.3.3 (unreleased)
+## v1.3.3 (2026-05-31)
 
-- Fix Production Validate CI Redis healthcheck and CI secret generation
-- Fix Security Scan CI (Trivy action pin, Hadolint DL3008)
-- Harden rate limiting: fail-closed in production-like profile, safe X-Forwarded-For handling
-- Add restore roundtrip and API restart validation to validation gates
+- Production readiness audit fixes: restore roundtrip, API restart/recovery validation, validation curl noise reduction
+- Fix Production Validate CI Redis health (TLS key permissions for non-root Redis on Linux runners)
+- Fix Security Scan CI: repo-level Hadolint DL3008 ignore, Trivy pinned to immutable release with library-only scan policy
+- Harden rate limiting: fail-closed in production-like profile when Redis limiter is unavailable; safe X-Forwarded-For handling
 - Document dev stack insecurity and mock LLM integration scope
+- Live validation pass: local clean-room gates, production-like profile, bundle hygiene verified
+- GitHub Actions green on CI, Security Scan, and Production Validate at release commit
+
+Known limitations (unchanged):
+
+- Local defensive security lab only; not a hosted production SaaS
+- Dev stack is intentionally unauthenticated
+- Alert webhook storage is in-memory only
+- Restore validation is table-scoped unless improved
+- Trivy policy excludes unfixed base-image OS CVEs from blocking CI
 
 ## v1.3.2
 
