@@ -1,6 +1,17 @@
 # Production Deployment
 
-BoundaryLayer v1.3.5 includes a **production-like local validation profile** while preserving the local lab stack in `docker-compose.yml`. This profile helps you test auth, TLS ingress, rate limits, and observability lockdown on a machine you control. It is not a hosted production SaaS offering.
+BoundaryLayer v1.3.5 includes a **production-like local validation profile** while preserving the local lab stack in `docker-compose.yml`. This profile helps you test auth, TLS ingress, rate limits, and observability lockdown on a machine you control. It is **not** a hosted Production SaaS offering.
+
+## Production SaaS (not shipped)
+
+Real hosted Production SaaS requires multi-tenant auth, tenant isolation, managed services, audit logging, DR, and operational runbooks. BoundaryLayer does **not** ship this today.
+
+- Readiness assessment: [PRODUCTION_SAAS_READINESS.md](PRODUCTION_SAAS_READINESS.md)
+- Check local readiness (expects NOT READY): `make production-saas-check`
+- Mocked config pass for docs/CI: `make production-saas-check-example`
+- Profile gate: set `BOUNDARY_LAYER_PROFILE=production-saas` only when all required settings are configured
+
+Do not deploy `docker-compose.yml` to the public internet.
 
 ## What Production Adds
 

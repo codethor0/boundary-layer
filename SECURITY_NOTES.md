@@ -9,6 +9,13 @@
 - HMAC secrets in examples must be rotated for any non-local use
 - Redis lab keys use `boundary_layer:lab:redis:` namespace with TTLs
 
+## Production SaaS Profile (`production-saas`)
+
+- **Not shipped.** Fail-closed startup gate only.
+- Requires OIDC provider, managed DB/Redis URLs, secret manager values, audit logging, object storage backend, and CORS allowlist.
+- Run `make production-saas-check` locally; it should report NOT READY until real SaaS infrastructure exists.
+- See [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md).
+
 ## Safe-Use Disclaimer
 
 BoundaryLayer is for defensive education, secure engineering, and controlled local testing only. Do not use against systems you do not own or lack explicit permission to test.

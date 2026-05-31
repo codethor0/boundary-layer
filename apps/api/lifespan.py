@@ -35,8 +35,9 @@ async def lifespan(app: FastAPI):
     if settings.run_migrations:
         _run_migrations(settings)
     logger.info(
-        "BoundaryLayer API started env=%s auth_enabled=%s",
+        "BoundaryLayer API started env=%s profile=%s auth_enabled=%s",
         settings.boundary_layer_env,
+        settings.boundary_layer_profile,
         settings.auth_enabled,
     )
     yield
