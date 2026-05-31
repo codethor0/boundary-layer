@@ -2,6 +2,24 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.3.5 (2026-05-31)
+
+- Final validation gap closure from the v1.3.4 audit (tag, release, and runtime alignment)
+- Fix restore seed field: `requested_writes: 25` (was ignored `event_count`)
+- Clarify SSE hardened `blocked` semantics in docs, validate gate, and tests
+- Extend `make validate-alerts` to six deterministic alerts through Alertmanager/webhook
+- Add explicit restore volume reset warnings for `make validate-restore-fresh-volume`
+- Add demo preview guide and regenerate sanitized demo transcript
+- v1.3.5 tag aligns with gap-closure commit on `main` (do not retag v1.3.4)
+
+Known limitations (unchanged):
+
+- Local defensive security lab only; not a hosted production SaaS
+- Dev stack is intentionally unauthenticated
+- Alert webhook storage is in-memory only
+- Fresh-volume restore validates local Compose Postgres only
+- Terminal GIF requires optional asciinema/agg tooling; transcript is the default artifact
+
 ## v1.3.4 (2026-05-31)
 
 - Align release tag with 10/10 polish docs and commands (`make smoke`, `make demo`, `make validate-alerts`)

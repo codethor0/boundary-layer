@@ -1,6 +1,6 @@
 # Production Deployment
 
-BoundaryLayer v1.3.4 includes a **production-like local validation profile** while preserving the local lab stack in `docker-compose.yml`. This profile helps you test auth, TLS ingress, rate limits, and observability lockdown on a machine you control. It is not a hosted production SaaS offering.
+BoundaryLayer v1.3.5 includes a **production-like local validation profile** while preserving the local lab stack in `docker-compose.yml`. This profile helps you test auth, TLS ingress, rate limits, and observability lockdown on a machine you control. It is not a hosted production SaaS offering.
 
 ## What Production Adds
 

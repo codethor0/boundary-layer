@@ -4,9 +4,9 @@ Use this checklist before tagging a BoundaryLayer release or publishing a GitHub
 
 ## Release title pattern
 
-Preferred GitHub release title for v1.3.4:
+Preferred GitHub release title for v1.3.5:
 
-**BoundaryLayer v1.3.4 — Local Lab Polish and Validation Release**
+**BoundaryLayer v1.3.5 — Final Local Lab Validation and Release Alignment**
 
 General pattern:
 
@@ -16,13 +16,13 @@ Avoid using "Production Readiness" alone. **Production-like** means controlled l
 
 ## Tag vs main
 
-- v1.3.4 aligns the release tag with polished docs and validation commands on `main`.
-- Prior tags (for example `v1.3.3`) remain immutable; do not retag published releases.
+- v1.3.5 aligns the release tag with final gap-closure validation on `main`.
+- v1.3.4 remains at commit `4519df8`; do not retag published releases.
 
 ## Pre-release validation
 
 - [ ] Run `make setup`
-- [ ] Run `make test` (184 tests passing)
+- [ ] Run `make test` (186 tests passing)
 - [ ] Run `make lint`
 - [ ] Run `docker compose down -v && make up`
 - [ ] Run `make smoke` and `make demo`
@@ -96,7 +96,7 @@ Release owners should confirm:
 
 - [ ] Create or verify public repo at https://github.com/codethor0/boundary-layer
 - [ ] Push `main`
-- [ ] Tag release (for example `v1.3.4`)
+- [ ] Tag release (for example `v1.3.5`)
 - [ ] Push tag
 - [ ] Create GitHub Release with notes from [CHANGELOG.md](../CHANGELOG.md) (release page is separate from the tag; verify with `gh release view <tag>`)
 - [ ] Optionally attach a verified local bundle from `make bundle` (never commit bundles to Git)

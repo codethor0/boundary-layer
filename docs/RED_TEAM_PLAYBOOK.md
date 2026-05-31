@@ -1,6 +1,6 @@
 # Red Team Playbook
 
-Safe local-only test scenarios for BoundaryLayer v1.3.4. Run only against your local Docker stack.
+Safe local-only test scenarios for BoundaryLayer v1.3.5. Run only against your local Docker stack.
 
 ## Prerequisites
 
