@@ -45,6 +45,7 @@ from apps.api.metrics import (
     set_sse_worker_pressure,
 )
 from apps.api.middleware import (
+    ProductionLockdownMiddleware,
     RateLimitMiddleware,
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
@@ -102,8 +103,12 @@ app = FastAPI(
     description="Open LLM Infrastructure Security Lab",
     version=settings.app_version,
     lifespan=lifespan,
+    docs_url="/docs" if settings.expose_openapi else None,
+    redoc_url="/redoc" if settings.expose_openapi else None,
+    openapi_url="/openapi.json" if settings.expose_openapi else None,
 )
 
+app.add_middleware(ProductionLockdownMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(RequestContextMiddleware, settings=settings)
@@ -382,13 +387,28 @@ def health():
     }
 
 
-@app.get("/ready")
+@app.get("/ready", dependencies=[Depends(verify_metrics_access)])
 def ready():
     is_ready, checks = evaluate_readiness()
+    current = get_settings()
+
+    def _sanitize_checks(
+        raw_checks: dict[str, dict[str, str | bool]],
+    ) -> dict[str, dict[str, str | bool]]:
+        if not current.is_production:
+            return raw_checks
+        return {
+            name: {
+                "ok": check["ok"],
+                "detail": "ok" if check["ok"] else "unavailable",
+            }
+            for name, check in raw_checks.items()
+        }
+
     payload = {
         "status": "ready" if is_ready else "not_ready",
         "service": "boundary-layer-api",
-        "checks": checks,
+        "checks": _sanitize_checks(checks),
     }
     if not is_ready:
         raise HTTPException(status_code=503, detail=payload)

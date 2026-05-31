@@ -1,6 +1,6 @@
 # Architecture Diagrams
 
-Mermaid diagrams for BoundaryLayer runtime topology, lab flows, trust boundaries, observability, and release validation. All diagrams reflect current v1.1.0 behavior.
+Mermaid diagrams for BoundaryLayer runtime topology, lab flows, trust boundaries, observability, and release validation. All diagrams reflect current v1.2.0 behavior.
 
 The README includes five core diagrams under **Architecture at a Glance**. This document contains the full set.
 
@@ -252,7 +252,7 @@ flowchart TB
 ```mermaid
 flowchart LR
     Push[Push or PR to main] --> GHA[GitHub Actions CI]
-    GHA --> Test[make test 162]
+    GHA --> Test[make test 169]
     GHA --> Lint[make lint]
     GHA --> Hygiene[tracked artifact scan]
     GHA --> Secret[secret pattern scan]

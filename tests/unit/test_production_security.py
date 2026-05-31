@@ -1,5 +1,7 @@
 """Production security and configuration tests."""
 
+from unittest.mock import patch
+
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -27,11 +29,16 @@ def test_production_settings_apply_secure_defaults(monkeypatch):
     monkeypatch.setenv("BOUNDARY_LAYER_ENV", "production")
     monkeypatch.setenv("BOUNDARY_LAYER_API_KEY", "a" * 32)
     monkeypatch.setenv("BOUNDARY_LAYER_METRICS_TOKEN", "b" * 32)
+    monkeypatch.setenv("POSTGRES_PASSWORD", "postgres-secret-16")
+    monkeypatch.setenv("REDIS_PASSWORD", "redis-secret-16chars")
+    monkeypatch.setenv("SESSION_HMAC_SECRET", "session-hmac-secret")
     settings = config.Settings()
     assert settings.auth_enabled is True
     assert settings.allow_vulnerable is False
     assert settings.metrics_auth_required is True
     assert settings.rate_limit_enabled is True
+    assert settings.rate_limit_backend == "redis"
+    assert settings.expose_openapi is False
 
 
 def test_verify_api_access_rejects_missing_key():
@@ -84,7 +91,9 @@ def _test_settings(**overrides):
         "rate_limit_enabled": False,
         "rate_limit_requests": 120,
         "rate_limit_window_seconds": 60,
-        "app_version": "1.1.0",
+        "rate_limit_backend": "memory",
+        "expose_openapi": True,
+        "app_version": "1.2.0",
     }
     defaults.update(overrides)
     return config.Settings.model_construct(**defaults)
@@ -170,6 +179,7 @@ def test_rate_limit_returns_429(monkeypatch):
             rate_limit_enabled=True,
             rate_limit_requests=2,
             rate_limit_window_seconds=60,
+            rate_limit_backend="memory",
         ),
     )
     client = TestClient(app)
@@ -177,3 +187,49 @@ def test_rate_limit_returns_429(monkeypatch):
     assert client.get("/labs").status_code == 200
     limited = client.get("/labs")
     assert limited.status_code == 429
+
+
+def test_production_settings_require_data_store_secrets(monkeypatch):
+    monkeypatch.setenv("BOUNDARY_LAYER_ENV", "production")
+    monkeypatch.setenv("BOUNDARY_LAYER_API_KEY", "a" * 32)
+    monkeypatch.setenv("BOUNDARY_LAYER_METRICS_TOKEN", "b" * 32)
+    monkeypatch.setenv("POSTGRES_PASSWORD", "short")
+    with pytest.raises(ValueError, match="POSTGRES_PASSWORD"):
+        config.Settings()
+
+
+def test_openapi_disabled_in_production(monkeypatch):
+    _patch_settings(
+        monkeypatch,
+        _test_settings(
+            boundary_layer_env="production",
+            expose_openapi=False,
+        ),
+    )
+    client = TestClient(app)
+    assert client.get("/docs").status_code == 404
+    assert client.get("/openapi.json").status_code == 404
+
+
+def test_ready_requires_metrics_token_when_enabled(monkeypatch):
+    metrics_token = "h" * 32
+    _patch_settings(
+        monkeypatch,
+        _test_settings(
+            metrics_auth_required=True,
+            metrics_token=metrics_token,
+        ),
+    )
+    client = TestClient(app)
+    denied = client.get("/ready")
+    assert denied.status_code == 401
+
+    with (
+        patch("apps.api.readiness._check_postgres", return_value=(True, "connected")),
+        patch("apps.api.readiness._check_redis", return_value=(True, "connected")),
+    ):
+        allowed = client.get(
+            "/ready",
+            headers={"Authorization": f"Bearer {metrics_token}"},
+        )
+    assert allowed.status_code == 200

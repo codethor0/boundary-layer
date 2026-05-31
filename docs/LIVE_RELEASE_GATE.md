@@ -28,7 +28,7 @@ make validate
 
 Expected baseline:
 
-- 162 tests passing
+- 169 tests passing
 - Lint clean
 - `make validate` exits 0
 - Alert delivery includes `BoundaryLayerInferenceCircuitBreakerOpen`
