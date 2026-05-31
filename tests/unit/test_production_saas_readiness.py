@@ -4,6 +4,7 @@ import pytest
 
 from apps.api import config
 from apps.api.config_check import evaluate_production_saas_readiness
+from tests.helpers.auth_tenancy import production_saas_env as _base_production_saas_env
 
 
 @pytest.fixture(autouse=True)
@@ -25,29 +26,8 @@ def _production_like_env(monkeypatch):
 
 def _production_saas_env(monkeypatch):
     _production_like_env(monkeypatch)
-    monkeypatch.setenv("BOUNDARY_LAYER_PROFILE", "production-saas")
-    monkeypatch.setenv("BOUNDARY_LAYER_AUTH_PROVIDER", "oidc-test")
-    monkeypatch.setenv("OIDC_ISSUER_URL", "https://issuer.example.com")
-    monkeypatch.setenv("OIDC_AUDIENCE", "boundary-layer-api")
-    monkeypatch.setenv(
-        "OIDC_JWKS_URL", "https://issuer.example.com/.well-known/jwks.json"
-    )
-    monkeypatch.setenv("OIDC_ALGORITHMS", "HS256")
-    monkeypatch.setenv(
-        "DATABASE_URL",
-        "postgresql://boundary_layer:example@postgres.example:5432/boundary_layer",
-    )
-    monkeypatch.setenv("REDIS_URL", "rediss://:example@redis.example:6379/0")
-    monkeypatch.setenv(
-        "BOUNDARY_LAYER_SECRET_KEY",
-        "production-saas-phase1-secret-key-minimum-32",
-    )
-    monkeypatch.setenv("BOUNDARY_LAYER_ALLOWED_ORIGINS", "https://app.example.com")
-    monkeypatch.setenv("BOUNDARY_LAYER_PUBLIC_BASE_URL", "https://app.example.com")
-    monkeypatch.setenv("BOUNDARY_LAYER_SECURE_COOKIES", "true")
-    monkeypatch.setenv("BOUNDARY_LAYER_TRUST_PROXY_HEADERS", "true")
-    monkeypatch.setenv("BOUNDARY_LAYER_FILE_STORAGE_BACKEND", "s3")
-    monkeypatch.setenv("BOUNDARY_LAYER_AUDIT_LOG_ENABLED", "true")
+    for key, value in _base_production_saas_env().items():
+        monkeypatch.setenv(key, value)
 
 
 def test_local_lab_profile_uses_local_defaults(monkeypatch):
@@ -122,32 +102,7 @@ def test_production_saas_check_reports_not_ready_by_default():
 
 
 def test_production_saas_check_passes_with_mocked_env():
-    report = evaluate_production_saas_readiness(
-        {
-            "BOUNDARY_LAYER_PROFILE": "production-saas",
-            "BOUNDARY_LAYER_ENV": "production",
-            "BOUNDARY_LAYER_AUTH_ENABLED": "true",
-            "BOUNDARY_LAYER_AUTH_PROVIDER": "oidc",
-            "OIDC_ISSUER_URL": "https://issuer.example.com",
-            "OIDC_AUDIENCE": "boundary-layer-api",
-            "OIDC_JWKS_URL": "https://issuer.example.com/.well-known/jwks.json",
-            "OIDC_ALGORITHMS": "RS256",
-            "DATABASE_URL": "postgresql://boundary_layer:example@postgres.example:5432/boundary_layer",
-            "REDIS_URL": "rediss://:example@redis.example:6379/0",
-            "BOUNDARY_LAYER_SECRET_KEY": "production-saas-phase1-secret-key-minimum-32",
-            "BOUNDARY_LAYER_ALLOWED_ORIGINS": "https://app.example.com",
-            "BOUNDARY_LAYER_PUBLIC_BASE_URL": "https://app.example.com",
-            "BOUNDARY_LAYER_SECURE_COOKIES": "true",
-            "BOUNDARY_LAYER_TRUST_PROXY_HEADERS": "true",
-            "BOUNDARY_LAYER_METRICS_TOKEN": "example-metrics-token-min-24-chars",
-            "BOUNDARY_LAYER_FILE_STORAGE_BACKEND": "s3",
-            "BOUNDARY_LAYER_AUDIT_LOG_ENABLED": "true",
-            "BOUNDARY_LAYER_API_KEY": "example-production-api-key-min-24-chars",
-            "POSTGRES_PASSWORD": "example-postgres-password",
-            "REDIS_PASSWORD": "example-redis-password-16",
-            "SESSION_HMAC_SECRET": "example-session-hmac-secret",
-        }
-    )
+    report = evaluate_production_saas_readiness(_base_production_saas_env())
     assert report.ready is True
 
 

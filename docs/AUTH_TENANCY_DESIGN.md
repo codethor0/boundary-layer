@@ -1,6 +1,6 @@
 # Authentication and Tenancy Design
 
-Design document for a future hosted Production SaaS. **Phase 1 implemented:** JWT middleware, tenant/membership/audit schema, and production-saas route protection. **Phase 2 implemented:** tenant-scoped lab data paths, Redis namespaces, request context, cross-tenant denial tests. **Not a full hosted SaaS launch.**
+Design document for a future hosted Production SaaS. **Phase 1 implemented:** JWT middleware, tenant/membership/audit schema, and production-saas route protection. **Phase 2 implemented:** tenant-scoped lab data paths, Redis namespaces, request context, cross-tenant denial tests. **Phase 3 implemented:** staging OIDC config validation, JWKS client abstraction (`apps/api/jwks.py`), staging readiness checks. **Not a full hosted SaaS launch.**
 
 ## Recommendation: OIDC-first
 

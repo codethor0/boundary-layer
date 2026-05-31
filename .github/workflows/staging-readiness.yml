@@ -1,0 +1,55 @@
+name: Staging Readiness
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  staging-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/api/requirements-dev.txt
+
+      - name: Run unit tests
+        run: make test
+
+      - name: Run lint
+        run: make lint
+
+      - name: Production SaaS mocked readiness
+        run: make production-saas-check-example
+
+      - name: Staging mocked readiness
+        run: make production-saas-staging-readiness-example
+
+      - name: Secret scan
+        run: |
+          if command -v rg >/dev/null 2>&1; then
+            ! rg -n "(BEGIN (RSA )?PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,})" \
+              --glob '!.github/**' --glob '!docs/**' .
+          fi
+
+      - name: Validate Prometheus YAML
+        run: |
+          python - <<'PY'
+          import yaml
+          for path in [
+              "detections/prometheus/alerts.yml",
+              "detections/prometheus/prometheus.yml",
+              "detections/alertmanager/alertmanager.yml",
+              ".github/workflows/staging-readiness.yml",
+          ]:
+              with open(path, "r", encoding="utf-8") as handle:
+                  yaml.safe_load(handle)
+              print(f"YAML OK: {path}")
+          PY

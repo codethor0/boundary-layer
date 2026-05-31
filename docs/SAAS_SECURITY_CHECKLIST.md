@@ -11,11 +11,11 @@ P0 security gates before any public Production SaaS launch. Status as of v1.3.5 
 | Input validation on all endpoints | Partial | Engineering | Pydantic schemas, fuzz tests | Yes |
 | Output redaction in logs | Not started | Security | Log sampling review | Yes |
 | Audit logs for admin and lab actions | Partial | Engineering | `audit_events` table + auth/cross-tenant decision writes + metrics; not immutable/SIEM | Yes |
-| Secret manager (no .env in prod) | Not started | Platform | IaC + rotation runbook | Yes |
-| TLS everywhere | Partial | Platform | TLS in prod-like profile only | Yes |
-| CORS allowlist | Partial | Engineering | ALLOWED_ORIGINS in production-saas gate | Yes |
+| Secret manager (no .env in prod) | Partial | Platform | `SECRET_MANAGER_PROVIDER` config gate + `apps/api/secrets.py` scaffold; no cloud adapter | Yes |
+| TLS everywhere | Partial | Platform | TLS in prod-like profile; `rediss://` + DB SSL validation in production-saas | Yes |
+| CORS allowlist | Partial | Engineering | ALLOWED_ORIGINS in production-saas gate; wildcard rejected in staging | Yes |
 | CSRF strategy if browser sessions | Not started | Engineering | Design doc + tests | Yes |
-| Secure cookies | Not started | Engineering | SECURE_COOKIES gate only | Yes |
+| Secure cookies | Partial | Engineering | SECURE_COOKIES required in production-saas/staging checks | Yes |
 | Dependency scan in CI | Done | Engineering | Security Scan workflow green | No |
 | Container scan in CI | Done | Engineering | Trivy job green | No |
 | SBOM generation | Not started | Platform | Syft artifact in CI | Yes |

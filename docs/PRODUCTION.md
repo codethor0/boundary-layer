@@ -1,6 +1,6 @@
 # Production Deployment
 
-BoundaryLayer v1.3.5 includes a **production-like local validation profile** while preserving the local lab stack in `docker-compose.yml`. The `production-saas` profile adds Phase 1 OIDC JWT auth scaffolding and Phase 2 tenant-scoped lab data paths — **not** a hosted SaaS launch.
+BoundaryLayer v1.3.5 includes a **production-like local validation profile** while preserving the local lab stack in `docker-compose.yml`. The `production-saas` profile adds Phase 1–3 scaffolding (OIDC JWT auth, tenant isolation, staging readiness validation, JWKS client, managed-service config gates, storage/secrets scaffolds) — **not** a hosted SaaS launch.
 
 ## Production SaaS (not shipped)
 
@@ -8,7 +8,8 @@ Real hosted Production SaaS requires multi-tenant auth, tenant isolation, manage
 
 - Readiness assessment: [PRODUCTION_SAAS_READINESS.md](PRODUCTION_SAAS_READINESS.md)
 - Check local readiness (expects NOT READY): `make production-saas-check`
-- Mocked config pass for docs/CI: `make production-saas-check-example`
+- Check staging deploy config (expects NOT READY): `make production-saas-staging-readiness-check`
+- Mocked config pass for docs/CI: `make production-saas-check-example`, `make production-saas-staging-readiness-example`
 - Profile gate: set `BOUNDARY_LAYER_PROFILE=production-saas` only when all required settings are configured
 
 Do not deploy `docker-compose.yml` to the public internet.

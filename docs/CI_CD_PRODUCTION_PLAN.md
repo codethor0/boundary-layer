@@ -12,6 +12,9 @@ Required pipeline for hosted Production SaaS. **Deploy stages are not implemente
 | Hadolint | Security Scan | Done |
 | Trivy container scan | Security Scan | Done |
 | Production-like validate | Production Validate | Done |
+| Staging readiness (mocked) | staging-readiness.yml | Done |
+
+The `staging-readiness.yml` workflow runs unit tests, lint, mocked `production-saas-check-example`, mocked `production-saas-staging-readiness-example`, secret scan, and YAML validation. It does **not** deploy and does **not** require cloud credentials.
 
 ## Required for Production SaaS (not implemented)
 
@@ -48,6 +51,8 @@ PR -> test/lint/scan -> merge main -> build image -> deploy staging -> smoke
 | `make test` | Unit tests job |
 | `make validate-prod` | Staging smoke subset |
 | `make production-saas-check` | Production config gate |
+| `make production-saas-staging-readiness-check` | Staging deploy config gate |
+| `make production-saas-staging-readiness-example` | Mocked staging structural validation in CI |
 | `make validate` | Extended integration (lab only) |
 
 ## Secrets in CI

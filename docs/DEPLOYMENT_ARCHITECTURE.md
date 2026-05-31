@@ -88,3 +88,11 @@ Internet -> WAF/CDN -> HTTPS LB -> API containers -> Private VPC
 | production | Customer data, strict change control |
 
 Never share secrets or databases across environments.
+
+## Infrastructure-as-code skeleton (Phase 3)
+
+Documented under `infra/terraform/`:
+
+- Intended modules: container service, managed PostgreSQL, managed Redis, object storage, secret manager, VPC, WAF/edge, logging/metrics, alert routing, CI/CD deploy role
+- **Warning:** This skeleton is not applied and is not production-ready. No provider credentials, account IDs, or real domains are included.
+- Optional local check: `terraform fmt -check` when Terraform is installed (not required for local lab validation)

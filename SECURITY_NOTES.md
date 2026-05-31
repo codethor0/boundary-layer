@@ -11,10 +11,14 @@
 
 ## Production SaaS Profile (`production-saas`)
 
-- **Not shipped.** Phase 1 adds OIDC JWT middleware, tenant/membership/audit schema, and route protection.
-- Requires OIDC settings, managed DB/Redis URLs, secret manager values, audit logging, object storage backend, and CORS allowlist.
+- **Not shipped.** Phase 3 adds staging OIDC config validation, JWKS client abstraction, managed-service-ready settings, object storage and secret manager scaffolds, IaC skeleton, and CI staging-readiness checks.
+- Requires OIDC settings, managed DB/Redis URLs (TLS/SSL), secret manager config, audit logging, object storage backend, and CORS allowlist.
 - Run `make production-saas-check` locally; it should report NOT READY until real SaaS infrastructure exists.
+- Run `make production-saas-staging-readiness-check` for staging deploy config validation; it should report NOT READY without a real staging environment.
+- Run `make production-saas-check-example` and `make production-saas-staging-readiness-example` for mocked structural validation in CI (not live deployment proof).
 - Run `make production-saas-auth-smoke` for deterministic auth/tenancy unit tests (no external IdP).
+- Object storage (`apps/api/storage.py`) and secret manager (`apps/api/secrets.py`) are scaffolds only — no cloud SDK adapters yet.
+- IaC under `infra/terraform/` is documented skeleton only — not applied.
 - Audit events are database-backed foundation only — not immutable production audit logging yet.
 - See [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md).
 
