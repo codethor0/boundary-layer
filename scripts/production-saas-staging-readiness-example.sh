@@ -42,6 +42,7 @@ export BOUNDARY_LAYER_AUDIT_LOG_ENABLED=true
 export SECRET_MANAGER_PROVIDER=aws
 export SECRET_MANAGER_PROJECT_OR_PATH=boundary-layer/staging
 export SECRET_ROTATION_REQUIRED=true
+export SECRET_CACHE_TTL_SECONDS=300
 export BOUNDARY_LAYER_API_KEY=production-api-key-minimum-24-chars
 export POSTGRES_PASSWORD=production-postgres-password
 export REDIS_PASSWORD=production-redis-password-16

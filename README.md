@@ -158,7 +158,7 @@ BoundaryLayer is **not** a hosted Production SaaS product. The supported release
 |------|---------|--------|
 | Local lab | `local-lab` | Supported (`make up`, `make validate`) |
 | Production-like local validation | `production-like` | Supported (`make prod-up`, `make validate-prod`) |
-| Hosted Production SaaS | `production-saas` | **Not shipped** — staging OIDC config, JWKS client, managed-service validation, storage/secrets scaffolds |
+| Hosted Production SaaS | `production-saas` | **Not shipped** — staging validation, cloud adapters (SDK optional), managed-service checks, deploy dry-run |
 
 See [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md) and [NEXT_STEPS.md](NEXT_STEPS.md).
 
@@ -169,6 +169,9 @@ make production-saas-auth-smoke     # deterministic auth/tenancy unit smoke
 make production-saas-tenant-isolation-smoke  # cross-tenant denial unit smoke
 make production-saas-staging-readiness-check  # staging config check (NOT READY locally)
 make production-saas-staging-readiness-example  # mocked staging structural pass
+make production-saas-managed-services-check     # managed service policy (NOT READY locally)
+make production-saas-managed-services-example   # mocked managed service structural pass
+make staging-deploy-dry-run                     # dry run only (requires env)
 ```
 
 ## Production Deployment (production-like profile, v1.3.5)

@@ -238,6 +238,10 @@ class Settings(BaseSettings):
         default=900,
         validation_alias="OBJECT_STORAGE_PRESIGNED_URL_TTL_SECONDS",
     )
+    object_storage_endpoint: str = Field(
+        default="",
+        validation_alias="OBJECT_STORAGE_ENDPOINT",
+    )
 
     secret_manager_provider: str = Field(
         default="",
@@ -250,6 +254,49 @@ class Settings(BaseSettings):
     secret_rotation_required: bool = Field(
         default=False,
         validation_alias="SECRET_ROTATION_REQUIRED",
+    )
+    secret_cache_ttl_seconds: int = Field(
+        default=0,
+        validation_alias="SECRET_CACHE_TTL_SECONDS",
+    )
+    allow_env_secret_provider: bool = Field(
+        default=False,
+        validation_alias="BOUNDARY_LAYER_ALLOW_ENV_SECRET_PROVIDER",
+    )
+
+    audit_sink_provider: str = Field(
+        default="postgres",
+        validation_alias="AUDIT_SINK_PROVIDER",
+    )
+    audit_immutable_required: bool = Field(
+        default=False,
+        validation_alias="AUDIT_IMMUTABLE_REQUIRED",
+    )
+    audit_retention_days: int = Field(
+        default=365,
+        validation_alias="AUDIT_RETENTION_DAYS",
+    )
+    audit_export_enabled: bool = Field(
+        default=False,
+        validation_alias="AUDIT_EXPORT_ENABLED",
+    )
+
+    waf_enabled: bool = Field(default=False, validation_alias="WAF_ENABLED")
+    tenant_rate_limit_required: bool = Field(
+        default=False,
+        validation_alias="TENANT_RATE_LIMIT_REQUIRED",
+    )
+    abuse_alerting_enabled: bool = Field(
+        default=False,
+        validation_alias="ABUSE_ALERTING_ENABLED",
+    )
+    max_request_body_bytes: int = Field(
+        default=0,
+        validation_alias="MAX_REQUEST_BODY_BYTES",
+    )
+    max_file_upload_bytes: int = Field(
+        default=0,
+        validation_alias="MAX_FILE_UPLOAD_BYTES",
     )
 
     allow_local_managed_endpoints: bool = Field(
@@ -393,6 +440,12 @@ class Settings(BaseSettings):
                 )
         if not self.secret_manager_project_or_path.strip():
             issues.append("SECRET_MANAGER_PROJECT_OR_PATH is required")
+        if not self.secret_rotation_required:
+            issues.append("SECRET_ROTATION_REQUIRED must be true")
+        if self.secret_cache_ttl_seconds <= 0:
+            issues.append("SECRET_CACHE_TTL_SECONDS is required")
+        elif self.secret_cache_ttl_seconds > 3600:
+            issues.append("SECRET_CACHE_TTL_SECONDS must be at most 3600")
         if not self.redis_key_prefix.strip():
             issues.append("REDIS_KEY_PREFIX is required")
         if self.file_storage_backend.strip():
@@ -402,6 +455,8 @@ class Settings(BaseSettings):
                     issues.append("OBJECT_STORAGE_BUCKET is required")
                 if not self.object_storage_region.strip():
                     issues.append("OBJECT_STORAGE_REGION is required")
+                if backend == "r2" and not self.object_storage_endpoint.strip():
+                    issues.append("OBJECT_STORAGE_ENDPOINT is required for r2 backend")
         issues.extend(self._validate_managed_database_url())
         issues.extend(self._validate_managed_redis_url())
 

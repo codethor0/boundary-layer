@@ -51,6 +51,18 @@ READINESS_ENV_KEYS = (
     "SECRET_MANAGER_PROVIDER",
     "SECRET_MANAGER_PROJECT_OR_PATH",
     "SECRET_ROTATION_REQUIRED",
+    "SECRET_CACHE_TTL_SECONDS",
+    "OBJECT_STORAGE_ENDPOINT",
+    "AUDIT_SINK_PROVIDER",
+    "AUDIT_IMMUTABLE_REQUIRED",
+    "AUDIT_RETENTION_DAYS",
+    "AUDIT_EXPORT_ENABLED",
+    "WAF_ENABLED",
+    "TENANT_RATE_LIMIT_REQUIRED",
+    "ABUSE_ALERTING_ENABLED",
+    "MAX_REQUEST_BODY_BYTES",
+    "MAX_FILE_UPLOAD_BYTES",
+    "BOUNDARY_LAYER_ALLOW_ENV_SECRET_PROVIDER",
     "POSTGRES_PASSWORD",
     "REDIS_PASSWORD",
     "SESSION_HMAC_SECRET",
@@ -151,6 +163,22 @@ def _settings_kwargs(merged: dict[str, str]) -> dict[str, object]:
         "secret_rotation_required": _env_bool(
             merged.get("SECRET_ROTATION_REQUIRED", "false")
         ),
+        "secret_cache_ttl_seconds": int(merged.get("SECRET_CACHE_TTL_SECONDS", "0")),
+        "allow_env_secret_provider": _env_bool(
+            merged.get("BOUNDARY_LAYER_ALLOW_ENV_SECRET_PROVIDER")
+        ),
+        "object_storage_endpoint": merged.get("OBJECT_STORAGE_ENDPOINT", ""),
+        "audit_sink_provider": merged.get("AUDIT_SINK_PROVIDER", "postgres"),
+        "audit_immutable_required": _env_bool(merged.get("AUDIT_IMMUTABLE_REQUIRED")),
+        "audit_retention_days": int(merged.get("AUDIT_RETENTION_DAYS", "365")),
+        "audit_export_enabled": _env_bool(merged.get("AUDIT_EXPORT_ENABLED")),
+        "waf_enabled": _env_bool(merged.get("WAF_ENABLED")),
+        "tenant_rate_limit_required": _env_bool(
+            merged.get("TENANT_RATE_LIMIT_REQUIRED")
+        ),
+        "abuse_alerting_enabled": _env_bool(merged.get("ABUSE_ALERTING_ENABLED")),
+        "max_request_body_bytes": int(merged.get("MAX_REQUEST_BODY_BYTES", "0")),
+        "max_file_upload_bytes": int(merged.get("MAX_FILE_UPLOAD_BYTES", "0")),
         "allow_local_managed_endpoints": _env_bool(
             merged.get("BOUNDARY_LAYER_ALLOW_LOCAL_MANAGED_ENDPOINTS")
         ),
