@@ -7,6 +7,10 @@ mkdir -p "${TLS_DIR}"
 
 if [[ -f "${TLS_DIR}/ca.crt" && -f "${TLS_DIR}/postgres-server.crt" && -f "${TLS_DIR}/redis-server.crt" ]]; then
   echo "Internal TLS material already exists in ${TLS_DIR}"
+  # Redis runs as non-root in the container and must read mounted key material.
+  chmod 0644 "${TLS_DIR}/ca.crt" "${TLS_DIR}/postgres-server.crt" \
+    "${TLS_DIR}/postgres-server.key" "${TLS_DIR}/redis-server.crt" \
+    "${TLS_DIR}/redis-server.key" 2>/dev/null || true
   exit 0
 fi
 
@@ -39,8 +43,8 @@ issue_server_cert "redis-server" "redis"
 install -m 0644 "${WORK_DIR}/ca.crt" "${TLS_DIR}/ca.crt"
 install -m 0600 "${WORK_DIR}/ca.key" "${TLS_DIR}/ca.key"
 install -m 0644 "${WORK_DIR}/postgres-server.crt" "${TLS_DIR}/postgres-server.crt"
-install -m 0600 "${WORK_DIR}/postgres-server.key" "${TLS_DIR}/postgres-server.key"
+install -m 0644 "${WORK_DIR}/postgres-server.key" "${TLS_DIR}/postgres-server.key"
 install -m 0644 "${WORK_DIR}/redis-server.crt" "${TLS_DIR}/redis-server.crt"
-install -m 0600 "${WORK_DIR}/redis-server.key" "${TLS_DIR}/redis-server.key"
+install -m 0644 "${WORK_DIR}/redis-server.key" "${TLS_DIR}/redis-server.key"
 
 echo "Generated internal TLS material in ${TLS_DIR}"
