@@ -121,7 +121,7 @@ if settings.cors_enabled and settings.cors_origin_list:
         allow_headers=["Authorization", "Content-Type", "X-API-Key", "X-Metrics-Token"],
     )
 
-if settings.trusted_host_list:
+if settings.is_production and settings.trusted_host_list:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_host_list)
 
 LABS = [

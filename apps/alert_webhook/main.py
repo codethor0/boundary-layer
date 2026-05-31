@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, status
 
 from apps.alert_webhook.config import get_webhook_settings
 
-app = FastAPI(title="BoundaryLayer Alert Webhook", version="1.1.0")
+app = FastAPI(title="BoundaryLayer Alert Webhook", version="1.3.0")
 
 _stored_alerts: list[dict] = []
 
@@ -57,6 +57,25 @@ def receive_alerts(payload: dict):
         )
     if not isinstance(alerts, list):
         raise HTTPException(status_code=422, detail="alerts must be a list")
+
+    settings = get_webhook_settings()
+    incoming = len(alerts)
+    capacity = max(settings.max_stored_alerts - len(_stored_alerts), 0)
+    if capacity == 0:
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                f"Alert store full ({settings.max_stored_alerts} alerts). "
+                "DELETE /alerts before accepting more."
+            ),
+        )
+    if incoming > capacity:
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                f"Alert batch size {incoming} exceeds remaining capacity {capacity}"
+            ),
+        )
 
     for alert in alerts:
         if not isinstance(alert, dict):

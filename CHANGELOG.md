@@ -2,6 +2,13 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.3.1
+
+- Fix nginx rate limiting to return HTTP 429 instead of misleading 503 responses
+- Harden Redis rate limiter against transient Redis failures during checks
+- Cap alert webhook in-memory storage with configurable maximum and HTTP 413 responses
+- Restrict TrustedHost middleware to production and isolate unit tests from exported prod env vars
+
 ## v1.3.0
 
 - Add internal Postgres/Redis TLS, ingress cert rotation tooling, and TLS runbook

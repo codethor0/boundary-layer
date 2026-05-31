@@ -252,7 +252,7 @@ flowchart TB
 ```mermaid
 flowchart LR
     Push[Push or PR to main] --> GHA[GitHub Actions CI]
-    GHA --> Test[make test 173]
+    GHA --> Test[make test 177]
     GHA --> Lint[make lint]
     GHA --> Hygiene[tracked artifact scan]
     GHA --> Secret[secret pattern scan]

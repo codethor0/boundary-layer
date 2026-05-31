@@ -91,6 +91,10 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.3.1 (Complete)
+
+- Bug-fix pass: nginx 429 rate limits, Redis limiter resilience, webhook storage cap, test env isolation
+
 ## v1.3.0 (Complete)
 
 - Full production hardening: data-plane TLS, CA rotation, secrets/backup runbooks, security scanning CI, E2E gate

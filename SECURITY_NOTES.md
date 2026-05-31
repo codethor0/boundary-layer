@@ -37,6 +37,8 @@ BoundaryLayer is for defensive education, secure engineering, and controlled loc
 - Postgres and Redis connections use TLS inside the production Docker network
 - Ingress TLS supports CA-backed certificate install and rotation scripts
 - Hadolint, pip-audit, and Trivy image scans run in CI
+- Nginx ingress rate limiting returns HTTP 429 (not 503) when exceeded
+- Alert webhook caps stored alerts (default 1000) to prevent unbounded memory growth
 
 See [docs/PRODUCTION.md](docs/PRODUCTION.md) for deployment steps.
 
