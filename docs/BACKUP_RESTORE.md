@@ -26,6 +26,12 @@ bash scripts/restore-postgres.sh backups/postgres/boundary-layer-20260101T120000
 
 Restore runs against the currently running Postgres container. Stop write traffic before restoring production data.
 
+## Validation scope (honest limits)
+
+`make validate` and `make validate-prod` include a backup/restore **roundtrip smoke test** that drops and restores the `write_storm_events` table from a `pg_dump` backup. This proves the scripts work and basic table-level recovery is possible.
+
+It is **not** a full fresh-volume database disaster recovery simulation. Restoring an entire Postgres data directory into a new volume is documented below but not exercised by the default validation gates. Fresh-volume restore validation is recommended future work for maintainers.
+
 ## Production schedule (recommended)
 
 1. Daily `pg_dump` via cron or your orchestrator backup agent

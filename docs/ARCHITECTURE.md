@@ -2,7 +2,7 @@
 
 BoundaryLayer is a local Docker Compose stack that simulates LLM application infrastructure failures. The API exposes nine security labs, each runnable in vulnerable or hardened mode, plus a Prometheus `/metrics` endpoint.
 
-The **mock LLM service** (`mock-llm:8080`) is a deterministic companion for demos and integration tests. Lab runners simulate tool routing, authz, and retrieval behavior **in-process** today; they do not call the mock LLM HTTP API during normal lab runs. See [docs/DEMO.md](DEMO.md) for direct mock LLM examples.
+BoundaryLayer includes a deterministic **mock LLM** service (`mock-llm:8080`) for local demos and extension points. Current lab runners are deterministic and mostly execute **in-process** so they remain fast, repeatable, and safe. Where labs use live infrastructure, they use Redis and PostgreSQL directly—they do not call the mock LLM HTTP API during normal lab runs. See [docs/DEMO.md](DEMO.md) for direct mock LLM HTTP examples.
 
 For Mermaid diagrams of the system, Docker topology, lab flows, trust boundaries, observability pipeline, per-lab control paths, and CI validation, see [DIAGRAMS.md](DIAGRAMS.md).
 
@@ -15,7 +15,7 @@ For live Docker verification steps, see [E2E_VALIDATION.md](E2E_VALIDATION.md).
 | Service | Port | Role |
 |---------|------|------|
 | api | 8000 | FastAPI lab orchestrator and `/metrics` exporter |
-| mock-llm | 8080 | Deterministic model and tool-plan simulator |
+| mock-llm | 8080 | Deterministic model simulator (demos/extension; labs do not call it by default) |
 | redis | 6379 | Live session state target for Redis lab (v0.2) |
 | postgres | 5432 | Live PostgreSQL backend for governance and write storm labs |
 | prometheus | 9090 | Scrapes API metrics, evaluates alert rules, sends alerts to Alertmanager |

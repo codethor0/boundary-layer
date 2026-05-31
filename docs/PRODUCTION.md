@@ -108,6 +108,7 @@ alembic upgrade head
 - Keep Redis and PostgreSQL off public networks (production compose does this by default)
 - Use a secrets manager (Vault, AWS Secrets Manager, etc.) instead of plain `.env.production` in real environments — see [SECRETS.md](SECRETS.md)
 - Schedule Postgres backups and test restore — see [BACKUP_RESTORE.md](BACKUP_RESTORE.md)
+- Validation gates (`make validate`, `make validate-prod`) prove **table-scoped** restore for `write_storm_events` only. They do not simulate full fresh-volume database disaster recovery. Plan separate DR testing if you operate real Postgres outside this lab.
 - Production-like compose sets `BOUNDARY_LAYER_TRUST_PROXY_HEADERS=true`. Nginx must be the TLS ingress so the API uses the rightmost `X-Forwarded-For` hop. Do not expose the API container directly on a host port with proxy header trust enabled.
 - Redis-backed rate limiting fails closed (HTTP 503) when Redis is unavailable in the production-like profile. Development mode fails open for local lab availability.
 

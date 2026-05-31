@@ -17,11 +17,98 @@ The model is only the interpreter. The boundary decides the blast radius.
 
 **Repository:** https://github.com/codethor0/boundary-layer
 
+## Start Here
+
+**What is BoundaryLayer?** A local defensive AI infrastructure security lab. It simulates what happens *after* a model is tricked: tool routing, session state, authorization, uploads, data lifecycle, write pressure, streaming, backpressure, cache isolation, and alert delivery.
+
+**Who should use it?** Platform engineers, security/DevSecOps teams, AI builders, and educators who want hands-on practice with infrastructure boundaries—not just prompt injection demos.
+
+**What does it teach?** Each lab runs in `vulnerable` or `hardened` mode so you can compare unsafe defaults to defensive controls, with Prometheus metrics and local Alertmanager delivery.
+
+**Fastest path (about 5 minutes):**
+
+```bash
+git clone https://github.com/codethor0/boundary-layer.git
+cd boundary-layer
+make setup
+make up
+make validate
+```
+
+**Try one lab pair first (Redis tampering):**
+
+```bash
+curl -sf -X POST http://localhost:8000/labs/redis/run \
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable"}'
+curl -sf -X POST http://localhost:8000/labs/redis/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
+curl -sf http://localhost:8000/metrics | grep boundary_layer_redis
+```
+
+**Trigger a local alert (circuit breaker):**
+
+```bash
+curl -sf -X DELETE http://localhost:8081/alerts
+curl -sf -X POST http://localhost:8000/labs/circuit-breaker/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
+# Wait up to 60 seconds, then:
+curl -sf http://localhost:8081/alerts
+```
+
+For a facilitator-led walkthrough, see [docs/WORKSHOP.md](docs/WORKSHOP.md). For full terminal examples, see [docs/EXAMPLES.md](docs/EXAMPLES.md).
+
+### What you should see
+
+`GET /health`:
+
+```json
+{"status":"ok","service":"boundary-layer-api","version":"1.3.3","environment":"development"}
+```
+
+Redis vulnerable (`blocked: false`):
+
+```json
+{"lab":"redis","mode":"vulnerable","blocked":false,"summary":"Vulnerable mode accepted a tampered Redis session blob; role escalated from viewer to admin."}
+```
+
+Redis hardened (`blocked: true`):
+
+```json
+{"lab":"redis","mode":"hardened","blocked":true,"control":"HMAC session integrity verification","summary":"Hardened mode rejected tampered Redis session; privilege escalation blocked."}
+```
+
+Webhook after circuit breaker (abbreviated):
+
+```json
+{"count":1,"alerts":[{"labels":{"alertname":"BoundaryLayerInferenceCircuitBreakerOpen"}}]}
+```
+
+BoundaryLayer is a **local lab**, not a hosted production SaaS. Do not expose the default dev stack to the public internet.
+
+## Documentation Map
+
+| If you want to… | Read |
+|-----------------|------|
+| Run your first lab in 5–30 minutes | [docs/WORKSHOP.md](docs/WORKSHOP.md) or [docs/DEMO.md](docs/DEMO.md) |
+| See copy-paste curl examples and sample JSON | [docs/EXAMPLES.md](docs/EXAMPLES.md) |
+| Understand services, metrics, and lab behavior | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Review threats and trust boundaries | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) |
+| Map labs to controls and alert rules | [docs/CONTROLS_MAP.md](docs/CONTROLS_MAP.md) |
+| Run safe local red-team scenarios | [docs/RED_TEAM_PLAYBOOK.md](docs/RED_TEAM_PLAYBOOK.md) |
+| Use the production-like local validation profile | [docs/PRODUCTION.md](docs/PRODUCTION.md) |
+| Run the full Docker validation gate | [docs/E2E_VALIDATION.md](docs/E2E_VALIDATION.md) |
+| Release, tag, or publish (maintainers) | [CHANGELOG.md](CHANGELOG.md), [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md), [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md) |
+| Browse diagrams | [docs/DIAGRAMS.md](docs/DIAGRAMS.md) or the architecture section below |
+
+Optional deep dives: [docs/DEEP_QA.md](docs/DEEP_QA.md), [docs/LIVE_RELEASE_GATE.md](docs/LIVE_RELEASE_GATE.md), [docs/GOVERNANCE_MODEL.md](docs/GOVERNANCE_MODEL.md), [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
+
 ## What BoundaryLayer Is
 
 BoundaryLayer is a local LLM infrastructure security lab. It simulates the blast radius around LLM applications after the model is tricked: tool routing, session state, authorization, file handling, data lifecycle, write pressure, streaming, inference backpressure, cache isolation, and alert delivery.
 
-It runs as a Docker Compose stack with a FastAPI orchestrator, deterministic mock LLM, live Redis and PostgreSQL integrations, Prometheus metrics, and Alertmanager routing to a local webhook. There is no external LLM API dependency.
+It runs as a Docker Compose stack with a FastAPI orchestrator, live Redis and PostgreSQL integrations, Prometheus metrics, and Alertmanager routing to a local webhook. There is no external LLM API dependency.
+
+BoundaryLayer includes a deterministic **mock LLM** service (`mock-llm:8080`) for local demos and extension points. Current lab runners are deterministic and mostly execute **in-process** so they remain fast, repeatable, and safe. Where labs use live infrastructure, they use Redis and PostgreSQL directly—they do not call the mock LLM HTTP API during normal lab runs.
 
 ## Why It Exists
 
@@ -57,6 +144,8 @@ make prod-up
 
 See [docs/PRODUCTION.md](docs/PRODUCTION.md) for full deployment guidance.
 
+Backup and restore scripts exist for the production-like profile, but validation currently proves **table-scoped** recovery for `write_storm_events` only—not a full fresh-volume database disaster recovery simulation. See [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
+
 ## Architecture at a Glance
 
 BoundaryLayer runs as a local Docker Compose lab with API, mock LLM, Redis, PostgreSQL, Prometheus, Alertmanager, and a local alert webhook.
@@ -79,6 +168,8 @@ flowchart LR
 
     GH[GitHub Actions CI] -->|tests lint hygiene| Repo[boundary-layer repo]
 ```
+
+Note: the mock LLM appears in the topology for demos and future extension. Lab runners execute in-process and use Redis/PostgreSQL where live mode is enabled; they do not call mock-llm during normal lab runs.
 
 </details>
 
@@ -104,6 +195,8 @@ flowchart TB
     Prom --> AM
     AM --> Hook
 ```
+
+Note: `API --> Mock` shows the optional mock LLM companion service. Normal lab execution stays in-process inside the API container.
 
 </details>
 
@@ -224,7 +317,7 @@ curl -sf -X POST http://localhost:8000/labs/redis/run \
 | Service | Port | Role |
 |---------|------|------|
 | API | 8000 | FastAPI lab orchestrator and `/metrics` exporter |
-| Mock LLM | 8080 | Deterministic model and tool-plan simulator |
+| Mock LLM | 8080 | Deterministic model simulator (demos/extension; labs do not call it by default) |
 | Redis | 6379 | Live session and cache target for Redis and prompt cache labs |
 | PostgreSQL | 5432 | Live governance and write storm backend |
 | Prometheus | 9090 | Scrapes metrics, evaluates alert rules |
@@ -235,7 +328,7 @@ Copy `.env.example` to `.env` for local overrides. Never commit `.env`.
 
 ## Observability and Alerts
 
-The API exposes Prometheus metrics at `GET /metrics`. Lab runs increment `boundary_layer_lab_runs_total` and mode-specific counters. Prometheus evaluates rules in `detections/prometheus/alerts.yml` and sends firing alerts to Alertmanager. Alertmanager routes to the local webhook at `http://localhost:8081/alerts`.
+The API exposes Prometheus metrics at `GET /metrics`. Lab runs increment `boundary_layer_lab_runs_total` and mode-specific counters. Prometheus evaluates rules in `detections/prometheus/alerts.yml` (including tool injection, Redis tamper, authz denial, governance, write storm, circuit breaker, SSE, prompt cache, and file upload alerts) and sends firing alerts to Alertmanager. Alertmanager routes to the local webhook at `http://localhost:8081/alerts`.
 
 ```bash
 curl -sf http://localhost:8000/metrics | head -40
@@ -244,29 +337,15 @@ curl -sf http://localhost:8081/alerts
 
 See [docs/CONTROLS_MAP.md](docs/CONTROLS_MAP.md) for lab-to-alert mapping.
 
-## Try It in 5 Minutes
-
-```bash
-git clone https://github.com/codethor0/boundary-layer.git
-cd boundary-layer
-make setup
-make up
-make validate
-```
-
-**Demo path:** Run Redis vulnerable mode, Redis hardened mode, trigger the circuit breaker alert, then inspect webhook delivery. See [docs/DEMO.md](docs/DEMO.md).
-
 ## End-to-End Validation
 
-Full live Docker validation is documented in [docs/E2E_VALIDATION.md](docs/E2E_VALIDATION.md). The pre-release live Docker gate is documented in [docs/LIVE_RELEASE_GATE.md](docs/LIVE_RELEASE_GATE.md). Deeper bug-hunting QA is documented in [docs/DEEP_QA.md](docs/DEEP_QA.md). The authoritative local gate is:
+The authoritative local gate is `make validate` (184 tests, lint, all labs, metrics, alert delivery including `BoundaryLayerInferenceCircuitBreakerOpen`).
 
 ```bash
 make validate
 ```
 
-This runs 184 tests, lint, hygiene checks, all lab endpoints, Redis and PostgreSQL live checks, Prometheus rules, and Alertmanager delivery validation including `BoundaryLayerInferenceCircuitBreakerOpen`.
-
-Terminal output examples: [docs/EXAMPLES.md](docs/EXAMPLES.md).
+See [docs/E2E_VALIDATION.md](docs/E2E_VALIDATION.md), [docs/LIVE_RELEASE_GATE.md](docs/LIVE_RELEASE_GATE.md), and [docs/DEEP_QA.md](docs/DEEP_QA.md) for deeper gates. Terminal examples: [docs/EXAMPLES.md](docs/EXAMPLES.md).
 
 ## Visual Identity
 
@@ -316,7 +395,7 @@ See [SECURITY.md](SECURITY.md) and [SECURITY_NOTES.md](SECURITY_NOTES.md).
 
 ## Release
 
-- [CHANGELOG.md](CHANGELOG.md)
+- [CHANGELOG.md](CHANGELOG.md) — release history (tag `v1.3.3` exists; GitHub Release page may still be pending)
 - [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
 - [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md)
 
