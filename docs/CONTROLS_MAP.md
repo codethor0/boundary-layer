@@ -29,7 +29,7 @@ Maps each lab to article gap, risk, control, detection, and validation.
 | Article gap | Authentication conflated with authorization |
 | Risk | Restricted tools accessible with broad tokens |
 | Control | Explicit scope and tenant match |
-| Detection | `boundary_layer_authz_denied_total` (future alert rule) |
+| Detection | `BoundaryLayerAuthzDenied` on `boundary_layer_authz_denied_total` |
 | Validation | `POST /labs/authz/run` in both modes |
 
 ## Lab 04: File Upload Injection

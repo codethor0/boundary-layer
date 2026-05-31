@@ -123,6 +123,15 @@ groups:
           summary: Redis tamper attempt rejected
           description: Hardened Redis lab rejected a tampered session payload.
 
+      - alert: BoundaryLayerAuthzDenied
+        expr: increase(boundary_layer_authz_denied_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: BoundaryLayer authorization denial observed
+          description: Hardened authorization lab denied access to a restricted tool.
+
       - alert: BoundaryLayerPromptDeletionIncomplete
         expr: increase(boundary_layer_prompt_deletion_orphan_records_total[5m]) > 0
         for: 0m

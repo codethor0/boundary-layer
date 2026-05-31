@@ -76,8 +76,9 @@ Release owners should confirm:
 
 - [ ] Create or verify public repo at https://github.com/codethor0/boundary-layer
 - [ ] Push `main`
-- [ ] Tag release (for example `v1.0.0`)
+- [ ] Tag release (for example `v1.3.3`)
 - [ ] Push tag
-- [ ] Create GitHub release with notes from CHANGELOG.md
+- [ ] Create GitHub Release with notes from [CHANGELOG.md](../CHANGELOG.md) (release page is separate from the tag; verify with `gh release view <tag>`)
+- [ ] Optionally attach a verified local bundle from `make bundle` (never commit bundles to Git)
 
-See [GITHUB_RELEASE.md](GITHUB_RELEASE.md) for push and tag commands.
+See [GITHUB_RELEASE.md](GITHUB_RELEASE.md) for push, tag, and release commands.

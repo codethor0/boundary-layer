@@ -1,5 +1,7 @@
 # BoundaryLayer Demo Walkthrough
 
+For a facilitator-led session with discussion questions, see [WORKSHOP.md](WORKSHOP.md).
+
 This walkthrough runs entirely on your machine. It uses synthetic lab data, does not call external LLM APIs, and does not send alerts to external on-call systems.
 
 ## Prerequisites
