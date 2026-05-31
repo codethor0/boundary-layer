@@ -9,6 +9,20 @@ from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 SUPPORTED_AUTH_PROVIDERS = frozenset({"oidc", "oidc-test"})
+SUPPORTED_OBJECT_STORAGE_BACKENDS = frozenset({"s3", "gcs", "r2"})
+SUPPORTED_SECRET_MANAGER_PROVIDERS = frozenset(
+    {"aws", "gcp", "azure", "doppler", "vault"}
+)
+LOCAL_MANAGED_HOSTS = frozenset(
+    {
+        "localhost",
+        "127.0.0.1",
+        "postgres",
+        "redis",
+        "boundary-layer-postgres",
+        "boundary-layer-redis",
+    }
+)
 
 INSECURE_SECRET_KEY_MARKERS = (
     "changeme",
@@ -180,6 +194,68 @@ class Settings(BaseSettings):
         default="sub",
         validation_alias="OIDC_SUBJECT_CLAIM",
     )
+    oidc_email_claim: str = Field(default="email", validation_alias="OIDC_EMAIL_CLAIM")
+    oidc_required_roles: str = Field(
+        default="",
+        validation_alias="OIDC_REQUIRED_ROLES",
+    )
+    oidc_clock_skew_seconds: int = Field(
+        default=60,
+        validation_alias="OIDC_CLOCK_SKEW_SECONDS",
+    )
+
+    db_pool_min_size: int = Field(default=1, validation_alias="DB_POOL_MIN_SIZE")
+    db_pool_max_size: int = Field(default=10, validation_alias="DB_POOL_MAX_SIZE")
+    db_connect_timeout_seconds: int = Field(
+        default=5,
+        validation_alias="DB_CONNECT_TIMEOUT_SECONDS",
+    )
+    db_ssl_mode: str = Field(default="", validation_alias="DB_SSL_MODE")
+
+    redis_connect_timeout_seconds: int = Field(
+        default=3,
+        validation_alias="REDIS_CONNECT_TIMEOUT_SECONDS",
+    )
+    redis_key_prefix: str = Field(default="", validation_alias="REDIS_KEY_PREFIX")
+
+    object_storage_bucket: str = Field(
+        default="",
+        validation_alias="OBJECT_STORAGE_BUCKET",
+    )
+    object_storage_region: str = Field(
+        default="",
+        validation_alias="OBJECT_STORAGE_REGION",
+    )
+    object_storage_prefix: str = Field(
+        default="",
+        validation_alias="OBJECT_STORAGE_PREFIX",
+    )
+    object_storage_kms_key_id: str = Field(
+        default="",
+        validation_alias="OBJECT_STORAGE_KMS_KEY_ID",
+    )
+    object_storage_presigned_url_ttl_seconds: int = Field(
+        default=900,
+        validation_alias="OBJECT_STORAGE_PRESIGNED_URL_TTL_SECONDS",
+    )
+
+    secret_manager_provider: str = Field(
+        default="",
+        validation_alias="SECRET_MANAGER_PROVIDER",
+    )
+    secret_manager_project_or_path: str = Field(
+        default="",
+        validation_alias="SECRET_MANAGER_PROJECT_OR_PATH",
+    )
+    secret_rotation_required: bool = Field(
+        default=False,
+        validation_alias="SECRET_ROTATION_REQUIRED",
+    )
+
+    allow_local_managed_endpoints: bool = Field(
+        default=False,
+        validation_alias="BOUNDARY_LAYER_ALLOW_LOCAL_MANAGED_ENDPOINTS",
+    )
 
     @field_validator("boundary_layer_profile")
     @classmethod
@@ -216,7 +292,7 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_requirements(self) -> Settings:
-        if not self.is_production:
+        if self.boundary_layer_env != "production":
             return self
 
         if self.auth_enabled and not self.api_key.strip():
@@ -302,10 +378,106 @@ class Settings(BaseSettings):
                 )
         if not self.audit_log_enabled:
             issues.append("BOUNDARY_LAYER_AUDIT_LOG_ENABLED must be true")
+        if not self.oidc_tenant_claim.strip():
+            issues.append("OIDC_TENANT_CLAIM is required")
+        if not self.oidc_roles_claim.strip():
+            issues.append("OIDC_ROLES_CLAIM is required")
+        if not self.secret_manager_provider.strip():
+            issues.append("SECRET_MANAGER_PROVIDER is required")
+        else:
+            provider_name = self.secret_manager_provider.strip().lower()
+            if provider_name not in SUPPORTED_SECRET_MANAGER_PROVIDERS:
+                issues.append(
+                    "SECRET_MANAGER_PROVIDER must be one of: "
+                    + ", ".join(sorted(SUPPORTED_SECRET_MANAGER_PROVIDERS))
+                )
+        if not self.secret_manager_project_or_path.strip():
+            issues.append("SECRET_MANAGER_PROJECT_OR_PATH is required")
+        if not self.redis_key_prefix.strip():
+            issues.append("REDIS_KEY_PREFIX is required")
+        if self.file_storage_backend.strip():
+            backend = self.file_storage_backend.strip().lower()
+            if backend in SUPPORTED_OBJECT_STORAGE_BACKENDS:
+                if not self.object_storage_bucket.strip():
+                    issues.append("OBJECT_STORAGE_BUCKET is required")
+                if not self.object_storage_region.strip():
+                    issues.append("OBJECT_STORAGE_REGION is required")
+        issues.extend(self._validate_managed_database_url())
+        issues.extend(self._validate_managed_redis_url())
+
+        if self.is_staging:
+            if provider == "oidc-test":
+                issues.append(
+                    "BOUNDARY_LAYER_AUTH_PROVIDER must be oidc in staging; "
+                    "oidc-test is test-only"
+                )
+            if self.public_base_url.strip() and not is_valid_https_url(
+                self.public_base_url
+            ):
+                issues.append(
+                    "BOUNDARY_LAYER_PUBLIC_BASE_URL must be a valid https URL"
+                )
 
         if issues:
             raise ValueError("; ".join(issues))
         return self
+
+    def _validate_managed_database_url(self) -> list[str]:
+        issues: list[str] = []
+        url = self.database_url.strip()
+        if not url:
+            return issues
+        parsed = urlparse(url)
+        host = (parsed.hostname or "").strip().lower()
+        if (
+            host
+            and host in LOCAL_MANAGED_HOSTS
+            and not self.allow_local_managed_endpoints
+        ):
+            issues.append(
+                "DATABASE_URL must not use localhost or container hostnames "
+                "in production-saas"
+            )
+        sslmode = self._database_ssl_mode()
+        if sslmode != "require":
+            issues.append(
+                "DATABASE_URL or DB_SSL_MODE must require SSL (sslmode=require)"
+            )
+        return issues
+
+    def _validate_managed_redis_url(self) -> list[str]:
+        issues: list[str] = []
+        url = self.redis_url.strip()
+        if not url:
+            return issues
+        parsed = urlparse(url)
+        if parsed.scheme != "rediss":
+            issues.append("REDIS_URL must use rediss:// in production-saas")
+        host = (parsed.hostname or "").strip().lower()
+        if (
+            host
+            and host in LOCAL_MANAGED_HOSTS
+            and not self.allow_local_managed_endpoints
+        ):
+            issues.append(
+                "REDIS_URL must not use localhost or container hostnames "
+                "in production-saas"
+            )
+        return issues
+
+    def _database_ssl_mode(self) -> str:
+        configured = self.db_ssl_mode.strip().lower()
+        if configured:
+            return configured
+        parsed = urlparse(self.database_url.strip())
+        if parsed.query:
+            for part in parsed.query.split("&"):
+                if "=" not in part:
+                    continue
+                key, value = part.split("=", 1)
+                if key.strip().lower() in {"sslmode", "ssl_mode"}:
+                    return value.strip().lower()
+        return ""
 
     def _secret_key_is_insecure(self) -> bool:
         normalized = self.secret_key.strip().lower()
@@ -337,6 +509,18 @@ class Settings(BaseSettings):
             part.strip()
             for part in self.oidc_required_claims.split(",")
             if part.strip()
+        ]
+
+    @property
+    def is_staging(self) -> bool:
+        return self.boundary_layer_env == "staging"
+
+    @property
+    def oidc_required_roles_list(self) -> list[str]:
+        if not self.oidc_required_roles.strip():
+            return []
+        return [
+            part.strip() for part in self.oidc_required_roles.split(",") if part.strip()
         ]
 
     @property

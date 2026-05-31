@@ -138,5 +138,6 @@
 
 ## Future
 
-- Production SaaS foundation: profile guardrails, readiness check, architecture and tenancy design docs (see [PRODUCTION_SAAS_READINESS.md](PRODUCTION_SAAS_READINESS.md))
+- Production SaaS Phase 3 (complete): staging OIDC validation, JWKS client, managed-service config, storage/secrets scaffolds, IaC skeleton, staging-readiness CI (see [PRODUCTION_SAAS_READINESS.md](PRODUCTION_SAAS_READINESS.md))
+- Production SaaS Phase 4 (next): live staging deploy, cloud adapters, immutable audit/SIEM
 - Optional PNG exports of logo assets for platforms that require raster images

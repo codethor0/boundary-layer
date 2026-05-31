@@ -16,27 +16,27 @@ BoundaryLayer **ships and validates** the first two modes today. **Production Sa
 
 | Metric | Before this pass | After this pass |
 |--------|------------------|-----------------|
-| Production SaaS readiness | **1/10** | **4/10** |
+| Production SaaS readiness | **4/10** | **5/10** |
 
-The score improves because Phase 1 added OIDC/JWT auth scaffolding, tenant/membership/audit tables, and route protection in `production-saas` profile. Phase 2 adds tenant-scoped PostgreSQL helpers for governance and write-storm labs, tenant-scoped Redis key namespaces, request context resolution, cross-tenant denial tests for all lab routes, audit/metrics evidence for denials, and a tenant isolation smoke script. There is still no hosted deployment, managed services, immutable audit pipeline, live staging OIDC, or operational validation.
+The score improves through Phase 3 staging OIDC configuration validation, JWKS client abstraction, managed-service-ready settings (database, Redis, object storage, secret manager), storage/secrets scaffolds, IaC skeleton, and CI staging-readiness workflow. There is still no live staging deployment, applied IaC, immutable audit/SIEM, WAF, or operational validation.
 
 ## Gap audit matrix
 
 | Category | Score | Current state | Gap | Risk | Required work for 10/10 | Priority | Approach |
 |----------|-------|---------------|-----|------|-------------------------|----------|----------|
-| Authentication | 3/10 | JWT/OIDC middleware in production-saas profile; `oidc-test` HS256 path for tests | No live IdP integration, no user signup | Anonymous access in local-lab only | Full OIDC provider integration + user lifecycle | P0 | Auth0/Clerk/Cognito + FastAPI middleware |
+| Authentication | 5/10 | JWT/OIDC middleware, staging OIDC config validation, JWKS client abstraction | No live IdP integration in staging, no user signup | Anonymous access in local-lab only | Full OIDC provider integration + user lifecycle | P0 | Auth0/Clerk/Cognito + FastAPI middleware |
 | Authorization | 4/10 | Role claims + membership check + cross-tenant denial with audit in production-saas | No policy engine, no tenant_admin UI | Privilege escalation if misconfigured | Role model + policy enforcement layer | P0 | RBAC middleware + membership table |
 | Tenant isolation | 4/10 | Tenant-scoped governance/write-storm Postgres paths, tenant Redis namespaces, request context, cross-tenant tests | Not all synthetic labs persist data; no RLS | Residual bleed if new tables omit tenant_id | Tenant-scoped queries everywhere, RLS optional | P0 | See `TENANCY_DATA_MODEL.md` |
 | Session security | 1/10 | Stateless API key only | No browser sessions | Session fixation, theft | Secure cookies, rotation, CSRF if UI added | P1 | HttpOnly Secure SameSite cookies |
 | API security | 3/10 | Rate limit + auth in prod-like | No WAF, no mTLS service mesh | Abuse, credential stuffing | WAF, mTLS, schema validation at edge | P0 | Cloud WAF + API gateway |
-| Secrets management | 2/10 | `.env.production` local file | No secret manager | Leaked secrets in images/env | Cloud secret manager, rotation | P0 | AWS SM / GCP SM / Vault |
-| Database architecture | 3/10 | Single Compose Postgres | No managed HA, no PITR | Data loss, downtime | Managed Postgres, PITR, private networking | P0 | RDS/Cloud SQL + TLS |
-| Cache architecture | 4/10 | Single Compose Redis; tenant-scoped lab keys in production-saas | No managed Redis, no cluster | Cache loss at scale | Managed Redis with TLS/auth, tenant namespaces | P1 | ElastiCache/Memorystore |
-| File/object storage | 1/10 | Simulated file-upload lab | No real object store | Local disk exposure | S3/GCS/R2 with tenant prefixes | P0 | Presigned URLs + virus scan pipeline |
+| Secrets management | 3/10 | Config validation + `apps/api/secrets.py` scaffold | No cloud secret manager adapter | Leaked secrets in images/env | Cloud secret manager SDK + rotation | P0 | AWS SM / GCP SM / Vault |
+| Database architecture | 3/10 | Managed-service URL/SSL validation in config | No managed HA, no PITR | Data loss, downtime | Managed Postgres, PITR, private networking | P0 | RDS/Cloud SQL + TLS |
+| Cache architecture | 4/10 | Single Compose Redis; tenant-scoped lab keys; `rediss://` validation | No managed Redis, no cluster | Cache loss at scale | Managed Redis with TLS/auth, tenant namespaces | P1 | ElastiCache/Memorystore |
+| File/object storage | 2/10 | `apps/api/storage.py` interface + config validation | No real object store adapter | Local disk exposure | S3/GCS/R2 with tenant prefixes | P0 | Presigned URLs + virus scan pipeline |
 | Network security | 3/10 | TLS in prod-like nginx profile | No private networking | Public DB/Redis exposure | VPC, private subnets, egress controls | P0 | Private subnets + security groups |
-| Deployment architecture | 2/10 | docker-compose prod profile | No hosted orchestration | Manual drift, no rollbacks | Container service or K8s with health gates | P0 | See `DEPLOYMENT_ARCHITECTURE.md` |
-| Infrastructure-as-code | 1/10 | Shell scripts + compose files | No Terraform/Pulumi | Snowflake infra | IaC for all environments | P0 | Terraform modules per env |
-| CI/CD | 4/10 | GitHub Actions test/lint/scan/prod validate | No staging/prod deploy pipeline | Untested deploys | Staging deploy, smoke, manual prod approval | P0 | See `CI_CD_PRODUCTION_PLAN.md` |
+| Deployment architecture | 2/10 | docker-compose prod profile + deployment docs | No hosted orchestration | Manual drift, no rollbacks | Container service or K8s with health gates | P0 | See `DEPLOYMENT_ARCHITECTURE.md` |
+| Infrastructure-as-code | 2/10 | `infra/terraform/` skeleton + README | Not applied, no modules | Snowflake infra | IaC for all environments | P0 | Terraform modules per env |
+| CI/CD | 5/10 | GitHub Actions test/lint/scan/prod validate + staging-readiness workflow | No staging/prod deploy pipeline | Untested deploys | Staging deploy, smoke, manual prod approval | P0 | See `CI_CD_PRODUCTION_PLAN.md` |
 | Observability | 4/10 | Prometheus metrics + local webhook | No centralized logs/traces | Blind spots in prod | OpenTelemetry, log aggregation | P1 | OTel + Grafana/Datadog |
 | Alerting | 3/10 | Prometheus rules + Alertmanager placeholder | No on-call routing | Missed incidents | PagerDuty/Opsgenie integration | P1 | Alertmanager receivers |
 | Audit logging | 3/10 | `audit_events` table + auth/cross-tenant decision writes + metrics in production-saas | Not immutable, not SIEM-integrated | No forensic trail at scale | Immutable audit log pipeline | P0 | Append-only audit table + SIEM |
@@ -97,27 +97,40 @@ Check readiness without starting the API:
 ```bash
 make production-saas-check          # expects NOT READY locally
 make production-saas-check-example  # mocked pass for CI/docs
+make production-saas-staging-readiness-check   # staging deploy config (NOT READY locally)
+make production-saas-staging-readiness-example  # mocked staging pass for CI/docs
 python -m apps.api.config_check
+python -m apps.api.staging_check
 ```
 
 ### production-saas required settings
 
 When `BOUNDARY_LAYER_PROFILE=production-saas`, startup fails unless configured:
 
-- `BOUNDARY_LAYER_AUTH_PROVIDER` (`oidc` or `oidc-test` for deterministic tests)
+- `BOUNDARY_LAYER_AUTH_PROVIDER` (`oidc` for staging; `oidc-test` allowed only for deterministic unit tests in non-staging env)
 - `BOUNDARY_LAYER_AUTH_ENABLED=true`
-- `OIDC_ISSUER_URL`, `OIDC_AUDIENCE`, `OIDC_JWKS_URL`, `OIDC_ALGORITHMS`
-- `DATABASE_URL`
-- `REDIS_URL`
-- `BOUNDARY_LAYER_SECRET_KEY` (32+ chars)
-- `BOUNDARY_LAYER_ALLOWED_ORIGINS`
-- `BOUNDARY_LAYER_PUBLIC_BASE_URL`
+- `OIDC_ISSUER_URL`, `OIDC_AUDIENCE`, `OIDC_JWKS_URL`, `OIDC_ALGORITHMS` (https only in staging; `none` rejected)
+- `OIDC_TENANT_CLAIM`, `OIDC_ROLES_CLAIM` (required claim mapping)
+- `DATABASE_URL` with SSL (`sslmode=require` or `DB_SSL_MODE=require`; no localhost/container hosts)
+- `REDIS_URL` with `rediss://` and `REDIS_KEY_PREFIX`
+- `BOUNDARY_LAYER_SECRET_KEY` (32+ chars, no insecure defaults)
+- `BOUNDARY_LAYER_ALLOWED_ORIGINS` (no wildcards)
+- `BOUNDARY_LAYER_PUBLIC_BASE_URL` (https required in staging)
 - `BOUNDARY_LAYER_SECURE_COOKIES=true`
 - `BOUNDARY_LAYER_TRUST_PROXY_HEADERS=true`
 - `BOUNDARY_LAYER_METRICS_TOKEN`
-- `BOUNDARY_LAYER_FILE_STORAGE_BACKEND` (not local disk)
+- `BOUNDARY_LAYER_FILE_STORAGE_BACKEND` (`s3`, `gcs`, or `r2` — not local disk)
+- `OBJECT_STORAGE_BUCKET`, `OBJECT_STORAGE_REGION` when using cloud storage backend
+- `SECRET_MANAGER_PROVIDER`, `SECRET_MANAGER_PROJECT_OR_PATH`
 - `BOUNDARY_LAYER_AUDIT_LOG_ENABLED=true`
-- Plus existing production-like secrets (`BOUNDARY_LAYER_API_KEY`, datastore passwords)
+- Plus production env secrets when `BOUNDARY_LAYER_ENV=production` (`BOUNDARY_LAYER_API_KEY`, datastore passwords)
+
+### Phase 3 scaffolds (not full services)
+
+- `apps/api/jwks.py` — JWKS client with cache (HTTP for staging; in-memory for tests)
+- `apps/api/storage.py` — object storage interface (no cloud SDK adapters yet)
+- `apps/api/secrets.py` — secret manager interface (environment provider for tests only)
+- `infra/terraform/` — IaC skeleton documented but **not applied**
 
 ## Non-breaking rules for the local lab
 

@@ -10,6 +10,12 @@ import jwt
 from fastapi import HTTPException, status
 
 from apps.api.config import Settings
+from apps.api.jwks import (
+    JwksError,
+    build_jwks_client,
+    extract_token_kid,
+    validate_jwt_algorithm,
+)
 
 logger = logging.getLogger("boundary_layer.api.auth")
 
@@ -180,15 +186,25 @@ def verify_jwt_token(token: str, settings: Settings) -> dict[str, Any]:
         if not settings.oidc_jwks_url.strip():
             raise AuthError("JWKS URL not configured", "auth_misconfigured")
 
-        jwk_client = jwt.PyJWKClient(settings.oidc_jwks_url.strip())
-        signing_key = jwk_client.get_signing_key_from_jwt(token)
+        header, kid = extract_token_kid(token)
+        validate_jwt_algorithm(header.get("alg"), algorithms or ["RS256"])
+        try:
+            jwks_client = build_jwks_client(
+                jwks_url=settings.oidc_jwks_url.strip(),
+                timeout_seconds=float(settings.redis_connect_timeout_seconds),
+            )
+            signing_key = jwks_client.get_signing_key(kid)
+        except JwksError as exc:
+            raise AuthError(exc.message, exc.code) from exc
+
         return jwt.decode(
             token,
-            signing_key.key,
+            signing_key,
             algorithms=algorithms or ["RS256"],
             audience=audience,
             issuer=issuer,
             options={"require": ["exp", "sub"]},
+            leeway=settings.oidc_clock_skew_seconds,
         )
     except AuthError:
         raise

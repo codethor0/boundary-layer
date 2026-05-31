@@ -1,26 +1,28 @@
-# Implementation Report — Production SaaS Phase 2
+# Implementation Report — Production SaaS Phase 3
 
 ## Summary
 
-Phase 2 makes tenant isolation enforceable and testable across lab data paths without breaking the local defensive lab.
+Phase 3 adds staging-oriented OIDC configuration validation, JWKS client abstraction, managed-service-ready settings, object storage and secret manager scaffolds, IaC skeleton, and CI staging-readiness workflow without breaking the local lab.
 
 ## Delivered
 
-- `apps/api/request_context.py` — resolves profile, auth, and tenant once per lab request
-- Tenant-scoped PostgreSQL helpers in `apps/api/db.py` for governance and write-storm labs
-- Tenant Redis namespace helper `build_tenant_redis_key()` in `apps/api/tenancy.py`
-- Lab wiring for governance, write-storm, redis, and prompt-cache isolation
-- Cross-tenant denial with audit evidence via `record_tenant_access_denied()`
-- Metrics: `boundary_layer_auth_decisions_total`, `boundary_layer_tenant_access_denied_total`, `boundary_layer_audit_events_total`
-- `tests/unit/test_production_saas_tenant_isolation.py` (36+ tests)
-- `scripts/production-saas-tenant-isolation-smoke.sh` + Makefile target
+- Extended `apps/api/config.py` with staging OIDC, DB pool, Redis, object storage, and secret manager fields
+- `apps/api/jwks.py` — testable JWKS client with cache
+- `apps/api/storage.py` — storage backend interface (memory test backend + fail-closed production scaffold)
+- `apps/api/secrets.py` — secret provider interface (environment test provider + fail-closed production scaffold)
+- `apps/api/staging_check.py` — staging readiness evaluation
+- Scripts: `production-saas-staging-readiness-check.sh`, `production-saas-staging-readiness-example.sh`
+- Infra skeleton under `infra/terraform/`
+- GitHub workflow: `.github/workflows/staging-readiness.yml`
+- 34+ new unit tests (302 total)
 
 ## Not delivered (by design)
 
-- Hosted deployment, IaC, managed services, live OIDC staging
-- Immutable audit/SIEM pipeline, WAF, object storage backend
+- Live staging deployment
+- Applied Terraform / managed services
+- Cloud storage or secret manager SDK adapters
 - Production SaaS 10/10 readiness claim
 
 ## Production SaaS score
 
-Before: 3/10. After: 4/10.
+Before: 4/10. After: 5/10.

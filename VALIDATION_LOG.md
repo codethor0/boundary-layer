@@ -2,7 +2,7 @@
 
 ## v1.0 Public Release Stabilization
 
-Generated: 2026-05-31T18:25:40Z
+Generated: 2026-05-31T19:01:57Z
 
 Scope: Public GitHub release hygiene, no new labs, generated reports excluded from Git.
 
@@ -443,7 +443,7 @@ Scope: Public GitHub release hygiene, no new labs, generated reports excluded fr
 - Result: PASS
 
 ### Postgres restore roundtrip
-- Command: `drop write_storm_events then restore /Users/thor/Projects/boundary-layer/backups/postgres/boundary-layer-20260531T182544Z.sql.gz`
+- Command: `drop write_storm_events then restore /Users/thor/Projects/boundary-layer/backups/postgres/boundary-layer-20260531T190201Z.sql.gz`
 - Result: PASS
 
 ### Prometheus health check
@@ -538,24 +538,32 @@ Scope: Public GitHub release hygiene, no new labs, generated reports excluded fr
 - Command: `rg secret patterns`
 - Result: PASS
 
-## Production SaaS Phase 2 — Tenant Isolation
+## Production SaaS Phase 3 — Staging OIDC and Managed Service Integration
 
-Generated: 2026-05-31T18:30:00Z
+Generated: 2026-05-29
 
-### Pytest (268 tests)
+Scope: Staging OIDC config validation, JWKS client, managed-service config, storage/secrets scaffolds, IaC skeleton, staging-readiness CI. No live staging deployment.
+
+### make test
+- Result: PASS (302 unit tests)
+
+### make lint
 - Result: PASS
 
-### Lint (ruff check + format)
-- Result: PASS
-
-### make validate / validate-restore-fresh-volume
+### make validate / validate-alerts / validate-restore-fresh-volume
 - Result: PASS (local-lab regression confirmed)
 
 ### production-saas-check (no env)
 - Result: NOT READY (expected)
 
 ### production-saas-check-example
-- Result: READY
+- Result: READY (mocked)
+
+### production-saas-staging-readiness-check (no env)
+- Result: NOT READY (expected)
+
+### production-saas-staging-readiness-example
+- Result: READY (mocked)
 
 ### production-saas-auth-smoke
 - Result: PASS (30 tests)
@@ -563,9 +571,8 @@ Generated: 2026-05-31T18:30:00Z
 ### production-saas-tenant-isolation-smoke
 - Result: PASS (52 tests)
 
-### YAML validation (Prometheus/Alertmanager)
-- Result: PASS
-
 ### pip-audit
-- Result: Known advisories on pyjwt/cryptography (pre-existing pinned versions)
+- Result: Known advisories on pyjwt 2.10.1 and cryptography 44.0.1 (pre-existing pinned versions)
 
+### YAML validation
+- Result: PASS (Prometheus, Alertmanager, staging-readiness workflow)
