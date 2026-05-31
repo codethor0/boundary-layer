@@ -39,6 +39,7 @@ def test_production_settings_apply_secure_defaults(monkeypatch):
     assert settings.rate_limit_enabled is True
     assert settings.rate_limit_backend == "redis"
     assert settings.expose_openapi is False
+    assert settings.trust_proxy_headers is True
 
 
 def test_verify_api_access_rejects_missing_key():
@@ -93,6 +94,7 @@ def _test_settings(**overrides):
         "rate_limit_window_seconds": 60,
         "rate_limit_backend": "memory",
         "expose_openapi": True,
+        "trust_proxy_headers": False,
         "app_version": "1.3.2",
     }
     defaults.update(overrides)

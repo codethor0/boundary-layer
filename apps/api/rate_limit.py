@@ -10,6 +10,10 @@ from collections import defaultdict, deque
 logger = logging.getLogger("boundary_layer.api")
 
 
+class RateLimitUnavailable(Exception):
+    """Raised when a Redis-backed limiter cannot reach Redis in fail-closed mode."""
+
+
 class InMemoryRateLimiter:
     """Sliding-window limiter keyed by client identifier."""
 
@@ -33,19 +37,22 @@ class InMemoryRateLimiter:
 class RedisRateLimiter:
     """Distributed sliding-window limiter backed by Redis sorted sets."""
 
-    def __init__(self, redis_client) -> None:
+    def __init__(self, redis_client, *, fail_open: bool = False) -> None:
         self._redis = redis_client
         self._prefix = "boundary_layer:rate_limit:"
+        self._fail_open = fail_open
 
     def allow(self, key: str, limit: int, window: int) -> tuple[bool, int]:
         try:
             return self._allow(key, limit, window)
         except Exception as exc:
             logger.warning(
-                "Redis rate limit check failed; allowing request",
-                extra={"error": str(exc)},
+                "Redis rate limit check failed",
+                extra={"error": str(exc), "fail_open": self._fail_open},
             )
-            return True, limit
+            if self._fail_open:
+                return True, limit
+            raise RateLimitUnavailable(str(exc)) from exc
 
     def _allow(self, key: str, limit: int, window: int) -> tuple[bool, int]:
         now = time.time()
@@ -69,17 +76,19 @@ class RedisRateLimiter:
         return True, max(limit - count, 0)
 
 
-def build_rate_limiter(backend: str):
+def build_rate_limiter(backend: str, *, fail_open: bool = False):
     if backend != "redis":
         return InMemoryRateLimiter()
 
     try:
         from apps.api.redis_client import get_redis_client
 
-        return RedisRateLimiter(get_redis_client())
+        return RedisRateLimiter(get_redis_client(), fail_open=fail_open)
     except Exception as exc:
         logger.warning(
             "Redis rate limit backend unavailable; falling back to in-memory limiter",
-            extra={"error": str(exc)},
+            extra={"error": str(exc), "fail_open": fail_open},
         )
+        if not fail_open:
+            raise RateLimitUnavailable(str(exc)) from exc
         return InMemoryRateLimiter()

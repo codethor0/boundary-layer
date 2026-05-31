@@ -103,6 +103,10 @@ class Settings(BaseSettings):
         default="",
         validation_alias="BOUNDARY_LAYER_TRUSTED_HOSTS",
     )
+    trust_proxy_headers: bool = Field(
+        default=False,
+        validation_alias="BOUNDARY_LAYER_TRUST_PROXY_HEADERS",
+    )
 
     @field_validator("boundary_layer_env")
     @classmethod
@@ -122,6 +126,7 @@ class Settings(BaseSettings):
         self.log_json = True
         self.run_migrations = True
         self.expose_openapi = False
+        self.trust_proxy_headers = True
         return self
 
     @model_validator(mode="after")

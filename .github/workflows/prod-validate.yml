@@ -30,14 +30,15 @@ jobs:
           import secrets
           from pathlib import Path
 
+          # Hex secrets avoid redis-cli and shell edge cases with leading "-" characters.
           values = {
               "BOUNDARY_LAYER_ENV": "production",
-              "BOUNDARY_LAYER_API_KEY": secrets.token_urlsafe(32),
-              "BOUNDARY_LAYER_METRICS_TOKEN": secrets.token_urlsafe(32),
-              "BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN": secrets.token_urlsafe(32),
-              "POSTGRES_PASSWORD": secrets.token_urlsafe(24),
-              "SESSION_HMAC_SECRET": secrets.token_urlsafe(24),
-              "REDIS_PASSWORD": secrets.token_urlsafe(24),
+              "BOUNDARY_LAYER_API_KEY": secrets.token_hex(24),
+              "BOUNDARY_LAYER_METRICS_TOKEN": secrets.token_hex(24),
+              "BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN": secrets.token_hex(24),
+              "POSTGRES_PASSWORD": secrets.token_hex(16),
+              "SESSION_HMAC_SECRET": secrets.token_hex(16),
+              "REDIS_PASSWORD": secrets.token_hex(16),
               "BOUNDARY_LAYER_TRUSTED_HOSTS": "boundary-layer.local,nginx,localhost,api",
           }
           content = "\n".join(f"{key}={value}" for key, value in values.items()) + "\n"

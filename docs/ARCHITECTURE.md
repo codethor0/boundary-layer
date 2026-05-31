@@ -1,6 +1,8 @@
 # Architecture
 
-BoundaryLayer is a local Docker Compose stack that simulates LLM application infrastructure failures. The API exposes nine security labs, each runnable in vulnerable or hardened mode, plus a Prometheus `/metrics` endpoint. A deterministic mock LLM removes external API dependencies.
+BoundaryLayer is a local Docker Compose stack that simulates LLM application infrastructure failures. The API exposes nine security labs, each runnable in vulnerable or hardened mode, plus a Prometheus `/metrics` endpoint.
+
+The **mock LLM service** (`mock-llm:8080`) is a deterministic companion for demos and integration tests. Lab runners simulate tool routing, authz, and retrieval behavior **in-process** today; they do not call the mock LLM HTTP API during normal lab runs. See [docs/DEMO.md](DEMO.md) for direct mock LLM examples.
 
 For Mermaid diagrams of the system, Docker topology, lab flows, trust boundaries, observability pipeline, per-lab control paths, and CI validation, see [DIAGRAMS.md](DIAGRAMS.md).
 

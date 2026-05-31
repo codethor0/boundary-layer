@@ -33,6 +33,7 @@ services:
       BOUNDARY_LAYER_LOG_JSON: "true"
       BOUNDARY_LAYER_RUN_MIGRATIONS: "true"
       BOUNDARY_LAYER_TRUSTED_HOSTS: boundary-layer.local,nginx,localhost,api
+      BOUNDARY_LAYER_TRUST_PROXY_HEADERS: "true"
       MOCK_LLM_URL: http://mock-llm:8080
       REDIS_HOST: redis
       REDIS_PORT: "6379"
@@ -117,6 +118,9 @@ services:
 
   redis:
     image: redis:7-alpine
+    environment:
+      # REDISCLI_AUTH avoids redis-cli -a parsing issues when passwords start with "-".
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
     command:
       - redis-server
       - --appendonly
@@ -145,13 +149,12 @@ services:
           "--tls",
           "--cacert",
           "/etc/redis/tls/ca.crt",
-          "-a",
-          "${REDIS_PASSWORD}",
           "ping",
         ]
       interval: 5s
-      timeout: 3s
-      retries: 5
+      timeout: 5s
+      retries: 10
+      start_period: 15s
     restart: unless-stopped
     mem_limit: 256m
     cpus: 0.5
