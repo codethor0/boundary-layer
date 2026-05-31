@@ -264,7 +264,7 @@ Full live Docker validation is documented in [docs/E2E_VALIDATION.md](docs/E2E_V
 make validate
 ```
 
-This runs 173 tests, lint, hygiene checks, all lab endpoints, Redis and PostgreSQL live checks, Prometheus rules, and Alertmanager delivery validation including `BoundaryLayerInferenceCircuitBreakerOpen`.
+This runs 177 tests, lint, hygiene checks, all lab endpoints, Redis and PostgreSQL live checks, Prometheus rules, and Alertmanager delivery validation including `BoundaryLayerInferenceCircuitBreakerOpen`.
 
 Terminal output examples: [docs/EXAMPLES.md](docs/EXAMPLES.md).
 
@@ -283,7 +283,7 @@ Generated reports, command transcripts, local bundles, editor files, and build p
 | `make setup` | Create virtualenv and install dependencies |
 | `make up` | Build and start Docker Compose services |
 | `make down` | Stop Docker Compose services |
-| `make test` | Run pytest (173 tests) |
+| `make test` | Run pytest (177 tests) |
 | `make validate-e2e` | Full test + lint + prod + local validation |
 | `make backup` | Backup Postgres to `backups/postgres/` |
 | `make validate-prod` | Run production stack validation (requires `.env.production`) |

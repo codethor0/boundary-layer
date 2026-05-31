@@ -38,6 +38,16 @@ class RedisRateLimiter:
         self._prefix = "boundary_layer:rate_limit:"
 
     def allow(self, key: str, limit: int, window: int) -> tuple[bool, int]:
+        try:
+            return self._allow(key, limit, window)
+        except Exception as exc:
+            logger.warning(
+                "Redis rate limit check failed; allowing request",
+                extra={"error": str(exc)},
+            )
+            return True, limit
+
+    def _allow(self, key: str, limit: int, window: int) -> tuple[bool, int]:
         now = time.time()
         window_start = now - window
         redis_key = f"{self._prefix}{key}"

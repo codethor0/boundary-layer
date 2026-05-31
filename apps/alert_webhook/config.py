@@ -19,6 +19,10 @@ class WebhookSettings(BaseSettings):
         default="",
         validation_alias="BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN",
     )
+    max_stored_alerts: int = Field(
+        default=1000,
+        validation_alias="BOUNDARY_LAYER_ALERT_WEBHOOK_MAX_ALERTS",
+    )
     boundary_layer_env: str = Field(
         default="development",
         validation_alias="BOUNDARY_LAYER_ENV",
