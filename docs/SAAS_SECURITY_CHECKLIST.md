@@ -1,0 +1,33 @@
+# SaaS Security Checklist
+
+P0 security gates before any public Production SaaS launch. Status as of v1.3.5 guardrails pass.
+
+| Item | Status | Owner | Evidence required | Blocker |
+|------|--------|-------|-------------------|---------|
+| Auth required for all tenant APIs | Not started | Engineering | Integration tests, pen test | Yes |
+| Tenant isolation in DB queries | Not started | Engineering | Cross-tenant denial tests | Yes |
+| No public unauthenticated labs | Partial | Engineering | production-saas profile blocks insecure defaults; labs still open in local-lab | Yes |
+| Rate limits at edge and app | Partial | Engineering | WAF + Redis limiter metrics | Yes |
+| Input validation on all endpoints | Partial | Engineering | Pydantic schemas, fuzz tests | Yes |
+| Output redaction in logs | Not started | Security | Log sampling review | Yes |
+| Audit logs for admin and lab actions | Not started | Engineering | Immutable audit store | Yes |
+| Secret manager (no .env in prod) | Not started | Platform | IaC + rotation runbook | Yes |
+| TLS everywhere | Partial | Platform | TLS in prod-like profile only | Yes |
+| CORS allowlist | Partial | Engineering | ALLOWED_ORIGINS in production-saas gate | Yes |
+| CSRF strategy if browser sessions | Not started | Engineering | Design doc + tests | Yes |
+| Secure cookies | Not started | Engineering | SECURE_COOKIES gate only | Yes |
+| Dependency scan in CI | Done | Engineering | Security Scan workflow green | No |
+| Container scan in CI | Done | Engineering | Trivy job green | No |
+| SBOM generation | Not started | Platform | Syft artifact in CI | Yes |
+| SAST | Partial | Security | ruff + secret scan; no dedicated SAST | Yes |
+| DAST plan | Not started | Security | Scheduled DAST against staging | Yes |
+| Backup restore tested | Partial | Platform | Local fresh-volume proof only | Yes |
+| Incident response runbook | Not started | Security | Published IR doc | Yes |
+| Logging and alerting to on-call | Partial | Platform | Local Prometheus only | Yes |
+| Access reviews | Not started | Security | Quarterly review process | Yes |
+| Data retention policy | Not started | Product/Legal | Written policy | Yes |
+| Abuse reporting channel | Not started | Product | security@ contact + abuse form | Yes |
+| Terms of service | Not started | Legal | Published ToS | Yes |
+| Privacy policy | Not started | Legal | Published privacy policy | Yes |
+
+**None of the P0 blockers marked "Yes" are fully closed.** Do not launch public SaaS until evidence exists for each row.

@@ -150,6 +150,23 @@ Focus areas include tool routing, Redis session integrity, flat authorization, f
 
 BoundaryLayer is for defensive education, secure engineering, and controlled local testing only.
 
+## Production SaaS (not shipped)
+
+BoundaryLayer is **not** a hosted Production SaaS product. The supported release mode is the **local defensive security lab** (v1.3.5).
+
+| Mode | Profile | Status |
+|------|---------|--------|
+| Local lab | `local-lab` | Supported (`make up`, `make validate`) |
+| Production-like local validation | `production-like` | Supported (`make prod-up`, `make validate-prod`) |
+| Hosted Production SaaS | `production-saas` | **Not shipped** — design docs and fail-closed config gate only |
+
+See [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md) and [NEXT_STEPS.md](NEXT_STEPS.md).
+
+```bash
+make production-saas-check          # expects NOT READY on a dev machine
+make production-saas-check-example  # mocked pass with example env vars
+```
+
 ## Production Deployment (production-like profile, v1.3.5)
 
 BoundaryLayer ships a **production-like local validation profile** (`docker-compose.prod.yml`) for defensive testing on machines you control. It is **not** a hosted SaaS product and is **not** intended for direct public internet exposure without your own operational hardening.
@@ -398,6 +415,8 @@ Generated reports, command transcripts, local bundles, editor files, and build p
 | `make validate` | Full validation pipeline |
 | `make validate-e2e` | Full test + lint + prod + local validation |
 | `make validate-prod` | Production-like local validation profile |
+| `make production-saas-check` | Report production-saas readiness (expects NOT READY locally) |
+| `make production-saas-check-example` | Mocked production-saas readiness pass |
 | `make backup` | Backup Postgres to `backups/postgres/` |
 | `make bundle` | Create local review ZIP in `~/Downloads/` |
 | `make clean` | Stop services and remove generated caches |

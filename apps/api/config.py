@@ -15,11 +15,16 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        populate_by_name=True,
     )
 
     boundary_layer_env: str = Field(
         default="development",
         validation_alias="BOUNDARY_LAYER_ENV",
+    )
+    boundary_layer_profile: str = Field(
+        default="local-lab",
+        validation_alias="BOUNDARY_LAYER_PROFILE",
     )
     app_version: str = "1.3.5"
 
@@ -108,6 +113,46 @@ class Settings(BaseSettings):
         validation_alias="BOUNDARY_LAYER_TRUST_PROXY_HEADERS",
     )
 
+    auth_provider: str = Field(
+        default="",
+        validation_alias="BOUNDARY_LAYER_AUTH_PROVIDER",
+    )
+    database_url: str = Field(default="", validation_alias="DATABASE_URL")
+    redis_url: str = Field(default="", validation_alias="REDIS_URL")
+    secret_key: str = Field(default="", validation_alias="BOUNDARY_LAYER_SECRET_KEY")
+    allowed_origins: str = Field(
+        default="",
+        validation_alias="BOUNDARY_LAYER_ALLOWED_ORIGINS",
+    )
+    public_base_url: str = Field(
+        default="",
+        validation_alias="BOUNDARY_LAYER_PUBLIC_BASE_URL",
+    )
+    secure_cookies: bool = Field(
+        default=False,
+        validation_alias="BOUNDARY_LAYER_SECURE_COOKIES",
+    )
+    file_storage_backend: str = Field(
+        default="",
+        validation_alias="BOUNDARY_LAYER_FILE_STORAGE_BACKEND",
+    )
+    audit_log_enabled: bool = Field(
+        default=False,
+        validation_alias="BOUNDARY_LAYER_AUDIT_LOG_ENABLED",
+    )
+
+    @field_validator("boundary_layer_profile")
+    @classmethod
+    def normalize_profile(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        allowed = {"local-lab", "production-like", "production-saas"}
+        if normalized not in allowed:
+            raise ValueError(
+                "BOUNDARY_LAYER_PROFILE must be one of: "
+                "local-lab, production-like, production-saas"
+            )
+        return normalized
+
     @field_validator("boundary_layer_env")
     @classmethod
     def normalize_env(cls, value: str) -> str:
@@ -158,17 +203,68 @@ class Settings(BaseSettings):
                 raise ValueError(f"{name} must be at least 16 characters in production")
         return self
 
+    @model_validator(mode="after")
+    def validate_production_saas_requirements(self) -> Settings:
+        if not self.is_production_saas:
+            return self
+
+        issues: list[str] = []
+        if not self.auth_provider.strip():
+            issues.append("BOUNDARY_LAYER_AUTH_PROVIDER is required")
+        if not self.database_url.strip():
+            issues.append("DATABASE_URL is required")
+        if not self.redis_url.strip():
+            issues.append("REDIS_URL is required")
+        if len(self.secret_key.strip()) < 32:
+            issues.append("BOUNDARY_LAYER_SECRET_KEY must be at least 32 characters")
+        if not self.allowed_origins.strip():
+            issues.append("BOUNDARY_LAYER_ALLOWED_ORIGINS is required")
+        if not self.public_base_url.strip():
+            issues.append("BOUNDARY_LAYER_PUBLIC_BASE_URL is required")
+        if not self.secure_cookies:
+            issues.append("BOUNDARY_LAYER_SECURE_COOKIES must be true")
+        if not self.trust_proxy_headers:
+            issues.append("BOUNDARY_LAYER_TRUST_PROXY_HEADERS must be explicitly true")
+        if not self.metrics_token.strip():
+            issues.append("BOUNDARY_LAYER_METRICS_TOKEN is required")
+        if not self.file_storage_backend.strip():
+            issues.append("BOUNDARY_LAYER_FILE_STORAGE_BACKEND is required")
+        else:
+            backend = self.file_storage_backend.strip().lower()
+            if backend in {"local", "disk", "filesystem"}:
+                issues.append(
+                    "BOUNDARY_LAYER_FILE_STORAGE_BACKEND must not use local disk"
+                )
+        if not self.audit_log_enabled:
+            issues.append("BOUNDARY_LAYER_AUDIT_LOG_ENABLED must be true")
+
+        if issues:
+            raise ValueError("; ".join(issues))
+        return self
+
+    @property
+    def is_production_saas(self) -> bool:
+        return self.boundary_layer_profile == "production-saas"
+
     @property
     def is_production(self) -> bool:
+        if self.boundary_layer_profile in {"production-like", "production-saas"}:
+            return True
         return self.boundary_layer_env == "production"
 
     @property
+    def is_local_lab(self) -> bool:
+        return (
+            self.boundary_layer_profile == "local-lab"
+            and self.boundary_layer_env != "production"
+        )
+
+    @property
     def cors_origin_list(self) -> list[str]:
-        if not self.cors_origins.strip():
+        origins = self.allowed_origins.strip() or self.cors_origins.strip()
+        if not origins:
             return []
-        return [
-            origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
-        ]
+        return [origin.strip() for origin in origins.split(",") if origin.strip()]
 
     @property
     def trusted_host_list(self) -> list[str]:

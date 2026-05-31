@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod bundle clean fmt help prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example bundle clean fmt help prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -76,6 +76,12 @@ validate-e2e:
 bug-hunt-prod:
 	bash scripts/bug-hunt-prod.sh
 
+production-saas-check:
+	bash scripts/production-saas-check.sh
+
+production-saas-check-example:
+	bash scripts/production-saas-check-example.sh
+
 backup:
 	bash scripts/backup-postgres.sh
 
@@ -103,5 +109,7 @@ help:
 	@echo "  make validate-restore-fresh-volume Fresh-volume Postgres proof (resets local Compose volumes)"
 	@echo "  make capture-demo         Generate sanitized docs/assets/demo-transcript.txt"
 	@echo "  make validate-prod  Production-like local validation profile"
+	@echo "  make production-saas-check Report production-saas readiness (expects NOT READY locally)"
+	@echo "  make production-saas-check-example Mocked production-saas readiness pass"
 	@echo "  make validate-e2e   Full test + lint + prod + local validation"
 	@echo "  make bundle         Create local review ZIP in ~/Downloads/"

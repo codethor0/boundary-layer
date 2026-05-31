@@ -2,7 +2,9 @@
 
 ## Supported Scope
 
-BoundaryLayer is intended for **local educational and defensive engineering use only**. It is not a production security product.
+BoundaryLayer is intended for **local educational and defensive engineering use**. It is not a production security product and **is not a hosted Production SaaS** today.
+
+For the gap between local lab, production-like validation, and real hosted SaaS, see [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md).
 
 ## Reporting Vulnerabilities
 
@@ -26,6 +28,8 @@ The default `docker-compose.yml` dev stack (`make up`) is for **local learning o
 - **Do not** deploy `docker-compose.yml` to public infrastructure or multi-tenant environments
 
 Use `docker-compose.prod.yml` only on machines you control, with secrets from `.env.production` and the guidance in [docs/PRODUCTION.md](docs/PRODUCTION.md). Even the production-like profile is a **local validation profile**, not a complete SaaS hardening program.
+
+Setting `BOUNDARY_LAYER_PROFILE=production-saas` enables a fail-closed startup gate for future hosted deployments. It is not configured in the default local lab. Run `make production-saas-check` to see readiness (expects NOT READY locally).
 
 ## Rate Limiting and Proxy Headers
 

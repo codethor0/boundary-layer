@@ -138,4 +138,5 @@
 
 ## Future
 
+- Production SaaS foundation: profile guardrails, readiness check, architecture and tenancy design docs (see [PRODUCTION_SAAS_READINESS.md](PRODUCTION_SAAS_READINESS.md))
 - Optional PNG exports of logo assets for platforms that require raster images
