@@ -1,50 +1,40 @@
 # Next Steps
 
-BoundaryLayer v1.3.5 remains a **complete local defensive security lab**. Production SaaS Phase 6 adds the **staging provisioning package** (runbooks, secrets inventory, GitHub Environment guide, container build/deploy scripts, live validation package) but **hosted SaaS is not shipped** and live staging was **not validated** unless an operator provisions real infrastructure.
+BoundaryLayer v1.3.5 remains a **complete local defensive security lab**. Production SaaS score is **capped at 6/10** until live staging evidence passes via `make production-saas-evidence-runner`.
 
-## Immediate priorities (Production SaaS Phase 7)
+## Immediate priorities (execute with real credentials)
 
-1. **Provision AWS staging account** — apply IaC; create RDS, ElastiCache, S3, ECR, ECS, WAF per runbook.
-2. **Configure GitHub Environment `staging`** — all secrets from inventory.
-3. **Deploy staging API** — `staging-deploy` workflow with `DEPLOY_STAGING=true` after review.
-4. **Run live validation** — `RUN_LIVE_STAGING_CHECKS=true make live-staging-validation-package`.
-5. **Fill live evidence** — `docs/LIVE_STAGING_EVIDENCE_TEMPLATE.md`.
-6. **Immutable audit + SIEM** — implement external audit sink adapter.
+1. Populate GitHub Environment `staging` secrets per `docs/STAGING_SECRETS_INVENTORY.md`
+2. Provision AWS staging account per `docs/STAGING_DEPLOYMENT_RUNBOOK.md`
+3. Run `RUN_LIVE_STAGING_CHECKS=true make check-live-staging-prereqs`
+4. Run `RUN_LIVE_STAGING_CHECKS=true make production-saas-evidence-runner`
+5. Fill `docs/LIVE_STAGING_EVIDENCE_TEMPLATE.md` and `artifacts/live-evidence/LIVE_STAGING_EVIDENCE.md`
+6. Complete legal/compliance checklist in `docs/LEGAL_COMPLIANCE_READINESS.md`
 
-## Validation commands (Phase 6)
+## Validation commands (Fast Track)
 
 ```bash
-make production-saas-managed-services-example
-make staging-smoke-structural
-make staging-release-gate
-make container-build
-make container-smoke-local
-make deploy-staging-dry-run
-make waf-readiness-check
-
-# Expected fail without live env:
-make live-staging-validation-package
-
-# Live (requires untracked .env.staging or GitHub Environment secrets):
-export RUN_LIVE_STAGING_CHECKS=true
-make live-staging-validation-package
+make check-live-staging-prereqs          # expect MISSING without .env.staging
+make production-saas-evidence-runner     # expect CANNOT RUN without live env
+make waf-live-check                      # expect SKIPPED
+make audit-sink-live-check               # expect SKIPPED or PASS with live DB
+make dr-restore-live-check               # expect SKIPPED
+make generate-sbom                       # SKIP or PASS if syft installed
+make container-security-scan             # SKIP or PASS if trivy/grype installed
 ```
 
-Manual CI: `.github/workflows/staging-deploy.yml`, `.github/workflows/staging-live-validation.yml`.
+Manual CI: `.github/workflows/production-saas-live-validation.yml`
 
-## Do not do yet
+## Scoring
 
-- Do not claim Production SaaS readiness without live staging evidence.
-- Do not run `terraform apply` or destructive cloud commands without operator review.
-- Do not commit `.env.staging` or cloud credentials.
+See `docs/PRODUCTION_10_10_EVIDENCE_MATRIX.md`. Do not inflate score without evidence.
 
-## Recommended next surgical prompt
+## Recommended next prompt
 
 **BoundaryLayer Production SaaS Phase 7 — Staging Account Apply and Live Evidence Capture**
 
 ## References
 
+- [docs/PRODUCTION_10_10_EVIDENCE_MATRIX.md](docs/PRODUCTION_10_10_EVIDENCE_MATRIX.md)
+- [docs/PRODUCTION_READINESS_REVIEW.md](docs/PRODUCTION_READINESS_REVIEW.md)
 - [docs/STAGING_DEPLOYMENT_RUNBOOK.md](docs/STAGING_DEPLOYMENT_RUNBOOK.md)
-- [docs/STAGING_SECRETS_INVENTORY.md](docs/STAGING_SECRETS_INVENTORY.md)
-- [docs/GITHUB_ENVIRONMENT_SETUP.md](docs/GITHUB_ENVIRONMENT_SETUP.md)
-- [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md)

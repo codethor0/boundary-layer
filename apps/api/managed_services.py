@@ -254,6 +254,13 @@ def _settings_from_env(env: dict[str, str] | None) -> Settings:
 
 
 def check_database_live(settings: Settings) -> LiveCheckResult:
+    sslmode = settings._database_ssl_mode()
+    if sslmode not in {"require", "verify-ca", "verify-full"}:
+        return LiveCheckResult(
+            "postgresql",
+            False,
+            f"DATABASE_URL must require SSL (sslmode={sslmode or 'unset'})",
+        )
     try:
         import psycopg2
 
@@ -281,6 +288,12 @@ def check_database_live(settings: Settings) -> LiveCheckResult:
 
 
 def check_redis_live(settings: Settings) -> LiveCheckResult:
+    if not settings.redis_url.strip().startswith("rediss://"):
+        return LiveCheckResult(
+            "redis",
+            False,
+            "REDIS_URL must use rediss:// for live production-saas check",
+        )
     try:
         import redis
 
@@ -400,10 +413,22 @@ def check_jwks_live(settings: Settings) -> LiveCheckResult:
         keys = payload.get("keys") or []
         if not keys:
             return LiveCheckResult("jwks", False, "JWKS response contains no keys")
+        allowed = {
+            alg.strip()
+            for alg in settings.oidc_algorithms.split(",")
+            if alg.strip() and alg.strip().lower() != "none"
+        }
+        key_algs = {str(key.get("alg", "")).strip() for key in keys if key.get("alg")}
+        if allowed and key_algs and not (key_algs & allowed):
+            return LiveCheckResult(
+                "jwks",
+                False,
+                "JWKS signing algorithms do not match OIDC_ALGORITHMS",
+            )
         return LiveCheckResult(
             "jwks",
             True,
-            f"issuer=https ok; signing_keys={len(keys)}",
+            f"issuer=https ok; signing_keys={len(keys)}; algorithms_ok=true",
         )
     except Exception as exc:
         return LiveCheckResult("jwks", False, redact_error_message(str(exc)))

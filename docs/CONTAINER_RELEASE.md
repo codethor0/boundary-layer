@@ -41,11 +41,18 @@ export CONTAINER_REGISTRY=<account>.dkr.ecr.<region>.amazonaws.com/boundary-laye
 make container-build
 ```
 
-## SBOM requirement
+## SBOM and container security evidence
 
-- Generate SBOM with Syft in CI release/staging-deploy workflow (artifact upload)
-- Store SBOM alongside image digest in deploy metadata
-- Gate on critical CVE policy (Trivy already runs in Security Scan workflow)
+```bash
+make generate-sbom
+make container-security-scan
+```
+
+Outputs (gitignored): `artifacts/security/sbom.spdx.json`, `artifacts/security/container-scan.txt`
+
+If syft/trivy/grype are unavailable, scripts report **SKIPPED** with install instructions. Do not fake scan results.
+
+If SBOM/container scan not validated in CI, score cannot exceed **9/10** per evidence matrix.
 
 ## Image signing plan
 

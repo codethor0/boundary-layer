@@ -1,45 +1,46 @@
-# Legal and Compliance Readiness (Starter)
+# Legal and Compliance Readiness
 
-**This document is not legal advice.** All items require review by qualified legal counsel before any public Production SaaS launch.
+**This document is not legal advice.** All items require review by qualified legal counsel before public Production SaaS launch.
 
-## Required before production launch
+## Completion checklist
 
-| Artifact | Status | Owner |
-|----------|--------|-------|
-| Terms of Service | Not started | Legal |
-| Privacy Policy | Not started | Legal |
-| Data Processing Agreement (DPA) | Not started | Legal |
-| Subprocessor list | Not started | Legal / Platform |
-| Data retention policy | Not started | Product / Legal |
-| Security policy (customer-facing) | Not started | Security |
-| Acceptable Use Policy | Not started | Legal |
-| Incident disclosure process | Partial (SECURITY.md disclosure path) | Security / Legal |
-| User data export process | Not started | Engineering / Legal |
-| User data deletion process | Not started | Engineering / Legal |
-| Cookie/consent strategy (if UI added) | Not started | Product / Legal |
+| Artifact | Status | Owner | Evidence location | Blocks production |
+|----------|--------|-------|-------------------|-------------------|
+| Terms of Service | missing | Legal | Not published | yes |
+| Privacy Policy | missing | Legal | Not published | yes |
+| Data Processing Agreement (DPA) | missing | Legal | Not published | yes |
+| Subprocessor list | missing | Legal / Platform | Not published | yes |
+| Acceptable Use Policy | missing | Legal | Not published | yes |
+| Data retention policy | missing | Product / Legal | Not documented | yes |
+| User deletion procedure | missing | Engineering / Legal | Not implemented | yes |
+| User data export procedure | missing | Engineering / Legal | Not implemented | yes |
+| Security policy (customer-facing) | missing | Security | Partial internal notes only | yes |
+| Incident disclosure process | draft | Security | SECURITY.md disclosure path | yes |
+| Cookie policy | missing | Legal / Product | N/A (no browser UI yet) | yes if UI ships |
+| Accessibility statement | missing | Product | Not published | yes if public UI |
 
-## Compliance mapping (placeholder)
+Status values: **missing** | **draft** | **reviewed** | **approved**
 
-| Framework | Applicability | Status |
-|-----------|---------------|--------|
-| GDPR | If EU users | Not assessed |
-| SOC 2 | If enterprise customers | Not started |
-| ISO 27001 | Optional | Not started |
+No artifact is **approved** in this repository pass.
 
 ## Engineering prerequisites (non-legal)
 
-- Immutable audit trail (not live)
-- Tenant data isolation (partial)
-- Encryption in transit (staging design)
-- Backup/restore documentation (partial)
-- Secret rotation policy (config gate only)
+| Control | Status |
+|---------|--------|
+| Tenant isolation | Partial — unit + staging smoke required |
+| Encryption in transit | Partial — TLS design; live proof required |
+| Audit trail | Partial — Postgres only; immutable sink required |
+| Backup/restore | Partial — local proof; staging DR drill required |
+| Secret rotation policy | Config gate only |
 
-## Before claiming Production SaaS readiness
+## Before 10/10 Production SaaS
 
-1. Legal review of all customer-facing policies
+1. Counsel review of all customer-facing policies
 2. Data inventory and classification
-3. Subprocessor agreements for managed cloud and IdP
-4. DSR (access/delete) workflow tested
+3. Subprocessor agreements for cloud, IdP, observability vendors
+4. DSR (access/delete) workflow tested in staging
 5. Incident notification timelines defined with counsel
 
-BoundaryLayer **must not** claim 10/10 Production SaaS readiness until legal/compliance artifacts are reviewed and operational controls are validated.
+**If legal/compliance artifacts are not reviewed, score cannot be 10/10.**
+
+See [PRODUCTION_10_10_EVIDENCE_MATRIX.md](PRODUCTION_10_10_EVIDENCE_MATRIX.md).

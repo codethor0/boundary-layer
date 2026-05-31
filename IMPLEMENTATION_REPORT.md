@@ -1,27 +1,28 @@
-# Implementation Report — Production SaaS Phase 6
+# Implementation Report — Production SaaS Fast Track
 
 ## Summary
 
-Phase 6 adds the staging provisioning and live deploy **package**: AWS ECS/Fargate deployment runbook, secrets inventory, GitHub Environment setup guide, container build/smoke scripts, AWS deploy dry-run script, live staging validation package, WAF readiness check, DR/on-call and legal/compliance starter docs, and upgraded staging-deploy workflow — without breaking the local lab.
+Fast Track pass adds the 10/10 evidence matrix, live staging prereq gate, evidence runner, WAF/audit/DR live checks, SBOM/container security scripts, production readiness review, legal completion checklist, CI evidence workflow, and PyJWT/cryptography advisory upgrades — without breaking the local lab.
 
 ## Delivered
 
-- `docs/STAGING_DEPLOYMENT_RUNBOOK.md` — default AWS ECS/Fargate path
-- `docs/STAGING_SECRETS_INVENTORY.md`, `docs/GITHUB_ENVIRONMENT_SETUP.md`
-- `docs/LIVE_STAGING_EVIDENCE_TEMPLATE.md`, `docs/DR_ONCALL_RUNBOOK.md`, `docs/LEGAL_COMPLIANCE_READINESS.md`
-- Scripts: `container-build.sh`, `container-smoke-local.sh`, `deploy-staging-aws.sh`, `live-staging-validation-package.sh`, `waf-readiness-check.sh`
-- Updated: `CONTAINER_RELEASE.md`, `WAF_ABUSE_CONTROLS.md`, `staging-deploy.yml`
-- Makefile targets: `container-build`, `container-smoke-local`, `deploy-staging-dry-run`, `live-staging-validation-package`, `waf-readiness-check`
-- Unit tests for script behavior and required doc existence
+- `docs/PRODUCTION_10_10_EVIDENCE_MATRIX.md` — source of truth for 10/10 evidence
+- `scripts/check-live-staging-prereqs.sh`, `production-saas-evidence-runner.sh`
+- `scripts/waf-live-check.sh`, `audit-sink-live-check.sh`, `dr-restore-live-check.sh`
+- `scripts/generate-sbom.sh`, `container-security-scan.sh`
+- `docs/PRODUCTION_READINESS_REVIEW.md`, updated `LEGAL_COMPLIANCE_READINESS.md`
+- `.github/workflows/production-saas-live-validation.yml`
+- Dependency upgrades: PyJWT 2.12.0, cryptography 46.0.6
+- Score cap language in README, SECURITY, PRODUCTION_SAAS_READINESS
 
 ## Not delivered (by design)
 
-- Live staging deployment against real AWS account
-- Terraform apply or destructive cloud operations
-- Immutable audit/SIEM live integration
-- Edge WAF live enforcement
-- Legal/compliance review
+- Live staging deployment or evidence artifact (no credentials)
+- Immutable audit/SIEM live validation
+- WAF edge enforcement live proof
+- Legal approval
+- Production SaaS 10/10 claim
 
 ## Production SaaS score
 
-Before: 6/10. After: **6/10** (live staging skipped; score capped until live validation passes with evidence).
+Before: 6/10. After: **6/10** (live staging evidence not produced).

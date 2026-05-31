@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke production-saas-tenant-isolation-smoke production-saas-staging-readiness-check production-saas-staging-readiness-example production-saas-managed-services-check production-saas-managed-services-example production-saas-managed-services-live-check staging-deploy-dry-run deploy-staging-dry-run staging-smoke-check staging-smoke-structural staging-smoke-live staging-release-gate live-staging-validation-package infra-validate infra-plan-staging container-image-check container-build container-smoke-local waf-readiness-check bundle clean fmt help prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke production-saas-tenant-isolation-smoke production-saas-staging-readiness-check production-saas-staging-readiness-example production-saas-managed-services-check production-saas-managed-services-example production-saas-managed-services-live-check staging-deploy-dry-run deploy-staging-dry-run staging-smoke-check staging-smoke-structural staging-smoke-live staging-release-gate live-staging-validation-package check-live-staging-prereqs production-saas-evidence-runner waf-live-check audit-sink-live-check dr-restore-live-check generate-sbom container-security-scan infra-validate infra-plan-staging container-image-check container-build container-smoke-local waf-readiness-check bundle clean fmt help prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -139,6 +139,27 @@ deploy-staging-dry-run:
 live-staging-validation-package:
 	bash scripts/live-staging-validation-package.sh
 
+check-live-staging-prereqs:
+	bash scripts/check-live-staging-prereqs.sh
+
+production-saas-evidence-runner:
+	bash scripts/production-saas-evidence-runner.sh
+
+waf-live-check:
+	bash scripts/waf-live-check.sh
+
+audit-sink-live-check:
+	bash scripts/audit-sink-live-check.sh
+
+dr-restore-live-check:
+	bash scripts/dr-restore-live-check.sh
+
+generate-sbom:
+	bash scripts/generate-sbom.sh
+
+container-security-scan:
+	bash scripts/container-security-scan.sh
+
 waf-readiness-check:
 	bash scripts/waf-readiness-check.sh
 
@@ -190,6 +211,13 @@ help:
 	@echo "  make container-smoke-local Run built image locally and check /health"
 	@echo "  make deploy-staging-dry-run AWS ECS staging deploy dry run (no deploy by default)"
 	@echo "  make live-staging-validation-package Full live staging validation (requires RUN_LIVE_STAGING_CHECKS=true)"
+	@echo "  make check-live-staging-prereqs Verify live staging env (names only, no secret values)"
+	@echo "  make production-saas-evidence-runner Full evidence chain (requires live prereqs)"
+	@echo "  make waf-live-check Live WAF validation (skipped if not configured)"
+	@echo "  make audit-sink-live-check Live audit sink validation (skipped if not configured)"
+	@echo "  make dr-restore-live-check DR backup verification (requires CONFIRM_STAGING_DR_TEST=true)"
+	@echo "  make generate-sbom Generate SPDX SBOM when syft is installed"
+	@echo "  make container-security-scan Scan container image with trivy/grype when installed"
 	@echo "  make waf-readiness-check Structural WAF readiness (optional live AWS WAF check)"
 	@echo "  make validate-e2e   Full test + lint + prod + local validation"
 	@echo "  make bundle         Create local review ZIP in ~/Downloads/"
