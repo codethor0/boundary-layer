@@ -95,6 +95,25 @@ class ProductionLockdownMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+class RequestBodySizeMiddleware(BaseHTTPMiddleware):
+    """Reject oversized request bodies in production-saas when configured."""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        settings = get_settings()
+        if not settings.is_production_saas or settings.max_request_body_bytes <= 0:
+            return await call_next(request)
+        if request.method in {"GET", "HEAD", "OPTIONS"}:
+            return await call_next(request)
+        content_length = request.headers.get("content-length")
+        if content_length and content_length.isdigit():
+            if int(content_length) > settings.max_request_body_bytes:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": "Request body too large"},
+                )
+        return await call_next(request)
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """Sliding-window rate limiter with optional Redis backend."""
 

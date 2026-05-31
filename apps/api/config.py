@@ -298,6 +298,14 @@ class Settings(BaseSettings):
         default=0,
         validation_alias="MAX_FILE_UPLOAD_BYTES",
     )
+    tenant_concurrency_limit: int = Field(
+        default=0,
+        validation_alias="TENANT_CONCURRENCY_LIMIT",
+    )
+    tenant_rate_limit_per_minute: int = Field(
+        default=0,
+        validation_alias="TENANT_RATE_LIMIT_PER_MINUTE",
+    )
 
     allow_local_managed_endpoints: bool = Field(
         default=False,

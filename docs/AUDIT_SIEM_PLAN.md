@@ -7,7 +7,8 @@ BoundaryLayer Production SaaS audit logging is **foundational only** today. The 
 | Capability | Status |
 |------------|--------|
 | Database-backed audit events | Implemented (production-saas) |
-| Immutable append-only sink | Not implemented |
+| Audit export interface | Implemented (`apps/api/audit_export.py`; local Postgres sink) |
+| External immutable sink adapters | Shell only (fail closed) |
 | SIEM export | Not implemented |
 | Retention enforcement | Config scaffolding only |
 | Operator runbook | Not implemented |

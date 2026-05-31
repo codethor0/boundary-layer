@@ -1,5 +1,11 @@
 # Dependency Report
 
+## Phase 5 additions
+
+No new **required** runtime dependencies were added in Phase 5.
+
+Live managed-service checks use existing dependencies (`psycopg`, `redis`, `httpx`) when `RUN_LIVE_STAGING_CHECKS=true`. Cloud SDKs remain optional (lazy import) as documented in Phase 4.
+
 ## Phase 4 additions
 
 No new **required** runtime dependencies were added in Phase 4.

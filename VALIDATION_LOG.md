@@ -2,7 +2,7 @@
 
 ## v1.0 Public Release Stabilization
 
-Generated: 2026-05-31T19:01:57Z
+Generated: 2026-05-31T19:42:55Z
 
 Scope: Public GitHub release hygiene, no new labs, generated reports excluded from Git.
 
@@ -443,7 +443,7 @@ Scope: Public GitHub release hygiene, no new labs, generated reports excluded fr
 - Result: PASS
 
 ### Postgres restore roundtrip
-- Command: `drop write_storm_events then restore /Users/thor/Projects/boundary-layer/backups/postgres/boundary-layer-20260531T190201Z.sql.gz`
+- Command: `drop write_storm_events then restore /Users/thor/Projects/boundary-layer/backups/postgres/boundary-layer-20260531T194259Z.sql.gz`
 - Result: PASS
 
 ### Prometheus health check
@@ -537,65 +537,4 @@ Scope: Public GitHub release hygiene, no new labs, generated reports excluded fr
 ### Secret scan
 - Command: `rg secret patterns`
 - Result: PASS
-
-## Production SaaS Phase 3 — Staging OIDC and Managed Service Integration
-
-Generated: 2026-05-29
-
-Scope: Staging OIDC config validation, JWKS client, managed-service config, storage/secrets scaffolds, IaC skeleton, staging-readiness CI. No live staging deployment.
-
-### make test
-- Result: PASS (302 unit tests)
-
-### make lint
-- Result: PASS
-
-### make validate / validate-alerts / validate-restore-fresh-volume
-- Result: PASS (local-lab regression confirmed)
-
-### production-saas-check (no env)
-- Result: NOT READY (expected)
-
-### production-saas-check-example
-- Result: READY (mocked)
-
-### production-saas-staging-readiness-check (no env)
-- Result: NOT READY (expected)
-
-### production-saas-staging-readiness-example
-- Result: READY (mocked)
-
-### production-saas-auth-smoke
-- Result: PASS (30 tests)
-
-### production-saas-tenant-isolation-smoke
-- Result: PASS (52 tests)
-
-### pip-audit
-- Result: Known advisories on pyjwt 2.10.1 and cryptography 44.0.1 (pre-existing pinned versions)
-
-### YAML validation
-- Result: PASS (Prometheus, Alertmanager, staging-readiness workflow)
-
-## Production SaaS Phase 4 — Managed Service Adapters and Staging Deployment Proof
-
-Generated: 2026-05-29
-
-### make test
-- Result: PASS (341 unit tests)
-
-### make lint
-- Result: PASS
-
-### production-saas-managed-services-check (no env)
-- Result: NOT READY (expected)
-
-### production-saas-managed-services-example
-- Result: STRUCTURALLY READY (mocked)
-
-### staging-deploy-dry-run (mock env)
-- Result: PASS (DRY RUN ONLY)
-
-### Terraform fmt
-- Result: PASS (terraform installed)
 

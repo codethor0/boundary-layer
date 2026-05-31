@@ -1,29 +1,32 @@
-# Implementation Report — Production SaaS Phase 4
+# Implementation Report — Production SaaS Phase 5
 
 ## Summary
 
-Phase 4 adds cloud storage and secret manager adapter interfaces (lazy SDK imports), managed-service policy checks with optional live connectivity mode, staging deployment dry-run scripts, expanded IaC module skeleton, audit/SIEM and WAF/abuse design docs, and CI workflow upgrades — without breaking the local lab.
+Phase 5 adds explicit structural vs live staging validation gates, live managed-service connectivity checks (gated by `RUN_LIVE_STAGING_CHECKS=true`), staging smoke structural/live modes, release gate reporting, manual CI live-validation workflow, IaC validate/plan scripts, container image checks, audit export interface shells, and in-app request body size guard — without breaking the local lab.
 
 ## Delivered
 
-- `apps/api/storage.py` — S3/GCS/R2 adapters, tenant-scoped object keys, presigned TTL caps
-- `apps/api/secrets.py` — AWS/GCP/Azure/Vault/Doppler adapters, cache TTL, redaction
-- `apps/api/managed_services.py` — policy checks + optional live connectivity CLI
-- Scripts: managed-services check/example/live, staging deploy dry-run, smoke, release gate
-- Infra: eight Terraform module skeletons + staging `terraform.tfvars.example`
-- CI: upgraded `staging-readiness.yml`, manual `staging-deploy.yml` (dry-run default)
-- Docs: `AUDIT_SIEM_PLAN.md`, `WAF_ABUSE_CONTROLS.md`
-- 39 new unit tests (341 total)
+- `docs/STAGING_ENVIRONMENT_CONTRACT.md` — staging variable contract
+- `apps/api/managed_services.py` — `structural` vs `live` modes; PostgreSQL/Redis/object storage/secret manager/JWKS live checks
+- `apps/api/audit_export.py` — `AuditSink` interface; local Postgres sink; external sinks fail closed
+- `apps/api/middleware.py` — `RequestBodySizeMiddleware` for production-saas
+- Scripts: `staging-smoke-structural.sh`, `staging-smoke-live.sh`, updated release gate, `infra-validate.sh`, `infra-plan-staging.sh`, `container-image-check.sh`
+- CI: `.github/workflows/staging-live-validation.yml` (manual dispatch, `environment: staging`)
+- Docs: `CONTAINER_RELEASE.md`, updated IaC READMEs, readiness/score docs
+- 37+ new unit tests (managed services live gating, audit export, body size middleware, staging scripts)
 
 ## Not delivered (by design)
 
-- Live staging deployment
+- Live staging deployment against real infrastructure (skipped in this pass)
 - Applied Terraform / provisioned managed services
-- Live connectivity validation against cloud endpoints
-- Immutable audit/SIEM integration
-- Edge WAF enforcement
+- Immutable audit/SIEM integration (interface shells only)
+- Edge WAF enforcement (in-app guard only)
 - Production SaaS 10/10 readiness claim
 
 ## Production SaaS score
 
-Before: 5/10. After: 6/10.
+Before: 6/10. After: **6/10** (live staging checks skipped; score capped until real validation passes).
+
+## Prior phase
+
+See Phase 4 section in git history (`2f859b2` and earlier) for adapter interfaces and Phase 4 deliverables.
