@@ -49,6 +49,33 @@ MAX_FILE_UPLOAD_BYTES=5242880
 
 These fields are documented and validated structurally where safe. In-app request body size enforcement applies in production-saas when `MAX_REQUEST_BODY_BYTES > 0`. True WAF enforcement must happen at the edge; in-app controls are secondary.
 
+## AWS WAF setup (default staging provider)
+
+Recommended for AWS ECS/Fargate + ALB staging path:
+
+1. Create **AWS WAF web ACL** (regional) attached to staging ALB.
+2. Enable **AWS Managed Rules** baseline (Core rule set, Known bad inputs).
+3. Add **rate-based rule** per IP (e.g. 2000 requests / 5 min) as coarse edge limit.
+4. Add **size constraint** rule matching `MAX_REQUEST_BODY_BYTES` at edge where supported.
+5. Enable **AWS Bot Control** (optional cost) for signup/login paths when UI exists.
+6. Configure **geo match** only if product policy requires blocking.
+7. Export WAF logs to S3 or CloudWatch for abuse investigations.
+8. Set `WAF_ENABLED=true` in staging env; run `make waf-readiness-check`.
+
+### Tenant-level abuse policy (application)
+
+- `TENANT_RATE_LIMIT_PER_MINUTE` — per-tenant app limiter (secondary to edge)
+- `TENANT_CONCURRENCY_LIMIT` — cap concurrent lab runs per tenant
+- `ABUSE_ALERTING_ENABLED` — route Prometheus abuse metrics to on-call (future)
+
+### Validation
+
+```bash
+make waf-readiness-check
+```
+
+Structural pass verifies docs and config fields. Live WAF resource check runs only when `aws` CLI and `AWS_WAF_WEB_ACL_*` variables are configured.
+
 ## Runbook outline (future)
 
 1. Detect abuse signal (rate limit spike, WAF block surge, audit anomaly).

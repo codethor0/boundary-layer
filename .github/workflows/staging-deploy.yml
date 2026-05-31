@@ -3,14 +3,14 @@ name: Staging Deploy
 on:
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: Run deployment steps in dry-run mode only
+      deploy_staging:
+        description: Attempt staging deploy (requires DEPLOY_STAGING=true in environment)
         required: true
-        default: "true"
+        default: "false"
         type: choice
         options:
-          - "true"
           - "false"
+          - "true"
 
 jobs:
   staging-deploy:
@@ -19,29 +19,60 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate deploy prerequisites
-        run: |
-          echo "Staging deploy workflow is manual-only and dry-run by default."
-          echo "TODO: wire cloud credentials via GitHub Environment secrets."
-          echo "TODO: apply Terraform from infra/terraform/envs/staging after review."
-          test -f infra/terraform/envs/staging/terraform.tfvars.example
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Dry run gate
-        if: ${{ inputs.dry_run == 'true' }}
+      - name: Install dependencies
         run: |
-          export BOUNDARY_LAYER_PROFILE=production-saas
-          export BOUNDARY_LAYER_ENV=staging
-          export DATABASE_URL='postgresql://placeholder:placeholder@db.staging.example:5432/boundary_layer?sslmode=require'
-          export REDIS_URL='rediss://:placeholder@redis.staging.example:6379/0'
-          export SECRET_MANAGER_PROVIDER=aws
-          export SECRET_MANAGER_PROJECT_OR_PATH=boundary-layer/staging
-          export OBJECT_STORAGE_BUCKET=boundary-layer-staging-artifacts-example
-          export BOUNDARY_LAYER_PUBLIC_BASE_URL=https://staging.example.com
-          export STAGING_RELEASE_IMAGE=ghcr.io/example/boundary-layer:staging-placeholder
-          bash scripts/staging-deploy-dry-run.sh
+          python -m pip install --upgrade pip
+          pip install -r apps/api/requirements-dev.txt
 
-      - name: Deploy blocked
-        if: ${{ inputs.dry_run != 'true' }}
+      - name: Unit tests and lint
         run: |
-          echo "Real staging deploy is not implemented in this repository pass." >&2
-          exit 1
+          make test
+          make lint
+
+      - name: Container build and local smoke
+        run: |
+          make container-build
+          make container-smoke-local
+
+      - name: Structural staging checks
+        run: |
+          make production-saas-staging-readiness-example
+          make production-saas-managed-services-example
+          make staging-smoke-structural
+
+      - name: Dry run deploy gate
+        if: ${{ inputs.deploy_staging != 'true' && vars.DEPLOY_STAGING != 'true' }}
+        run: |
+          echo "DRY RUN ONLY"
+          bash scripts/deploy-staging-aws.sh
+
+      - name: Staging deploy attempt
+        if: ${{ inputs.deploy_staging == 'true' || vars.DEPLOY_STAGING == 'true' }}
+        env:
+          DEPLOY_STAGING: "true"
+          CONFIRM_STAGING_DEPLOY: "true"
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+          ECS_CLUSTER_NAME: ${{ vars.ECS_CLUSTER_NAME }}
+          ECS_SERVICE_NAME: ${{ vars.ECS_SERVICE_NAME }}
+          STAGING_RELEASE_IMAGE: ${{ secrets.STAGING_RELEASE_IMAGE }}
+          BOUNDARY_LAYER_PUBLIC_BASE_URL: ${{ secrets.BOUNDARY_LAYER_PUBLIC_BASE_URL }}
+          PUSH_IMAGE: "true"
+          CONTAINER_REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
+        run: |
+          make container-build
+          bash scripts/deploy-staging-aws.sh
+
+      - name: Live staging smoke after deploy
+        if: ${{ (inputs.deploy_staging == 'true' || vars.DEPLOY_STAGING == 'true') && secrets.STAGING_BASE_URL != '' }}
+        env:
+          RUN_LIVE_STAGING_CHECKS: "true"
+          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+          STAGING_TEST_ACCESS_TOKEN_TENANT_A: ${{ secrets.STAGING_TEST_ACCESS_TOKEN_TENANT_A }}
+          STAGING_TEST_ACCESS_TOKEN_TENANT_B: ${{ secrets.STAGING_TEST_ACCESS_TOKEN_TENANT_B }}
+          STAGING_METRICS_AUTH_TOKEN: ${{ secrets.STAGING_METRICS_AUTH_TOKEN }}
+        run: make staging-smoke-live

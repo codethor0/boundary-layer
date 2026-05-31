@@ -179,10 +179,15 @@ make staging-smoke-live                         # live HTTP smoke (gated)
 make staging-release-gate                       # local + structural; reports live skip/pass
 make infra-validate                             # terraform fmt/validate when installed
 make container-image-check                      # Dockerfile/build smoke
-make staging-deploy-dry-run                     # dry run only (requires env)
+make container-build                            # build image tagged with git SHA
+make container-smoke-local                      # local container /health smoke
+make deploy-staging-dry-run                     # AWS ECS deploy dry run (no deploy)
+make live-staging-validation-package            # full live validation (gated)
+make waf-readiness-check                        # structural WAF readiness
+make staging-deploy-dry-run                     # IaC deploy dry run (requires env)
 ```
 
-See [docs/STAGING_ENVIRONMENT_CONTRACT.md](docs/STAGING_ENVIRONMENT_CONTRACT.md) for live staging variables (never commit real values).
+See [docs/STAGING_DEPLOYMENT_RUNBOOK.md](docs/STAGING_DEPLOYMENT_RUNBOOK.md) and [docs/STAGING_ENVIRONMENT_CONTRACT.md](docs/STAGING_ENVIRONMENT_CONTRACT.md) (never commit real values).
 
 ## Production Deployment (production-like profile, v1.3.5)
 

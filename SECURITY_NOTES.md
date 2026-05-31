@@ -16,7 +16,9 @@
 - Run `make production-saas-check` locally; it should report NOT READY until real SaaS infrastructure exists.
 - Run `make production-saas-staging-readiness-check` and `make production-saas-managed-services-check` for real-env validation (NOT READY locally).
 - Run `make production-saas-check-example`, `make production-saas-staging-readiness-example`, and `make production-saas-managed-services-example` for mocked structural validation in CI (not live deployment proof).
-- Run `make staging-smoke-structural` and `make staging-release-gate` for structural staging gates; live smoke requires explicit opt-in.
+- Run `make deploy-staging-dry-run` for AWS ECS deploy dry run (no cloud deploy).
+- Run `make live-staging-validation-package` only with `RUN_LIVE_STAGING_CHECKS=true` and full staging secrets.
+- Staging runbook: [docs/STAGING_DEPLOYMENT_RUNBOOK.md](docs/STAGING_DEPLOYMENT_RUNBOOK.md).
 - Object storage (`apps/api/storage.py`) and secret manager (`apps/api/secrets.py`) adapters use lazy SDK imports — live bucket/secret connectivity is validated only in live mode.
 - Audit export (`apps/api/audit_export.py`) supports local Postgres sink; external immutable sinks fail closed until implemented.
 - IaC under `infra/terraform/` is documented skeleton only — use `make infra-validate` and plan-only scripts; not applied.

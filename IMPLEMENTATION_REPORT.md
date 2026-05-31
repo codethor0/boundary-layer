@@ -1,32 +1,27 @@
-# Implementation Report — Production SaaS Phase 5
+# Implementation Report — Production SaaS Phase 6
 
 ## Summary
 
-Phase 5 adds explicit structural vs live staging validation gates, live managed-service connectivity checks (gated by `RUN_LIVE_STAGING_CHECKS=true`), staging smoke structural/live modes, release gate reporting, manual CI live-validation workflow, IaC validate/plan scripts, container image checks, audit export interface shells, and in-app request body size guard — without breaking the local lab.
+Phase 6 adds the staging provisioning and live deploy **package**: AWS ECS/Fargate deployment runbook, secrets inventory, GitHub Environment setup guide, container build/smoke scripts, AWS deploy dry-run script, live staging validation package, WAF readiness check, DR/on-call and legal/compliance starter docs, and upgraded staging-deploy workflow — without breaking the local lab.
 
 ## Delivered
 
-- `docs/STAGING_ENVIRONMENT_CONTRACT.md` — staging variable contract
-- `apps/api/managed_services.py` — `structural` vs `live` modes; PostgreSQL/Redis/object storage/secret manager/JWKS live checks
-- `apps/api/audit_export.py` — `AuditSink` interface; local Postgres sink; external sinks fail closed
-- `apps/api/middleware.py` — `RequestBodySizeMiddleware` for production-saas
-- Scripts: `staging-smoke-structural.sh`, `staging-smoke-live.sh`, updated release gate, `infra-validate.sh`, `infra-plan-staging.sh`, `container-image-check.sh`
-- CI: `.github/workflows/staging-live-validation.yml` (manual dispatch, `environment: staging`)
-- Docs: `CONTAINER_RELEASE.md`, updated IaC READMEs, readiness/score docs
-- 37+ new unit tests (managed services live gating, audit export, body size middleware, staging scripts)
+- `docs/STAGING_DEPLOYMENT_RUNBOOK.md` — default AWS ECS/Fargate path
+- `docs/STAGING_SECRETS_INVENTORY.md`, `docs/GITHUB_ENVIRONMENT_SETUP.md`
+- `docs/LIVE_STAGING_EVIDENCE_TEMPLATE.md`, `docs/DR_ONCALL_RUNBOOK.md`, `docs/LEGAL_COMPLIANCE_READINESS.md`
+- Scripts: `container-build.sh`, `container-smoke-local.sh`, `deploy-staging-aws.sh`, `live-staging-validation-package.sh`, `waf-readiness-check.sh`
+- Updated: `CONTAINER_RELEASE.md`, `WAF_ABUSE_CONTROLS.md`, `staging-deploy.yml`
+- Makefile targets: `container-build`, `container-smoke-local`, `deploy-staging-dry-run`, `live-staging-validation-package`, `waf-readiness-check`
+- Unit tests for script behavior and required doc existence
 
 ## Not delivered (by design)
 
-- Live staging deployment against real infrastructure (skipped in this pass)
-- Applied Terraform / provisioned managed services
-- Immutable audit/SIEM integration (interface shells only)
-- Edge WAF enforcement (in-app guard only)
-- Production SaaS 10/10 readiness claim
+- Live staging deployment against real AWS account
+- Terraform apply or destructive cloud operations
+- Immutable audit/SIEM live integration
+- Edge WAF live enforcement
+- Legal/compliance review
 
 ## Production SaaS score
 
-Before: 6/10. After: **6/10** (live staging checks skipped; score capped until real validation passes).
-
-## Prior phase
-
-See Phase 4 section in git history (`2f859b2` and earlier) for adapter interfaces and Phase 4 deliverables.
+Before: 6/10. After: **6/10** (live staging skipped; score capped until live validation passes with evidence).
