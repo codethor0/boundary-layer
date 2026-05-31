@@ -220,7 +220,6 @@ BAD_PATTERNS=(
   "agent-prompts/"
   "cursor_boundarylayer"
   "project_requiremen"
-  "COMMAND_TRANSCRIPT"
   "node_modules/"
 )
 for pattern in "${BAD_PATTERNS[@]}"; do

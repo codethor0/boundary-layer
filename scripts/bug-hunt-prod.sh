@@ -53,7 +53,7 @@ ensure_prod_stack
 echo "==> Production bug-hunt checks"
 
 check "health" "200" "$(http_code "${API_URL}/health")"
-"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.3.2"' && echo "PASS health version payload" || {
+"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.3.3"' && echo "PASS health version payload" || {
   echo "FAIL health version payload"
   failures=$((failures + 1))
 }

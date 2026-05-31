@@ -5,7 +5,7 @@
 </p>
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.3.2-blue)
+![Version](https://img.shields.io/badge/version-v1.3.3-blue)
 ![Tests](https://img.shields.io/badge/tests-184%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
@@ -43,7 +43,7 @@ Focus areas include tool routing, Redis session integrity, flat authorization, f
 
 BoundaryLayer is for defensive education, secure engineering, and controlled local testing only.
 
-## Production Deployment (production-like profile, v1.3.2)
+## Production Deployment (production-like profile, v1.3.3)
 
 BoundaryLayer ships a **production-like local validation profile** (`docker-compose.prod.yml`) for defensive testing on machines you control. It is **not** a hosted SaaS product and is **not** intended for direct public internet exposure without your own operational hardening.
 

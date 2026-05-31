@@ -91,6 +91,10 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.3.3 (Complete)
+
+- Production readiness audit fixes, CI Redis/TLS and Security Scan fixes, rate-limit fail-closed, live validation and bundle hygiene verified
+
 ## v1.3.2 (Complete)
 
 - Security dependency upgrade (FastAPI/Starlette) and production bug-hunt validation gate
