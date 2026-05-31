@@ -4,7 +4,7 @@ Copy-paste curl examples for all nine labs. Stack must be running (`make up`).
 
 Examples are abbreviated. Exact event text may vary slightly as validation scripts evolve.
 
-Current API version (from `GET /health`): `1.3.3` (or read live from `/health` instead of hardcoding).
+Current API version (from `GET /health`): `1.3.4` (or read live from `/health` instead of hardcoding).
 
 ## Health
 
@@ -13,7 +13,7 @@ curl -sf http://localhost:8000/health
 ```
 
 ```json
-{"status":"ok","service":"boundary-layer-api","version":"1.3.3","environment":"development"}
+{"status":"ok","service":"boundary-layer-api","version":"1.3.4","environment":"development"}
 ```
 
 ## List labs

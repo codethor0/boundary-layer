@@ -2,6 +2,23 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.3.4 (2026-05-31)
+
+- Align release tag with 10/10 polish docs and commands (`make smoke`, `make demo`, `make validate-alerts`)
+- Add fresh-volume PostgreSQL restore validation (`make validate-restore-fresh-volume`)
+- Add sanitized demo transcript capture (`make capture-demo`, `docs/assets/demo-transcript.txt`)
+- Metrics catalog, observability walkthrough, troubleshooting, ADD_A_LAB, and live-vs-simulated docs from polish pass
+- Authz alert delivery validated in `make validate` alongside circuit breaker alert
+- Release title pattern: local lab polish and validation (not hosted SaaS readiness)
+
+Known limitations (unchanged):
+
+- Local defensive security lab only; not a hosted production SaaS
+- Dev stack is intentionally unauthenticated
+- Alert webhook storage is in-memory only
+- Fresh-volume restore validates local Compose Postgres only, not off-host DR
+- Terminal GIF may require optional asciinema/agg tooling; transcript is the default artifact
+
 ## v1.3.3 (2026-05-31)
 
 - Production readiness audit fixes: restore roundtrip, API restart/recovery validation, validation curl noise reduction

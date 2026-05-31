@@ -4,7 +4,11 @@ Use this checklist before tagging a BoundaryLayer release or publishing a GitHub
 
 ## Release title pattern
 
-Preferred GitHub release title:
+Preferred GitHub release title for v1.3.4:
+
+**BoundaryLayer v1.3.4 — Local Lab Polish and Validation Release**
+
+General pattern:
 
 **BoundaryLayer vX.Y.Z — Local Lab Validation and Release Hardening**
 
@@ -12,10 +16,8 @@ Avoid using "Production Readiness" alone. **Production-like** means controlled l
 
 ## Tag vs main
 
-- The release tag points to the validated release commit.
-- Post-release documentation polish may land on `main` after the tag.
-- For latest docs, use `main`. For the exact tagged code snapshot, check out the tag.
-- Consider a patch release (for example `v1.3.4`) if docs and tag should align; do not retag published releases.
+- v1.3.4 aligns the release tag with polished docs and validation commands on `main`.
+- Prior tags (for example `v1.3.3`) remain immutable; do not retag published releases.
 
 ## Pre-release validation
 
@@ -29,6 +31,8 @@ Avoid using "Production Readiness" alone. **Production-like** means controlled l
 - [ ] Verify Prometheus health at http://localhost:9090/-/healthy
 - [ ] Verify Alertmanager health at http://localhost:9093/-/healthy
 - [ ] Verify alert webhook health at http://localhost:8081/health
+- [ ] Run `make validate-restore-fresh-volume` (destroys dev volumes; local only)
+- [ ] Run `make capture-demo` and verify `docs/assets/demo-transcript.txt` is sanitized
 - [ ] Confirm `BoundaryLayerInferenceCircuitBreakerOpen` and `BoundaryLayerAuthzDenied` alert delivery (`make validate-alerts`)
 
 ## Repository hygiene
@@ -92,7 +96,7 @@ Release owners should confirm:
 
 - [ ] Create or verify public repo at https://github.com/codethor0/boundary-layer
 - [ ] Push `main`
-- [ ] Tag release (for example `v1.3.3`)
+- [ ] Tag release (for example `v1.3.4`)
 - [ ] Push tag
 - [ ] Create GitHub Release with notes from [CHANGELOG.md](../CHANGELOG.md) (release page is separate from the tag; verify with `gh release view <tag>`)
 - [ ] Optionally attach a verified local bundle from `make bundle` (never commit bundles to Git)

@@ -76,7 +76,7 @@ echo "==> Starting production stack"
 wait_for_prod_health
 
 echo "==> TLS health check"
-"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.3.3"'
+"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.3.4"'
 
 echo "==> Readiness check"
 "${CURL_FAIL[@]}" \

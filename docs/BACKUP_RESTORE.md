@@ -28,36 +28,43 @@ Restore runs against the currently running Postgres container. Stop write traffi
 
 ## Validation scope (honest limits)
 
-`make validate` and `make validate-prod` include a backup/restore **roundtrip smoke test** that drops and restores the `write_storm_events` table from a `pg_dump` backup. This proves the scripts work and basic table-level recovery is possible.
+`make validate` and `make validate-prod` include a backup/restore **roundtrip smoke test** that drops and restores the `write_storm_events` table from a `pg_dump` backup.
 
-It is **not** a full fresh-volume database disaster recovery simulation. Restoring an entire Postgres data directory into a new volume is documented below but not exercised by the default validation gates.
+### What table-scoped restore proves (`make validate`)
 
-### What table-scoped restore proves
-
-- `pg_dump` / `pg_restore` scripts run successfully against the live compose Postgres container.
+- `pg_dump` scripts run successfully against the live compose Postgres container.
 - The `write_storm_events` table can be dropped and recovered from a compressed backup without manual SQL surgery.
 - Backup and restore scripts detect dev vs production-like compose project names.
 
-### What it does not prove
+### Fresh-volume restore validation (`make validate-restore-fresh-volume`)
 
-- Recovery of the entire Postgres data directory into a **new Docker volume** with zero manual steps.
-- Point-in-time recovery, replication failover, or off-host backup integrity.
+Script: `scripts/validate-restore-fresh-volume.sh`
+
+```bash
+make validate-restore-fresh-volume
+```
+
+This local-only proof:
+
+1. Destroys dev Compose volumes (`docker compose down -v`).
+2. Starts a fresh stack and seeds governance (hardened) + write storm lab data.
+3. Creates a full `pg_dump` backup via `scripts/backup-postgres.sh`.
+4. Destroys volumes again (simulated volume loss).
+5. Restores the full dump into a fresh Postgres volume via `scripts/restore-postgres.sh`.
+6. Verifies row counts in `write_storm_events` and `deletion_audit` match pre-loss counts.
+
+Temporary backups land in `backups/postgres/restore-validation/` (gitignored) unless `KEEP_RESTORE_ARTIFACTS=true`.
+
+### What fresh-volume validation proves
+
+- Full database dump and restore works against a **new** Docker Postgres volume in the dev lab.
+- Governance and write storm records survive volume replacement when restored from backup.
+
+### What it still does not prove
+
+- Off-host backup storage, replication failover, or point-in-time recovery.
+- Production-like compose project restore without manual steps.
 - Redis session/cache recovery (Redis is ephemeral in the lab by design).
-
-### Planned fresh-volume restore validation
-
-Future maintainers can add `scripts/validate-restore-fresh-volume.sh` (not wired into `make validate` until reliable):
-
-1. `docker compose down -v` — destroy dev volumes.
-2. `make up` — create fresh Postgres volume.
-3. Seed labs (governance + write storm runs) to populate tables.
-4. `make backup` — write timestamped dump.
-5. `docker compose down -v` again — simulate volume loss.
-6. `make up` — empty database.
-7. `make restore BACKUP=...` — restore full dump (not table-only).
-8. Assert row counts in `write_storm_events` and governance audit tables match pre-loss expectations.
-
-This script is optional and high-impact; document results in `VALIDATION_LOG.md` locally only. Do not commit generated reports.
 
 ## Production schedule (recommended)
 

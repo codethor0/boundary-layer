@@ -5,7 +5,7 @@
 </p>
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.3.3-blue)
+![Version](https://img.shields.io/badge/version-v1.3.4-blue)
 ![Tests](https://img.shields.io/badge/tests-184%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
@@ -44,7 +44,16 @@ make validate-prod   # production-like profile on machines you control
 make bug-hunt-prod   # optional adversarial checks
 ```
 
-Screenshots/GIFs are planned. See [docs/DEMO_ASSETS.md](docs/DEMO_ASSETS.md) for capture flow.
+**Demo preview:** Sanitized terminal output from `make smoke` and `make demo` is in [docs/assets/demo-transcript.txt](docs/assets/demo-transcript.txt).
+
+```
+PASS health: {"status":"ok","service":"boundary-layer-api","version":"1.3.4",...}
+Vulnerable: blocked=false (privilege escalation accepted)
+Hardened: blocked=true (HMAC verification rejected tamper)
+Alert delivered to local webhook.
+```
+
+GIF not generated because no capture tool was available; see [docs/DEMO_ASSETS.md](docs/DEMO_ASSETS.md).
 
 For a facilitator-led walkthrough, see [docs/WORKSHOP.md](docs/WORKSHOP.md). For copy-paste curl examples, see [docs/EXAMPLES.md](docs/EXAMPLES.md). For common Docker/port issues, see [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
@@ -53,7 +62,7 @@ For a facilitator-led walkthrough, see [docs/WORKSHOP.md](docs/WORKSHOP.md). For
 `GET /health`:
 
 ```json
-{"status":"ok","service":"boundary-layer-api","version":"1.3.3","environment":"development"}
+{"status":"ok","service":"boundary-layer-api","version":"1.3.4","environment":"development"}
 ```
 
 Redis vulnerable (`blocked: false`):
@@ -141,7 +150,7 @@ Focus areas include tool routing, Redis session integrity, flat authorization, f
 
 BoundaryLayer is for defensive education, secure engineering, and controlled local testing only.
 
-## Production Deployment (production-like profile, v1.3.3)
+## Production Deployment (production-like profile, v1.3.4)
 
 BoundaryLayer ships a **production-like local validation profile** (`docker-compose.prod.yml`) for defensive testing on machines you control. It is **not** a hosted SaaS product and is **not** intended for direct public internet exposure without your own operational hardening.
 
@@ -355,6 +364,8 @@ See [docs/CONTROLS_MAP.md](docs/CONTROLS_MAP.md) for lab-to-alert mapping. Metri
 | `make smoke` | Fast sanity check (~30s): health, labs list, metrics, Redis pair |
 | `make demo` | Guided demo: Redis, prompt cache, circuit breaker alert poll |
 | `make validate-alerts` | Extended alert delivery: circuit breaker + authz |
+| `make validate-restore-fresh-volume` | Fresh-volume Postgres backup/restore proof (destroys dev volumes) |
+| `make capture-demo` | Generate sanitized `docs/assets/demo-transcript.txt` |
 | `make validate` | Full local gate (tests, lint, all labs, metrics, alerts) |
 | `make validate-prod` | Production-like profile on controlled local machines |
 
@@ -380,6 +391,8 @@ Generated reports, command transcripts, local bundles, editor files, and build p
 | `make test` | Run pytest (184 tests) |
 | `make lint` | Run ruff lint and format checks |
 | `make validate-alerts` | Extended alert delivery checks |
+| `make validate-restore-fresh-volume` | Fresh-volume Postgres backup/restore proof |
+| `make capture-demo` | Generate sanitized demo transcript |
 | `make validate` | Full validation pipeline |
 | `make validate-e2e` | Full test + lint + prod + local validation |
 | `make validate-prod` | Production-like local validation profile |
@@ -412,11 +425,12 @@ See [SECURITY.md](SECURITY.md) and [SECURITY_NOTES.md](SECURITY_NOTES.md).
 
 ## Release
 
+- Current release: **v1.3.4** — local lab polish and validation (tag aligns docs and commands)
 - [CHANGELOG.md](CHANGELOG.md) — release history
 - [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
 - [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md)
 
-**Tag vs main:** Release tag `v1.3.3` points to the validated release commit (`0060b02`). Post-release documentation polish may exist on `main` (for example commit `7854aa7`). For the latest docs, use `main`. For the exact tagged code snapshot, check out `v1.3.3`. Future patch releases (for example `v1.3.4`) can align tag and docs if needed. Do not retag published releases.
+Prior release `v1.3.3` remains at commit `0060b02` for historical reference. Do not retag published releases.
 
 ## License
 

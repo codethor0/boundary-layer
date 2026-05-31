@@ -152,6 +152,18 @@ make smoke
 make demo
 ```
 
+## Fresh-volume restore validation fails
+
+`make validate-restore-fresh-volume` destroys dev Compose volumes. Run only on a machine you control.
+
+```bash
+docker compose down -v
+make up
+make validate-restore-fresh-volume
+```
+
+If restore row counts mismatch, inspect Postgres logs and retry after `make up`. Set `KEEP_RESTORE_ARTIFACTS=true` to keep the backup file for manual inspection.
+
 ## Validation failures
 
 | Command | When to use |
@@ -160,6 +172,7 @@ make demo
 | `make demo` | Guided demo with alert poll |
 | `make validate-alerts` | Extended alert delivery |
 | `make validate` | Full local gate (several minutes) |
+| `make validate-restore-fresh-volume` | Fresh-volume Postgres proof (destroys dev volumes) |
 | `make validate-prod` | Production-like profile on controlled machines |
 
 Collect logs:

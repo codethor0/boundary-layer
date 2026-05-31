@@ -26,6 +26,8 @@ make up
 make smoke
 make demo
 make validate
+make validate-alerts
+make validate-restore-fresh-volume
 ```
 
 Expected results:
@@ -35,6 +37,7 @@ Expected results:
 - `make smoke` and `make demo` exit 0
 - `make validate` exits 0
 - Alert delivery validation confirms `BoundaryLayerInferenceCircuitBreakerOpen` and `BoundaryLayerAuthzDenied` (`make validate-alerts`)
+- Fresh-volume restore proof passes (`make validate-restore-fresh-volume`)
 
 ## Service health checks
 
@@ -51,7 +54,7 @@ curl -sf http://localhost:8081/health
 Expected API health:
 
 ```json
-{"status":"ok","service":"boundary-layer-api","version":"1.3.3"}
+{"status":"ok","service":"boundary-layer-api","version":"1.3.4"}
 ```
 
 Version string must match the current release tag.
