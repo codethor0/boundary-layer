@@ -255,6 +255,14 @@ def resolve_request_tenant(
         if auth_context.is_platform_admin():
             return requested
         if requested != auth_context.tenant_id:
+            from apps.api.tenancy import record_tenant_access_denied
+
+            record_tenant_access_denied(
+                settings,
+                reason="tenant_override_denied",
+                auth_context=auth_context,
+                requested_tenant_id=requested,
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cross-tenant access denied",

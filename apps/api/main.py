@@ -6,7 +6,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
-from apps.api.auth import local_lab_auth_context, resolve_request_tenant
+from apps.api.auth import resolve_request_tenant
 from apps.api.config import get_settings
 from apps.api.lifespan import lifespan
 from apps.api.logging_config import configure_logging
@@ -53,9 +53,9 @@ from apps.api.middleware import (
     SecurityHeadersMiddleware,
 )
 from apps.api.readiness import evaluate_readiness
+from apps.api.request_context import LabRequestContext, resolve_lab_request_context
 from apps.api.security import (
     enforce_vulnerable_allowed,
-    get_request_auth_context,
     verify_api_access,
     verify_metrics_access,
 )
@@ -480,12 +480,22 @@ def _strip_internal_keys(result: dict, keys: tuple[str, ...]) -> None:
         result.pop(internal_key, None)
 
 
-def _run_lab(lab_id: str, request: LabRequest) -> LabResponse:
+def _resolve_lab_context(http_request: Request) -> LabRequestContext:
+    return resolve_lab_request_context(http_request, get_settings())
+
+
+def _run_lab(
+    lab_id: str,
+    request: LabRequest,
+    lab_context: LabRequestContext,
+) -> LabResponse:
     enforce_vulnerable_allowed(request.mode, get_settings())
     runner = LAB_RUNNERS.get(lab_id)
     if runner is None:
         raise HTTPException(status_code=404, detail=f"Lab not found: {lab_id}")
     try:
+        result = runner(request.mode, tenant_id=lab_context.tenant_id)
+    except TypeError:
         result = runner(request.mode)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
@@ -509,8 +519,8 @@ def _run_lab(lab_id: str, request: LabRequest) -> LabResponse:
     response_model=LabResponse,
     dependencies=[Depends(verify_api_access)],
 )
-def run_tool_router(request: LabRequest):
-    return _run_lab("tool-router", request)
+def run_tool_router(request: LabRequest, http_request: Request):
+    return _run_lab("tool-router", request, _resolve_lab_context(http_request))
 
 
 @app.post(
@@ -518,8 +528,8 @@ def run_tool_router(request: LabRequest):
     response_model=LabResponse,
     dependencies=[Depends(verify_api_access)],
 )
-def run_redis(request: LabRequest):
-    return _run_lab("redis", request)
+def run_redis(request: LabRequest, http_request: Request):
+    return _run_lab("redis", request, _resolve_lab_context(http_request))
 
 
 @app.post(
@@ -527,8 +537,8 @@ def run_redis(request: LabRequest):
     response_model=LabResponse,
     dependencies=[Depends(verify_api_access)],
 )
-def run_authz(request: LabRequest):
-    return _run_lab("authz", request)
+def run_authz(request: LabRequest, http_request: Request):
+    return _run_lab("authz", request, _resolve_lab_context(http_request))
 
 
 @app.post(
@@ -536,7 +546,8 @@ def run_authz(request: LabRequest):
     response_model=LabResponse,
     dependencies=[Depends(verify_api_access)],
 )
-def run_file_upload(request: FileUploadLabRequest):
+def run_file_upload(request: FileUploadLabRequest, http_request: Request):
+    lab_context = _resolve_lab_context(http_request)
     enforce_vulnerable_allowed(request.mode, get_settings())
     if request.file_type not in ALLOWED_FILE_TYPES:
         allowed = ", ".join(sorted(ALLOWED_FILE_TYPES))
@@ -551,6 +562,7 @@ def run_file_upload(request: FileUploadLabRequest):
             request.contains_hidden_instruction,
             request.contains_active_content,
             request.egress_attempted,
+            tenant_id=lab_context.tenant_id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -564,8 +576,8 @@ def run_file_upload(request: FileUploadLabRequest):
     response_model=LabResponse,
     dependencies=[Depends(verify_api_access)],
 )
-def run_governance(request: LabRequest):
-    return _run_lab("governance", request)
+def run_governance(request: LabRequest, http_request: Request):
+    return _run_lab("governance", request, _resolve_lab_context(http_request))
 
 
 @app.post(
@@ -573,7 +585,8 @@ def run_governance(request: LabRequest):
     response_model=LabResponse,
     dependencies=[Depends(verify_api_access)],
 )
-def run_postgres_write_storm(request: WriteStormLabRequest):
+def run_postgres_write_storm(request: WriteStormLabRequest, http_request: Request):
+    lab_context = _resolve_lab_context(http_request)
     enforce_vulnerable_allowed(request.mode, get_settings())
     runner = LAB_RUNNERS.get("postgres-write-storm")
     if runner is None:
@@ -582,7 +595,7 @@ def run_postgres_write_storm(request: WriteStormLabRequest):
             detail="Lab not found: postgres-write-storm",
         )
     try:
-        result = runner(request.mode, request.requested_writes)
+        result = runner(request.mode, request.requested_writes, lab_context.tenant_id)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     _record_lab_metrics("postgres-write-storm", request.mode, result)
@@ -603,10 +616,15 @@ def run_postgres_write_storm(request: WriteStormLabRequest):
     response_model=LabResponse,
     dependencies=[Depends(verify_api_access)],
 )
-def run_circuit_breaker(request: CircuitBreakerLabRequest):
+def run_circuit_breaker(request: CircuitBreakerLabRequest, http_request: Request):
+    lab_context = _resolve_lab_context(http_request)
     enforce_vulnerable_allowed(request.mode, get_settings())
     try:
-        result = run_circuit_breaker_lab(request.mode, request.requested_work_units)
+        result = run_circuit_breaker_lab(
+            request.mode,
+            request.requested_work_units,
+            tenant_id=lab_context.tenant_id,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     _record_lab_metrics("circuit-breaker", request.mode, result)
@@ -619,13 +637,15 @@ def run_circuit_breaker(request: CircuitBreakerLabRequest):
     response_model=LabResponse,
     dependencies=[Depends(verify_api_access)],
 )
-def run_sse_exhaustion(request: SseExhaustionLabRequest):
+def run_sse_exhaustion(request: SseExhaustionLabRequest, http_request: Request):
+    lab_context = _resolve_lab_context(http_request)
     enforce_vulnerable_allowed(request.mode, get_settings())
     try:
         result = run_sse_exhaustion_lab(
             request.mode,
             request.requested_streams,
             request.stream_duration_seconds,
+            tenant_id=lab_context.tenant_id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -645,7 +665,8 @@ def run_prompt_cache_isolation(
 ):
     enforce_vulnerable_allowed(request.mode, get_settings())
     settings = get_settings()
-    auth_context = get_request_auth_context(http_request) or local_lab_auth_context()
+    lab_context = _resolve_lab_context(http_request)
+    auth_context = lab_context.auth_context
     tenant_a = resolve_request_tenant(settings, auth_context, request.tenant_a)
     try:
         result = run_prompt_cache_isolation_lab(
@@ -653,6 +674,7 @@ def run_prompt_cache_isolation(
             tenant_a,
             request.tenant_b,
             request.prompt_prefix,
+            tenant_scoped_redis=settings.is_production_saas,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

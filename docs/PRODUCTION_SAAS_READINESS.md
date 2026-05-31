@@ -16,22 +16,22 @@ BoundaryLayer **ships and validates** the first two modes today. **Production Sa
 
 | Metric | Before this pass | After this pass |
 |--------|------------------|-----------------|
-| Production SaaS readiness | **1/10** | **3/10** |
+| Production SaaS readiness | **1/10** | **4/10** |
 
-The score improves because Phase 1 adds OIDC/JWT auth scaffolding, tenant/membership/audit tables, route protection in `production-saas` profile, and cross-tenant denial tests. There is still no hosted deployment, managed services, immutable audit pipeline, or operational validation.
+The score improves because Phase 1 added OIDC/JWT auth scaffolding, tenant/membership/audit tables, and route protection in `production-saas` profile. Phase 2 adds tenant-scoped PostgreSQL helpers for governance and write-storm labs, tenant-scoped Redis key namespaces, request context resolution, cross-tenant denial tests for all lab routes, audit/metrics evidence for denials, and a tenant isolation smoke script. There is still no hosted deployment, managed services, immutable audit pipeline, live staging OIDC, or operational validation.
 
 ## Gap audit matrix
 
 | Category | Score | Current state | Gap | Risk | Required work for 10/10 | Priority | Approach |
 |----------|-------|---------------|-----|------|-------------------------|----------|----------|
 | Authentication | 3/10 | JWT/OIDC middleware in production-saas profile; `oidc-test` HS256 path for tests | No live IdP integration, no user signup | Anonymous access in local-lab only | Full OIDC provider integration + user lifecycle | P0 | Auth0/Clerk/Cognito + FastAPI middleware |
-| Authorization | 3/10 | Role claims + membership check in production-saas | No policy engine, no tenant_admin UI | Privilege escalation if misconfigured | Role model + policy enforcement layer | P0 | RBAC middleware + membership table |
-| Tenant isolation | 2/10 | Tenant schema + prompt-cache tenant guard in production-saas | Lab tables not tenant-scoped yet | Cross-tenant data bleed in unscoped tables | Tenant-scoped queries, RLS or app-layer filters | P0 | See `TENANCY_DATA_MODEL.md` |
+| Authorization | 4/10 | Role claims + membership check + cross-tenant denial with audit in production-saas | No policy engine, no tenant_admin UI | Privilege escalation if misconfigured | Role model + policy enforcement layer | P0 | RBAC middleware + membership table |
+| Tenant isolation | 4/10 | Tenant-scoped governance/write-storm Postgres paths, tenant Redis namespaces, request context, cross-tenant tests | Not all synthetic labs persist data; no RLS | Residual bleed if new tables omit tenant_id | Tenant-scoped queries everywhere, RLS optional | P0 | See `TENANCY_DATA_MODEL.md` |
 | Session security | 1/10 | Stateless API key only | No browser sessions | Session fixation, theft | Secure cookies, rotation, CSRF if UI added | P1 | HttpOnly Secure SameSite cookies |
 | API security | 3/10 | Rate limit + auth in prod-like | No WAF, no mTLS service mesh | Abuse, credential stuffing | WAF, mTLS, schema validation at edge | P0 | Cloud WAF + API gateway |
 | Secrets management | 2/10 | `.env.production` local file | No secret manager | Leaked secrets in images/env | Cloud secret manager, rotation | P0 | AWS SM / GCP SM / Vault |
 | Database architecture | 3/10 | Single Compose Postgres | No managed HA, no PITR | Data loss, downtime | Managed Postgres, PITR, private networking | P0 | RDS/Cloud SQL + TLS |
-| Cache architecture | 3/10 | Single Compose Redis | No managed Redis, no cluster | Cache loss, no isolation | Managed Redis with TLS/auth, tenant namespaces | P1 | ElastiCache/Memorystore |
+| Cache architecture | 4/10 | Single Compose Redis; tenant-scoped lab keys in production-saas | No managed Redis, no cluster | Cache loss at scale | Managed Redis with TLS/auth, tenant namespaces | P1 | ElastiCache/Memorystore |
 | File/object storage | 1/10 | Simulated file-upload lab | No real object store | Local disk exposure | S3/GCS/R2 with tenant prefixes | P0 | Presigned URLs + virus scan pipeline |
 | Network security | 3/10 | TLS in prod-like nginx profile | No private networking | Public DB/Redis exposure | VPC, private subnets, egress controls | P0 | Private subnets + security groups |
 | Deployment architecture | 2/10 | docker-compose prod profile | No hosted orchestration | Manual drift, no rollbacks | Container service or K8s with health gates | P0 | See `DEPLOYMENT_ARCHITECTURE.md` |
@@ -39,7 +39,7 @@ The score improves because Phase 1 adds OIDC/JWT auth scaffolding, tenant/member
 | CI/CD | 4/10 | GitHub Actions test/lint/scan/prod validate | No staging/prod deploy pipeline | Untested deploys | Staging deploy, smoke, manual prod approval | P0 | See `CI_CD_PRODUCTION_PLAN.md` |
 | Observability | 4/10 | Prometheus metrics + local webhook | No centralized logs/traces | Blind spots in prod | OpenTelemetry, log aggregation | P1 | OTel + Grafana/Datadog |
 | Alerting | 3/10 | Prometheus rules + Alertmanager placeholder | No on-call routing | Missed incidents | PagerDuty/Opsgenie integration | P1 | Alertmanager receivers |
-| Audit logging | 2/10 | `audit_events` table + auth decision writes in production-saas | Not immutable, not SIEM-integrated | No forensic trail at scale | Immutable audit log pipeline | P0 | Append-only audit table + SIEM |
+| Audit logging | 3/10 | `audit_events` table + auth/cross-tenant decision writes + metrics in production-saas | Not immutable, not SIEM-integrated | No forensic trail at scale | Immutable audit log pipeline | P0 | Append-only audit table + SIEM |
 | Rate limiting and abuse prevention | 3/10 | Redis/memory limiter in prod-like | No global abuse detection | DoS, brute force | Edge rate limits + account lockout | P0 | WAF + app limiter + CAPTCHA at signup |
 | Backup and restore | 4/10 | pg_dump scripts, fresh-volume lab proof | No off-host DR | Volume loss | Automated backups, tested restore | P0 | Managed DB backups + quarterly DR test |
 | Disaster recovery | 1/10 | Not implemented | No failover region | Extended outage | Multi-region or warm standby runbook | P2 | DR runbook + RTO/RPO targets |
@@ -50,7 +50,7 @@ The score improves because Phase 1 adds OIDC/JWT auth scaffolding, tenant/member
 | Billing and subscriptions | 1/10 | None | No billing | No revenue model | Stripe/similar integration | P2 | Billing webhooks + entitlements |
 | Legal terms and policies | 1/10 | MIT license only | No ToS/Privacy Policy for SaaS | Liability | Terms, privacy, acceptable use | P1 | Legal counsel |
 | Incident response | 2/10 | SECURITY.md disclosure path | No IR runbook | Slow response | IR plan, severity matrix, comms | P0 | IR doc + tabletop exercises |
-| Security testing | 3/10 | Unit tests + CI scans | No DAST, no pen test | Unknown vulns | SAST/DAST, annual pen test | P1 | CI SAST + scheduled DAST |
+| Security testing | 4/10 | Unit tests + cross-tenant isolation tests + CI scans | No DAST, no pen test | Unknown vulns | SAST/DAST, annual pen test | P1 | CI SAST + scheduled DAST |
 | Dependency and container scanning | 4/10 | pip-audit, Trivy, Hadolint in CI | No SBOM publish | Supply chain risk | SBOM + policy gates | P1 | Syft/Grype in CI |
 | Performance and scaling | 2/10 | Single API container | No autoscaling | Latency under load | HPA, load tests, SLOs | P2 | k6 tests + autoscaling |
 | Cost controls | 1/10 | None | No budgets/alerts | Runaway cloud spend | Budget alerts, right-sizing | P2 | Cloud billing alerts |

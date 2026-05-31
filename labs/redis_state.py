@@ -66,8 +66,11 @@ def _use_live_redis() -> bool:
     return os.environ.get("BOUNDARY_LAYER_REDIS_LIVE", "false").lower() == "true"
 
 
-def _redis_key() -> str:
-    return f"{REDIS_KEY_PREFIX}session:{uuid.uuid4().hex[:12]}"
+def _redis_key(tenant_id: str) -> str:
+    from apps.api.tenancy import build_tenant_redis_key
+
+    session_suffix = f"session:{uuid.uuid4().hex[:12]}"
+    return build_tenant_redis_key(tenant_id, "redis", session_suffix)
 
 
 def _get_redis_client():
@@ -78,9 +81,10 @@ def _get_redis_client():
     return client
 
 
-def _run_redis_lab_fallback(mode: str) -> dict:
+def _run_redis_lab_fallback(mode: str, tenant_id: str) -> dict:
     events: list[str] = []
     events.append("Using deterministic in-memory Redis fallback (live mode disabled)")
+    events.append(f"Resolved tenant context: {tenant_id}")
     tampered = {**ORIGINAL_SESSION, "role": "admin"}
 
     if mode == "vulnerable":
@@ -134,10 +138,10 @@ def _run_redis_lab_fallback(mode: str) -> dict:
     }
 
 
-def _run_redis_lab_live(mode: str) -> dict:
+def _run_redis_lab_live(mode: str, tenant_id: str) -> dict:
     events: list[str] = []
-    tampered = {**ORIGINAL_SESSION, "role": "admin"}
-    key = _redis_key()
+    tampered = {**ORIGINAL_SESSION, "role": "admin", "tenant_id": tenant_id}
+    key = _redis_key(tenant_id)
 
     try:
         client = _get_redis_client()
@@ -149,6 +153,7 @@ def _run_redis_lab_live(mode: str) -> dict:
         ) from exc
 
     events.append(f"Connected to live Redis at {REDIS_HOST}:{REDIS_PORT}")
+    events.append(f"Applied tenant-scoped storage namespace: {tenant_id}")
     events.append(f"Using namespaced key: {key}")
 
     if mode == "vulnerable":
@@ -215,7 +220,7 @@ def _run_redis_lab_live(mode: str) -> dict:
     }
 
 
-def run_redis_lab(mode: str) -> dict:
+def run_redis_lab(mode: str, tenant_id: str = "local-lab") -> dict:
     if _use_live_redis():
-        return _run_redis_lab_live(mode)
-    return _run_redis_lab_fallback(mode)
+        return _run_redis_lab_live(mode, tenant_id)
+    return _run_redis_lab_fallback(mode, tenant_id)

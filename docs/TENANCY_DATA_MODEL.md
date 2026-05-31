@@ -1,6 +1,6 @@
 # Tenancy Data Model
 
-Proposed schema for hosted Production SaaS. **Phase 1 implemented:** `tenants`, `users`, `tenant_memberships`, and `audit_events` tables with helpers in `apps/api/tenancy.py` and migration `002_tenancy`. **Lab tables remain single-tenant and unchanged.**
+Proposed schema for hosted Production SaaS. **Phase 1 implemented:** `tenants`, `users`, `tenant_memberships`, and `audit_events` tables with helpers in `apps/api/tenancy.py` and migration `002_tenancy`. **Phase 2 implemented:** tenant-scoped governance and write-storm PostgreSQL helpers, tenant Redis namespaces, and request context resolution for lab routes.
 
 ## Core entities
 
@@ -83,18 +83,15 @@ Unique constraint: `(tenant_id, user_id)`.
 
 1. **Every production table needs `tenant_id`.** No exceptions for tenant-owned data.
 2. **Every query must filter by tenant** from authenticated context, not request body.
-3. **Every Redis key** must include tenant namespace: `bl:{tenant_id}:...`.
+3. **Every Redis key** must include tenant namespace: `boundary_layer:tenant:{tenant_id}:lab:{lab_name}:...` (implemented for redis and prompt-cache labs in production-saas).
 4. **Every object key** must include tenant prefix: `{tenant_id}/...`.
 5. **Every audit event** must include `tenant_id` and `actor_id` when known.
 
 ## Migration note
 
-Current lab tables (`write_storm_events`, `deletion_audit`, etc.) are used for local simulation. A SaaS migration would either:
+Current lab tables (`write_storm_events`, `prompt_requests`, etc.) include `tenant_id` on rows created by live lab paths. Governance and write-storm helpers filter by verified tenant context in production-saas. Local-lab uses synthetic tenant `local-lab` without authentication.
 
-- Add `tenant_id` with default for local-lab profile only, or
-- Introduce parallel tenant-scoped tables for hosted mode.
-
-Do not migrate current lab tables in this pass without an explicit migration plan and tests.
+Future SaaS work may add Postgres Row Level Security and parallel tenant-scoped tables for hosted-only features.
 
 ## Data retention (placeholder)
 

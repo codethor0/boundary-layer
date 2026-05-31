@@ -107,11 +107,13 @@ def test_get_labs_with_valid_token_accepted_in_production_saas(
     assert response.status_code == 200
 
 
+@patch("apps.api.tenancy.record_tenant_access_denied")
 @patch("apps.api.security.record_auth_audit_event")
 @patch("apps.api.security.require_active_membership", return_value={"status": "active"})
 def test_cross_tenant_prompt_cache_request_denied_in_production_saas(
     _mock_membership,
     _mock_audit,
+    _mock_denied,
     production_saas_client,
 ):
     client, settings = production_saas_client

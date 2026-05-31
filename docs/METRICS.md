@@ -85,6 +85,14 @@ Prometheus metrics are exposed at `GET http://localhost:8000/metrics`. Scrape in
 | `boundary_layer_prompt_cache_cross_tenant_bleed_total` | Counter | `mode` | Prompt cache vulnerable | Cross-tenant bleed | Prompt cache vulnerable | `BoundaryLayerPromptCacheCrossTenantBleed` | `increase(boundary_layer_prompt_cache_cross_tenant_bleed_total[5m])` |
 | `boundary_layer_prompt_cache_isolation_applied_total` | Counter | `mode` | Prompt cache hardened | Isolation applied | Prompt cache hardened | `BoundaryLayerPromptCacheIsolationApplied` | `increase(boundary_layer_prompt_cache_isolation_applied_total[5m])` |
 
+## Production SaaS auth and tenancy (Phase 1–2)
+
+| Metric | Type | Labels | Emitted by | Meaning | How to trigger | Related alert | Example PromQL |
+|--------|------|--------|------------|---------|----------------|---------------|----------------|
+| `boundary_layer_auth_decisions_total` | Counter | `result`, `reason` | Auth middleware / tenancy helpers | Auth allow/deny decisions | production-saas requests | — | `increase(boundary_layer_auth_decisions_total[5m])` |
+| `boundary_layer_tenant_access_denied_total` | Counter | `reason` | Cross-tenant denial | Tenant override or scope violations | Cross-tenant lab request in production-saas | — | `increase(boundary_layer_tenant_access_denied_total[5m])` |
+| `boundary_layer_audit_events_total` | Counter | `action`, `result` | Audit helper | Audit events persisted | Auth allow/deny in production-saas | — | `increase(boundary_layer_audit_events_total[5m])` |
+
 ## Alert / webhook (local)
 
 Alertmanager POSTs firing alerts to the local webhook. The webhook does not export Prometheus metrics; inspect delivery with:

@@ -20,7 +20,7 @@ def _check_access_hardened(token: dict, tool: str) -> tuple[bool, str]:
     return True, "scope and tenant verified"
 
 
-def run_authz_lab(mode: str) -> dict:
+def run_authz_lab(mode: str, tenant_id: str = "local-lab") -> dict:
     events: list[str] = []
     broad_token = {
         "authenticated": True,

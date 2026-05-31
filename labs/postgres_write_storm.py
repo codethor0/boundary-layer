@@ -90,7 +90,7 @@ def _run_write_storm_fallback(mode: str, requested_writes: int) -> dict:
     }
 
 
-def _run_write_storm_live(mode: str, requested_writes: int) -> dict:
+def _run_write_storm_live(mode: str, requested_writes: int, tenant_id: str) -> dict:
     events: list[str] = []
     try:
         check_postgres_connection()
@@ -102,21 +102,22 @@ def _run_write_storm_live(mode: str, requested_writes: int) -> dict:
         ) from exc
 
     events.append(f"Connected to live PostgreSQL at {POSTGRES_HOST}:{POSTGRES_PORT}")
+    events.append(f"Resolved tenant context: {tenant_id}")
     events.append(f"Requested write batch size: {requested_writes}")
-    reset_write_storm_events()
+    reset_write_storm_events(tenant_id)
     events.append("Created synthetic write storm batch")
 
     batch_id = uuid.uuid4().hex[:12]
     start = time.perf_counter()
 
     if mode == "vulnerable":
-        inserted = insert_write_storm_events(requested_writes, batch_id)
+        inserted = insert_write_storm_events(requested_writes, batch_id, tenant_id)
         blocked = 0
         events.append(f"Inserted {inserted} write_storm_events")
         events.append("No write throttle applied")
         events.append("Write pressure risk recorded")
         duration = time.perf_counter() - start
-        total = count_write_storm_events()
+        total = count_write_storm_events(tenant_id)
         events.append(f"PostgreSQL write_storm_events row count: {total}")
         return {
             "lab": "postgres-write-storm",
@@ -138,12 +139,12 @@ def _run_write_storm_live(mode: str, requested_writes: int) -> dict:
     allowed = min(requested_writes, HARDENED_WRITE_BUDGET)
     blocked = requested_writes - allowed
     events.append(f"Applied tenant write budget: {HARDENED_WRITE_BUDGET}")
-    inserted = insert_write_storm_events(allowed, batch_id)
+    inserted = insert_write_storm_events(allowed, batch_id, tenant_id)
     events.append(f"Inserted allowed records: {inserted}")
     events.append(f"Blocked excess records: {blocked}")
     events.append("Emitted write storm mitigation metrics")
     duration = time.perf_counter() - start
-    total = count_write_storm_events()
+    total = count_write_storm_events(tenant_id)
     events.append(f"PostgreSQL write_storm_events row count: {total}")
     return {
         "lab": "postgres-write-storm",
@@ -166,8 +167,9 @@ def _run_write_storm_live(mode: str, requested_writes: int) -> dict:
 def run_postgres_write_storm_lab(
     mode: str,
     requested_writes: int = DEFAULT_REQUESTED_WRITES,
+    tenant_id: str = "local-lab",
 ) -> dict:
     _validate_requested_writes(requested_writes)
     if postgres_live_enabled():
-        return _run_write_storm_live(mode, requested_writes)
+        return _run_write_storm_live(mode, requested_writes, tenant_id)
     return _run_write_storm_fallback(mode, requested_writes)

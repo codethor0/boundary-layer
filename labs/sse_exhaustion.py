@@ -61,6 +61,7 @@ def run_sse_exhaustion_lab(
     mode: str,
     requested_streams: int = DEFAULT_REQUESTED_STREAMS,
     stream_duration_seconds: int = DEFAULT_STREAM_DURATION_SECONDS,
+    tenant_id: str = "local-lab",
 ) -> dict:
     _validate_requested_streams(requested_streams)
     _validate_stream_duration(stream_duration_seconds)

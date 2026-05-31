@@ -44,8 +44,17 @@ def global_cache_key(prompt_prefix: str) -> str:
     return f"{CACHE_KEY_PREFIX}global:{prefix_hash}"
 
 
-def tenant_cache_key(tenant_id: str, prompt_prefix: str) -> str:
+def tenant_cache_key(
+    tenant_id: str,
+    prompt_prefix: str,
+    *,
+    tenant_scoped_redis: bool = False,
+) -> str:
     prefix_hash = _hash_prompt_prefix(prompt_prefix)
+    if tenant_scoped_redis:
+        from apps.api.tenancy import build_tenant_redis_key
+
+        return build_tenant_redis_key(tenant_id, "prompt_cache", prefix_hash)
     return f"{CACHE_KEY_PREFIX}{tenant_id}:{prefix_hash}"
 
 
@@ -76,6 +85,8 @@ def _run_fallback(
     tenant_a: str,
     tenant_b: str,
     prompt_prefix: str,
+    *,
+    tenant_scoped_redis: bool = False,
 ) -> dict:
     events: list[str] = []
     events.append("Using deterministic in-memory Redis fallback (live mode disabled)")
@@ -115,8 +126,12 @@ def _run_fallback(
             "_isolation_applied": False,
         }
 
-    tenant_a_key = tenant_cache_key(tenant_a, prompt_prefix)
-    tenant_b_key = tenant_cache_key(tenant_b, prompt_prefix)
+    tenant_a_key = tenant_cache_key(
+        tenant_a, prompt_prefix, tenant_scoped_redis=tenant_scoped_redis
+    )
+    tenant_b_key = tenant_cache_key(
+        tenant_b, prompt_prefix, tenant_scoped_redis=tenant_scoped_redis
+    )
     cache_key_mode = "tenant_scoped"
     store[tenant_a_key] = _cache_payload(tenant_a, prompt_prefix)
     events.append(f"Tenant A wrote tenant-scoped cache key: {tenant_a_key}")
@@ -154,6 +169,8 @@ def _run_live(
     tenant_a: str,
     tenant_b: str,
     prompt_prefix: str,
+    *,
+    tenant_scoped_redis: bool = False,
 ) -> dict:
     events: list[str] = []
     try:
@@ -202,8 +219,12 @@ def _run_live(
             "_isolation_applied": False,
         }
 
-    tenant_a_key = tenant_cache_key(tenant_a, prompt_prefix)
-    tenant_b_key = tenant_cache_key(tenant_b, prompt_prefix)
+    tenant_a_key = tenant_cache_key(
+        tenant_a, prompt_prefix, tenant_scoped_redis=tenant_scoped_redis
+    )
+    tenant_b_key = tenant_cache_key(
+        tenant_b, prompt_prefix, tenant_scoped_redis=tenant_scoped_redis
+    )
     client.setex(tenant_a_key, REDIS_TTL_SECONDS, payload)
     events.append(f"Tenant A wrote tenant-scoped cache key: {tenant_a_key}")
     events.append(f"Tenant B queried tenant-scoped cache key: {tenant_b_key}")
@@ -240,10 +261,24 @@ def run_prompt_cache_isolation_lab(
     tenant_a: str = DEFAULT_TENANT_A,
     tenant_b: str = DEFAULT_TENANT_B,
     prompt_prefix: str = DEFAULT_PROMPT_PREFIX,
+    *,
+    tenant_scoped_redis: bool = False,
 ) -> dict:
     _validate_tenant(tenant_a, "tenant_a")
     _validate_tenant(tenant_b, "tenant_b")
     _validate_prompt_prefix(prompt_prefix)
     if redis_live_enabled():
-        return _run_live(mode, tenant_a, tenant_b, prompt_prefix)
-    return _run_fallback(mode, tenant_a, tenant_b, prompt_prefix)
+        return _run_live(
+            mode,
+            tenant_a,
+            tenant_b,
+            prompt_prefix,
+            tenant_scoped_redis=tenant_scoped_redis,
+        )
+    return _run_fallback(
+        mode,
+        tenant_a,
+        tenant_b,
+        prompt_prefix,
+        tenant_scoped_redis=tenant_scoped_redis,
+    )

@@ -194,6 +194,24 @@ PROMPT_CACHE_ISOLATION_APPLIED_TOTAL = Counter(
     ["mode"],
 )
 
+AUTH_DECISIONS_TOTAL = Counter(
+    "boundary_layer_auth_decisions_total",
+    "Authentication and authorization decisions",
+    ["result", "reason"],
+)
+
+TENANT_ACCESS_DENIED_TOTAL = Counter(
+    "boundary_layer_tenant_access_denied_total",
+    "Cross-tenant or tenant override access denials",
+    ["reason"],
+)
+
+AUDIT_EVENTS_TOTAL = Counter(
+    "boundary_layer_audit_events_total",
+    "Audit events recorded for production SaaS",
+    ["action", "result"],
+)
+
 INFERENCE_CIRCUIT_BREAKER_STATE.set(0)
 
 
@@ -357,3 +375,15 @@ def record_prompt_cache_cross_tenant_bleed(mode: str) -> None:
 
 def record_prompt_cache_isolation_applied(mode: str) -> None:
     PROMPT_CACHE_ISOLATION_APPLIED_TOTAL.labels(mode=mode).inc()
+
+
+def record_auth_decision(result: str, reason: str) -> None:
+    AUTH_DECISIONS_TOTAL.labels(result=result, reason=reason).inc()
+
+
+def record_tenant_access_denied_metric(reason: str) -> None:
+    TENANT_ACCESS_DENIED_TOTAL.labels(reason=reason).inc()
+
+
+def record_audit_event_metric(action: str, result: str) -> None:
+    AUDIT_EVENTS_TOTAL.labels(action=action, result=result).inc()

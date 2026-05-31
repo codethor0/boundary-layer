@@ -5,12 +5,12 @@ P0 security gates before any public Production SaaS launch. Status as of v1.3.5 
 | Item | Status | Owner | Evidence required | Blocker |
 |------|--------|-------|-------------------|---------|
 | Auth required for all tenant APIs | Partial | Engineering | JWT middleware + membership check in production-saas; local-lab unchanged | Yes |
-| Tenant isolation in DB queries | Partial | Engineering | Tenancy schema + prompt-cache guard; lab tables not scoped yet | Yes |
+| Tenant isolation in DB queries | Partial | Engineering | Tenancy schema + tenant-scoped governance/write-storm helpers + cross-tenant tests | Yes |
 | No public unauthenticated labs | Partial | Engineering | production-saas requires Bearer JWT on /labs; local-lab intentionally open | Yes |
 | Rate limits at edge and app | Partial | Engineering | WAF + Redis limiter metrics | Yes |
 | Input validation on all endpoints | Partial | Engineering | Pydantic schemas, fuzz tests | Yes |
 | Output redaction in logs | Not started | Security | Log sampling review | Yes |
-| Audit logs for admin and lab actions | Partial | Engineering | `audit_events` table + auth decision writes; not immutable/SIEM | Yes |
+| Audit logs for admin and lab actions | Partial | Engineering | `audit_events` table + auth/cross-tenant decision writes + metrics; not immutable/SIEM | Yes |
 | Secret manager (no .env in prod) | Not started | Platform | IaC + rotation runbook | Yes |
 | TLS everywhere | Partial | Platform | TLS in prod-like profile only | Yes |
 | CORS allowlist | Partial | Engineering | ALLOWED_ORIGINS in production-saas gate | Yes |

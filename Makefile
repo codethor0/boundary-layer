@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke bundle clean fmt help prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke production-saas-tenant-isolation-smoke bundle clean fmt help prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -85,6 +85,9 @@ production-saas-check-example:
 production-saas-auth-smoke:
 	bash scripts/production-saas-auth-smoke.sh
 
+production-saas-tenant-isolation-smoke:
+	bash scripts/production-saas-tenant-isolation-smoke.sh
+
 backup:
 	bash scripts/backup-postgres.sh
 
@@ -114,5 +117,7 @@ help:
 	@echo "  make validate-prod  Production-like local validation profile"
 	@echo "  make production-saas-check Report production-saas readiness (expects NOT READY locally)"
 	@echo "  make production-saas-check-example Mocked production-saas readiness pass"
+	@echo "  make production-saas-auth-smoke Auth/tenancy unit smoke"
+	@echo "  make production-saas-tenant-isolation-smoke Cross-tenant isolation unit smoke"
 	@echo "  make validate-e2e   Full test + lint + prod + local validation"
 	@echo "  make bundle         Create local review ZIP in ~/Downloads/"

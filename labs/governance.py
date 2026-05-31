@@ -144,7 +144,7 @@ def _run_governance_fallback(mode: str) -> dict:
     }
 
 
-def _run_governance_live(mode: str) -> dict:
+def _run_governance_live(mode: str, tenant_id: str) -> dict:
     events: list[str] = []
     try:
         check_postgres_connection()
@@ -158,15 +158,16 @@ def _run_governance_live(mode: str) -> dict:
     from apps.api.db import POSTGRES_HOST, POSTGRES_PORT
 
     events.append(f"Connected to live PostgreSQL at {POSTGRES_HOST}:{POSTGRES_PORT}")
-    reset_governance_lab_records()
+    events.append(f"Resolved tenant context: {tenant_id}")
+    reset_governance_lab_records(tenant_id)
     events.append("Created prompt lifecycle records")
-    prompt_id = create_prompt_lifecycle_records()
+    prompt_id = create_prompt_lifecycle_records(tenant_id)
     events.append(f"Primary prompt request stored: {prompt_id}")
 
     if mode == "vulnerable":
-        delete_primary_only(prompt_id)
+        delete_primary_only(prompt_id, tenant_id)
         events.append("Deleted primary prompt record only")
-        orphan_count = count_orphan_records(prompt_id)
+        orphan_count = count_orphan_records(prompt_id, tenant_id)
         events.append(f"Detected {orphan_count} orphaned downstream records")
         return {
             "lab": "governance",
@@ -182,12 +183,12 @@ def _run_governance_live(mode: str) -> dict:
             "_orphan_count": orphan_count,
         }
 
-    delete_all_prompt_lifecycle_records(prompt_id)
+    delete_all_prompt_lifecycle_records(prompt_id, tenant_id)
     events.append("Deleted all prompt lifecycle downstream records")
-    orphan_count = count_orphan_records(prompt_id)
+    orphan_count = count_orphan_records(prompt_id, tenant_id)
     events.append(f"Detected {orphan_count} orphaned downstream records")
     audit_id = insert_deletion_audit(
-        prompt_id, mode, orphan_count, complete=orphan_count == 0
+        prompt_id, mode, orphan_count, complete=orphan_count == 0, tenant_id=tenant_id
     )
     events.append(f"Inserted deletion audit record: {audit_id}")
     events.append("Deletion propagation completed across downstream tables")
@@ -207,7 +208,7 @@ def _run_governance_live(mode: str) -> dict:
     }
 
 
-def run_governance_lab(mode: str) -> dict:
+def run_governance_lab(mode: str, tenant_id: str = "local-lab") -> dict:
     if postgres_live_enabled():
-        return _run_governance_live(mode)
+        return _run_governance_live(mode, tenant_id)
     return _run_governance_fallback(mode)
