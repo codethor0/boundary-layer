@@ -21,7 +21,7 @@ class Settings(BaseSettings):
         default="development",
         validation_alias="BOUNDARY_LAYER_ENV",
     )
-    app_version: str = "1.3.0"
+    app_version: str = "1.3.1"
 
     api_host: str = Field(default="0.0.0.0", validation_alias="API_HOST")
     api_port: int = Field(default=8000, validation_alias="API_PORT")
