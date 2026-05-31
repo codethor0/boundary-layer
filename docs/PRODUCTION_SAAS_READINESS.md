@@ -16,9 +16,9 @@ BoundaryLayer **ships and validates** the first two modes today. **Production Sa
 
 | Metric | Before this pass | After this pass |
 |--------|------------------|-----------------|
-| Production SaaS readiness | **6/10** | **6/10** (live staging not validated in this pass) |
+| Production SaaS readiness | **6/10** | **6/10** (live staging not deployed in this pass) |
 
-The score remains **6/10** because live staging deployment and managed-service connectivity were **not** run against real infrastructure in this pass. Phase 5 adds explicit structural vs live validation gates, staging environment contract, live managed-service checks (gated by `RUN_LIVE_STAGING_CHECKS=true`), staging smoke structural/live modes, release gate reporting, manual CI live-validation workflow, IaC validate/plan scripts, container image checks, audit export interface shells, and in-app request body size guard for production-saas. Score may move to **7/10** or **8/10** only after live checks pass with operational evidence.
+Phase 6 adds staging deployment runbook, secrets inventory, GitHub Environment setup guide, container build/smoke scripts, AWS ECS deploy dry-run script, live staging validation package, WAF readiness check, DR/on-call and legal/compliance starter docs, and upgraded staging-deploy workflow. **Score remains 6/10** until live staging deploy and managed-service checks pass with documented evidence. Score may move to **7/10** or **8/10** only after `LIVE STAGING VALIDATION PASS` against real infrastructure.
 
 ## Gap audit matrix
 
@@ -36,7 +36,7 @@ The score remains **6/10** because live staging deployment and managed-service c
 | Network security | 3/10 | TLS in prod-like nginx profile | No private networking | Public DB/Redis exposure | VPC, private subnets, egress controls | P0 | Private subnets + security groups |
 | Deployment architecture | 2/10 | docker-compose prod profile + staging deploy dry-run scripts | No hosted orchestration | Manual drift, no rollbacks | Container service or K8s with health gates | P0 | See `DEPLOYMENT_ARCHITECTURE.md` |
 | Infrastructure-as-code | 3/10 | Expanded `infra/terraform/modules/*` skeleton + staging tfvars example | Not applied | Snowflake infra | IaC applied per environment | P0 | Terraform modules per env |
-| CI/CD | 5/10 | Staging-readiness workflow + manual dry-run deploy workflow | No automated staging deploy/smoke against live env | Untested deploys | Staging deploy, smoke, manual prod approval | P0 | See `CI_CD_PRODUCTION_PLAN.md` |
+| CI/CD | 5/10 | Staging-readiness + staging-deploy + staging-live-validation workflows (manual) | No live deploy executed | Untested deploys | Live deploy + smoke with evidence | P0 | See `STAGING_DEPLOYMENT_RUNBOOK.md` |
 | Observability | 4/10 | Prometheus metrics + local webhook | No centralized logs/traces | Blind spots in prod | OpenTelemetry, log aggregation | P1 | OTel + Grafana/Datadog |
 | Alerting | 3/10 | Prometheus rules + Alertmanager placeholder | No on-call routing | Missed incidents | PagerDuty/Opsgenie integration | P1 | Alertmanager receivers |
 | Audit logging | 3/10 | DB audit foundation + `AUDIT_SIEM_PLAN.md` + config scaffolding | Not immutable, not SIEM-integrated | No forensic trail at scale | Immutable audit sink + SIEM export | P0 | See `AUDIT_SIEM_PLAN.md` |
@@ -135,6 +135,16 @@ When `BOUNDARY_LAYER_PROFILE=production-saas`, startup fails unless configured:
 - `BOUNDARY_LAYER_AUDIT_LOG_ENABLED=true`
 - Plus production env secrets when `BOUNDARY_LAYER_ENV=production` (`BOUNDARY_LAYER_API_KEY`, datastore passwords)
 
+### Phase 6 staging provisioning package (deploy path documented; live not run)
+
+- `docs/STAGING_DEPLOYMENT_RUNBOOK.md` — AWS ECS/Fargate default path
+- `docs/STAGING_SECRETS_INVENTORY.md`, `docs/GITHUB_ENVIRONMENT_SETUP.md`
+- `docs/LIVE_STAGING_EVIDENCE_TEMPLATE.md`, `docs/DR_ONCALL_RUNBOOK.md`, `docs/LEGAL_COMPLIANCE_READINESS.md`
+- Scripts: `container-build.sh`, `container-smoke-local.sh`, `deploy-staging-aws.sh`, `live-staging-validation-package.sh`, `waf-readiness-check.sh`
+- CI: upgraded `staging-deploy.yml` (manual dispatch, dry run default)
+
+**Live staging status:** skipped unless operator provisions account and runs `make live-staging-validation-package`.
+
 ### Phase 5 live staging validation gates (structural default; live gated)
 
 - `docs/STAGING_ENVIRONMENT_CONTRACT.md` — staging env contract (no real values committed)
@@ -184,3 +194,9 @@ Production SaaS work is **additive** and **profile-gated**.
 - [CI_CD_PRODUCTION_PLAN.md](CI_CD_PRODUCTION_PLAN.md)
 - [STAGING_ENVIRONMENT_CONTRACT.md](STAGING_ENVIRONMENT_CONTRACT.md)
 - [CONTAINER_RELEASE.md](CONTAINER_RELEASE.md)
+- [STAGING_DEPLOYMENT_RUNBOOK.md](STAGING_DEPLOYMENT_RUNBOOK.md)
+- [STAGING_SECRETS_INVENTORY.md](STAGING_SECRETS_INVENTORY.md)
+- [GITHUB_ENVIRONMENT_SETUP.md](GITHUB_ENVIRONMENT_SETUP.md)
+- [LIVE_STAGING_EVIDENCE_TEMPLATE.md](LIVE_STAGING_EVIDENCE_TEMPLATE.md)
+- [DR_ONCALL_RUNBOOK.md](DR_ONCALL_RUNBOOK.md)
+- [LEGAL_COMPLIANCE_READINESS.md](LEGAL_COMPLIANCE_READINESS.md)

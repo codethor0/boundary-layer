@@ -1,5 +1,9 @@
 # Dependency Report
 
+## Phase 6 additions
+
+No new **required** runtime dependencies. Phase 6 adds operator scripts and documentation only; cloud CLIs (`aws`, `terraform`) remain optional.
+
 ## Phase 5 additions
 
 No new **required** runtime dependencies were added in Phase 5.

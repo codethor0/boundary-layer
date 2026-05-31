@@ -13,11 +13,10 @@ Required pipeline for hosted Production SaaS. **Deploy stages are not implemente
 | Trivy container scan | Security Scan | Done |
 | Production-like validate | Production Validate | Done |
 | Staging readiness (mocked) | staging-readiness.yml | Done |
-| Staging live validation (manual) | staging-live-validation.yml | Done (dispatch only; requires `environment: staging` secrets) |
+| Staging deploy (manual) | staging-deploy.yml | Done (dispatch only; dry run default) |
+| Staging live validation (manual) | staging-live-validation.yml | Done (dispatch only) |
 
-The `staging-readiness.yml` workflow runs unit tests, lint, mocked structural checks, secret scan, and YAML validation. It does **not** deploy and does **not** require cloud credentials.
-
-The `staging-live-validation.yml` workflow is **manual dispatch only**. It runs structural checks always, then live managed-service and HTTP smoke checks only when GitHub Environment `staging` secrets are configured (`RUN_LIVE_STAGING_CHECKS=true`). It never prints secrets.
+The `staging-deploy.yml` workflow runs test, lint, container build/smoke, structural checks, and **DRY RUN ONLY** unless `DEPLOY_STAGING=true`. It never prints secrets.
 
 ## Required for Production SaaS (not implemented)
 

@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke production-saas-tenant-isolation-smoke production-saas-staging-readiness-check production-saas-staging-readiness-example production-saas-managed-services-check production-saas-managed-services-example production-saas-managed-services-live-check staging-deploy-dry-run staging-smoke-check staging-smoke-structural staging-smoke-live staging-release-gate infra-validate infra-plan-staging container-image-check bundle clean fmt help prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod production-saas-check production-saas-check-example production-saas-auth-smoke production-saas-tenant-isolation-smoke production-saas-staging-readiness-check production-saas-staging-readiness-example production-saas-managed-services-check production-saas-managed-services-example production-saas-managed-services-live-check staging-deploy-dry-run deploy-staging-dry-run staging-smoke-check staging-smoke-structural staging-smoke-live staging-release-gate live-staging-validation-package infra-validate infra-plan-staging container-image-check container-build container-smoke-local waf-readiness-check bundle clean fmt help prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -127,6 +127,21 @@ infra-plan-staging:
 container-image-check:
 	bash scripts/container-image-check.sh
 
+container-build:
+	bash scripts/container-build.sh
+
+container-smoke-local:
+	bash scripts/container-smoke-local.sh
+
+deploy-staging-dry-run:
+	bash scripts/deploy-staging-aws.sh
+
+live-staging-validation-package:
+	bash scripts/live-staging-validation-package.sh
+
+waf-readiness-check:
+	bash scripts/waf-readiness-check.sh
+
 backup:
 	bash scripts/backup-postgres.sh
 
@@ -171,5 +186,10 @@ help:
 	@echo "  make infra-validate Terraform fmt/module skeleton validation"
 	@echo "  make infra-plan-staging Terraform plan only (requires CONFIRM_STAGING_PLAN=true)"
 	@echo "  make container-image-check Dockerfile/build/local container health smoke"
+	@echo "  make container-build Build local image tagged with git SHA (no push by default)"
+	@echo "  make container-smoke-local Run built image locally and check /health"
+	@echo "  make deploy-staging-dry-run AWS ECS staging deploy dry run (no deploy by default)"
+	@echo "  make live-staging-validation-package Full live staging validation (requires RUN_LIVE_STAGING_CHECKS=true)"
+	@echo "  make waf-readiness-check Structural WAF readiness (optional live AWS WAF check)"
 	@echo "  make validate-e2e   Full test + lint + prod + local validation"
 	@echo "  make bundle         Create local review ZIP in ~/Downloads/"

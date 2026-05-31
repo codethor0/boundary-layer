@@ -1,46 +1,68 @@
 # Container Release
 
-BoundaryLayer container release guidance for future hosted Production SaaS. **No registry push or production deploy is performed in the local lab repository pass.**
+BoundaryLayer container release guidance for hosted Production SaaS staging and future production. **No registry push or production deploy is performed by default.**
 
-## Image strategy
+## Registry options
 
-- Build from `apps/api/Dockerfile` (multi-stage, non-root).
-- Tag format: `boundary-layer:<semver>-<git-sha>` for releases; `boundary-layer:staging-<date>` for staging.
-- Never bake `.env`, `.env.staging`, or secrets into images.
+| Registry | Recommended for | Notes |
+|----------|-----------------|-------|
+| **Amazon ECR** | AWS ECS/Fargate (default) | OIDC push from GitHub Actions |
+| GitHub Container Registry (GHCR) | GitHub-centric deploys | `ghcr.io/<org>/boundary-layer-api` |
+| Google Artifact Registry | GCP Cloud Run | Regional repos |
+| Azure Container Registry | Azure Container Apps | Service principal or OIDC |
 
-## Local readiness check
+**Recommended default:** Amazon ECR in the staging AWS account.
+
+## Image naming convention
+
+Repository name: `boundary-layer-api`
+
+| Tag | Purpose |
+|-----|---------|
+| `boundary-layer-api:<git-sha>` | Immutable deploy reference |
+| `boundary-layer-api:<version>` | Release semver (e.g. `1.3.5`) |
+| `boundary-layer-api:staging` | Rolling staging pointer |
+
+**Do not use `latest` for production or staging deploy gates.**
+
+## Build and smoke
 
 ```bash
-make container-image-check
+make container-build          # local build; tags with git SHA
+make container-smoke-local    # /health in ephemeral container
+make container-image-check    # Dockerfile hygiene + build smoke
 ```
 
-Verifies Dockerfile presence, rejects `.env` copy patterns, optionally builds locally, and checks `/health` in an ephemeral container.
+Push only when explicitly enabled:
 
-## SBOM plan (not implemented)
+```bash
+export PUSH_IMAGE=true
+export CONTAINER_REGISTRY=<account>.dkr.ecr.<region>.amazonaws.com/boundary-layer-api
+make container-build
+```
 
-- Generate SBOM with Syft during CI release job.
-- Store SBOM artifact alongside image digest.
-- Gate releases on critical CVE policy (Trivy already runs in CI).
+## SBOM requirement
 
-## Signature plan (not implemented)
+- Generate SBOM with Syft in CI release/staging-deploy workflow (artifact upload)
+- Store SBOM alongside image digest in deploy metadata
+- Gate on critical CVE policy (Trivy already runs in Security Scan workflow)
 
-- Sign release images with cosign or registry-native signing.
-- Verify signatures in staging/prod deploy pipelines before rollout.
+## Image signing plan
 
-## Registry strategy (placeholder)
+- Sign release and staging images with cosign or ECR signing
+- Verify signatures in deploy workflow before ECS service update
+- Not implemented in this pass
 
-- Staging: private container registry in cloud account (ECR/GCR/ACR/GHCR).
-- Production: separate registry path or repository with stricter retention/immutability.
-- Do not commit registry credentials; use CI OIDC or short-lived tokens.
+## Rollback tag plan
 
-## Rollback strategy
-
-- Keep previous image digest tagged as `previous` or stored in deploy metadata.
-- Roll back container service to prior digest; run forward-fix migration plan if schema changed.
-- Re-run staging smoke after rollback.
+- Before deploy, record current task definition image digest as `previous`
+- Keep last three immutable `<git-sha>` tags in ECR
+- Roll back ECS service to `previous` digest; re-run live smoke
 
 ## Related documents
 
+- [STAGING_DEPLOYMENT_RUNBOOK.md](STAGING_DEPLOYMENT_RUNBOOK.md)
 - [STAGING_ENVIRONMENT_CONTRACT.md](STAGING_ENVIRONMENT_CONTRACT.md)
+- [GITHUB_ENVIRONMENT_SETUP.md](GITHUB_ENVIRONMENT_SETUP.md)
 - [DEPLOYMENT_ARCHITECTURE.md](DEPLOYMENT_ARCHITECTURE.md)
 - [CI_CD_PRODUCTION_PLAN.md](CI_CD_PRODUCTION_PLAN.md)
