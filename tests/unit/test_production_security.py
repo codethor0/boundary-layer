@@ -95,7 +95,7 @@ def _test_settings(**overrides):
         "rate_limit_backend": "memory",
         "expose_openapi": True,
         "trust_proxy_headers": False,
-        "app_version": "1.3.4",
+        "app_version": "1.3.5",
     }
     defaults.update(overrides)
     return config.Settings.model_construct(**defaults)

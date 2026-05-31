@@ -91,6 +91,12 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.3.5 (Complete)
+
+- Final validation gap closure and v1.3.5 tag/release alignment with gap-closure commit
+- Six-alert delivery validation, restore seed fix, SSE semantics, restore warnings
+- GitHub Release published with verified bundle
+
 ## v1.3.4 (Complete)
 
 - Tag alignment with 10/10 polish docs (`make smoke`, `make demo`, `make validate-alerts`)

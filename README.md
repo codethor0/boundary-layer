@@ -5,7 +5,7 @@
 </p>
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.3.4-blue)
+![Version](https://img.shields.io/badge/version-v1.3.5-blue)
 ![Tests](https://img.shields.io/badge/tests-184%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
@@ -47,7 +47,7 @@ make bug-hunt-prod   # optional adversarial checks
 **Demo preview:** Sanitized terminal output from `make smoke` and `make demo` is in [docs/assets/demo-transcript.txt](docs/assets/demo-transcript.txt). See [docs/assets/demo-preview.md](docs/assets/demo-preview.md) for a short guide (no GIF unless you capture one locally with optional tooling).
 
 ```
-PASS health: {"status":"ok","service":"boundary-layer-api","version":"1.3.4",...}
+PASS health: {"status":"ok","service":"boundary-layer-api","version":"1.3.5",...}
 Vulnerable: blocked=false (privilege escalation accepted)
 Hardened: blocked=true (HMAC verification rejected tamper)
 Alert delivered to local webhook.
@@ -62,7 +62,7 @@ For a facilitator-led walkthrough, see [docs/WORKSHOP.md](docs/WORKSHOP.md). For
 `GET /health`:
 
 ```json
-{"status":"ok","service":"boundary-layer-api","version":"1.3.4","environment":"development"}
+{"status":"ok","service":"boundary-layer-api","version":"1.3.5","environment":"development"}
 ```
 
 Redis vulnerable (`blocked: false`):
@@ -150,7 +150,7 @@ Focus areas include tool routing, Redis session integrity, flat authorization, f
 
 BoundaryLayer is for defensive education, secure engineering, and controlled local testing only.
 
-## Production Deployment (production-like profile, v1.3.4)
+## Production Deployment (production-like profile, v1.3.5)
 
 BoundaryLayer ships a **production-like local validation profile** (`docker-compose.prod.yml`) for defensive testing on machines you control. It is **not** a hosted SaaS product and is **not** intended for direct public internet exposure without your own operational hardening.
 
@@ -427,12 +427,11 @@ See [SECURITY.md](SECURITY.md) and [SECURITY_NOTES.md](SECURITY_NOTES.md).
 
 ## Release
 
-- Current release: **v1.3.4** — local lab polish and validation (tag aligns docs and commands)
+- Current release: **v1.3.5** — final local lab validation and release alignment
 - [CHANGELOG.md](CHANGELOG.md) — release history
 - [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
 - [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md)
-
-Prior release `v1.3.3` remains at commit `0060b02` for historical reference. Do not retag published releases.
+- Prior release **v1.3.4** remains at commit `4519df8` for historical reference. Do not retag published releases.
 
 ## License
 

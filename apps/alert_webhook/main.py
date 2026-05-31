@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, status
 
 from apps.alert_webhook.config import get_webhook_settings
 
-app = FastAPI(title="BoundaryLayer Alert Webhook", version="1.3.4")
+app = FastAPI(title="BoundaryLayer Alert Webhook", version="1.3.5")
 
 _stored_alerts: list[dict] = []
 

@@ -39,7 +39,7 @@ make up
 make smoke
 ```
 
-Expected: smoke prints `PASS health` with `"version":"1.3.4"`.
+Expected: smoke prints `PASS health` with `"version":"1.3.5"`.
 
 Guided demo with alert poll:
 

@@ -1,10 +1,10 @@
 # BoundaryLayer demo transcript (sanitized)
-# Generated: 2026-05-31T04:24:22Z
+# Generated: 2026-05-31T05:26:24Z
 # Commands: make smoke, make demo, metrics sample, alerts sample
 
 ## make smoke
 ==> BoundaryLayer smoke check
-PASS health: {"status":"ok","service":"boundary-layer-api","version":"1.3.4","environment":"development"}
+PASS health: {"status":"ok","service":"boundary-layer-api","version":"1.3.5","environment":"development"}
 PASS GET /labs
 PASS GET /metrics
 PASS Prometheus healthy
@@ -16,7 +16,7 @@ Smoke check complete.
 
 ## make demo
 ==> BoundaryLayer demo (local defensive security lab)
-Health: {"status":"ok","service":"boundary-layer-api","version":"1.3.4","environment":"development"}
+Health: {"status":"ok","service":"boundary-layer-api","version":"1.3.5","environment":"development"}
 
 ==> Redis tampering (live Redis)
 Vulnerable: blocked=false (privilege escalation accepted)
@@ -37,17 +37,21 @@ boundary_layer_lab_runs_total{lab="prompt-cache-isolation",mode="vulnerable",res
 ==> Circuit breaker alert path
 Metric boundary_layer_inference_circuit_breaker_state=1
 Waiting up to 60s for BoundaryLayerInferenceCircuitBreakerOpen...
-DEMO FAIL: BoundaryLayerInferenceCircuitBreakerOpen not received within 60s
+Alert delivered to local webhook.
+{"count":1,"alerts":[{"status":"firing","labels":{"alertname":"BoundaryLayerInferenceCircuitBreakerOpen","instance":"api:8000","job":"boundary-layer-api","severity":"page"},"annotations":{"description":"The circuit breaker simulation entered open state and is shedding synthetic inference work.\n","summary":"BoundaryLayer inference circuit breaker is open"},"startsAt":"2026-05-31T05:26:39.257Z","endsAt":"0001-01-01T00:00:00Z","generatorURL":"http://c36edc20dc6a:9090/graph?g0.expr=boundary_layer_inference_circuit_breaker_state+%3D%3D+1&g0.tab=1","fingerprint":"d2c4bea119262ade"}]}
+
+Demo complete.
+Next: make validate (full gate) | docs/OBSERVABILITY_WALKTHROUGH.md | docs/WORKSHOP.md
 
 ## metrics sample
 # HELP boundary_layer_lab_runs_total Total BoundaryLayer lab runs
 # TYPE boundary_layer_lab_runs_total counter
-boundary_layer_lab_runs_total{lab="redis",mode="hardened",result="blocked"} 1.0
-boundary_layer_lab_runs_total{lab="circuit-breaker",mode="hardened",result="blocked"} 1.0
-boundary_layer_lab_runs_total{lab="authz",mode="hardened",result="blocked"} 1.0
+boundary_layer_lab_runs_total{lab="redis",mode="vulnerable",result="allowed"} 2.0
+boundary_layer_lab_runs_total{lab="redis",mode="hardened",result="blocked"} 2.0
+boundary_layer_lab_runs_total{lab="circuit-breaker",mode="hardened",result="blocked"} 2.0
+boundary_layer_lab_runs_total{lab="prompt-cache-isolation",mode="vulnerable",result="allowed"} 1.0
+boundary_layer_lab_runs_total{lab="prompt-cache-isolation",mode="hardened",result="blocked"} 1.0
 # HELP boundary_layer_redis_tamper_rejected_total Redis tamper attempts rejected by HMAC verification
-# TYPE boundary_layer_redis_tamper_rejected_total counter
-boundary_layer_redis_tamper_rejected_total 1.0
 
 ## alerts sample
-{"count":0,"alerts":[]}
+{"count":1,"alerts":[{"status":"firing","labels":{"alertname":"BoundaryLayerInferenceCircuitBreakerOpen","instance":"api:8000","job":"boundary-layer-api","severity":"page"},"annotations":{"description":"The circuit breaker simulation entered open state and is shedding synthetic inference work.\n","summary":"BoundaryLayer inference circuit breaker is open"},"startsAt":"2026-05-31T05:26:39.257Z","endsAt":"0001-01-01T00:00:00Z","generatorURL":"http://c36edc20dc6a:9090/graph?g0.expr=boundary_layer_inference_circuit_breaker_state+%3D%3D+1&g0.tab=1","fingerprint":"d2c4bea119262ade"}]}
