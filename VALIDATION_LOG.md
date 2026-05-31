@@ -2,7 +2,7 @@
 
 ## v1.0 Public Release Stabilization
 
-Generated: 2026-05-31T19:42:55Z
+Generated: 2026-05-31T21:05:13Z
 
 Scope: Public GitHub release hygiene, no new labs, generated reports excluded from Git.
 
@@ -443,7 +443,7 @@ Scope: Public GitHub release hygiene, no new labs, generated reports excluded fr
 - Result: PASS
 
 ### Postgres restore roundtrip
-- Command: `drop write_storm_events then restore /Users/thor/Projects/boundary-layer/backups/postgres/boundary-layer-20260531T194259Z.sql.gz`
+- Command: `drop write_storm_events then restore /Users/thor/Projects/boundary-layer/backups/postgres/boundary-layer-20260531T210517Z.sql.gz`
 - Result: PASS
 
 ### Prometheus health check
@@ -537,4 +537,90 @@ Scope: Public GitHub release hygiene, no new labs, generated reports excluded fr
 ### Secret scan
 - Command: `rg secret patterns`
 - Result: PASS
+
+## Production SaaS Phase 7 — Live Evidence Capture
+
+Generated: 2026-05-31T21:10:00Z
+
+Scope: Attempt live staging validation; stop if prerequisites missing.
+
+### Baseline
+- Git HEAD: 99b9437
+- Working tree: clean
+
+### LIVE STAGING BLOCKED
+
+Prerequisites: **MISSING**
+
+Missing variable names (no values printed):
+
+- RUN_LIVE_STAGING_CHECKS (when unset)
+- STAGING_BASE_URL
+- STAGING_TEST_ACCESS_TOKEN_TENANT_A
+- STAGING_TEST_ACCESS_TOKEN_TENANT_B
+- STAGING_METRICS_AUTH_TOKEN
+- DATABASE_URL
+- REDIS_URL
+- OBJECT_STORAGE_BUCKET
+- OBJECT_STORAGE_REGION
+- OBJECT_STORAGE_PREFIX
+- SECRET_MANAGER_PROVIDER
+- SECRET_MANAGER_PROJECT_OR_PATH
+- BOUNDARY_LAYER_HEALTHCHECK_SECRET_NAME
+- OIDC_ISSUER_URL
+- OIDC_AUDIENCE
+- OIDC_JWKS_URL
+- BOUNDARY_LAYER_ALLOWED_ORIGINS
+- BOUNDARY_LAYER_PUBLIC_BASE_URL
+- BOUNDARY_LAYER_METRICS_TOKEN
+- AUDIT_SINK_PROVIDER
+
+Local `.env.staging`: **not present**
+
+GitHub Environment `staging`: **not found** (`gh secret list --env staging` HTTP 404)
+
+| Secret/variable | Required | Present | Purpose |
+|-----------------|----------|---------|---------|
+| STAGING_BASE_URL | Yes | No | Live HTTP smoke |
+| DATABASE_URL | Yes | No | Managed PostgreSQL live check |
+| REDIS_URL | Yes | No | Managed Redis live check |
+| OIDC_JWKS_URL | Yes | No | JWKS live check |
+| STAGING_TEST_ACCESS_TOKEN_TENANT_A | Yes | No | Auth smoke |
+| All others in STAGING_SECRETS_INVENTORY.md | Yes | No | Staging deploy and evidence runner |
+
+Live evidence runner: **NOT RUN** (prereqs failed)
+
+Production SaaS score: **6/10** (unchanged)
+
+### Local regression
+- make test (377): PASS
+- make lint: PASS
+- make smoke: PASS
+- make validate: PASS
+- make validate-alerts: PASS
+- make validate-restore-fresh-volume: PASS
+
+### Structural staging
+- make staging-release-gate: PASS (LIVE STAGING CHECKS SKIPPED)
+- make deploy-staging-dry-run: PASS (DRY RUN ONLY)
+
+### Container build (local, not deployed)
+- Image tag: boundary-layer-api:99b9437
+- make container-smoke-local: PASS /health
+- make container-image-check: PASS
+
+### Security evidence
+- pip-audit: PASS (no known vulnerabilities)
+- make generate-sbom: PASS
+- make container-security-scan: PASS (grype)
+- Secret scan (validate.sh / tracked source): PASS
+- make dependency-audit: SKIPPED (no Makefile target)
+- make secret-scan: SKIPPED (no Makefile target; validate.sh used)
+
+### Live checks (not run)
+- WAF live: SKIPPED
+- Audit/SIEM live: SKIPPED
+- DR live: SKIPPED
+
+Sanitized evidence file: `artifacts/live-evidence/LIVE_STAGING_EVIDENCE.md` (local, gitignored)
 

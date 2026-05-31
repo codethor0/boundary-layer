@@ -37,7 +37,7 @@ Score cap rule: **Production SaaS score is capped at 6/10 until live staging val
 | 29 | DPA/subprocessors | 0/10 | Signed DPA + subprocessor list | Not started | DPA package | No | No | Yes | Legal review | Legal | P0 |
 | 30 | Support process | 1/10 | Ticketing + SLA tiers | None | Support tooling | No | Yes | No | Product ops | Product | P2 |
 | 31 | Cost controls | 1/10 | Budget alerts per env | Not configured | Cloud budgets | No | Yes | No | Cloud billing alerts | Platform | P2 |
-| 32 | Operational evidence | 2/10 | Completed evidence runner artifact | Structural gates | `artifacts/live-evidence/LIVE_STAGING_EVIDENCE.md` | Partial | Yes | No | `make production-saas-evidence-runner` | Operations | P0 |
+| 32 | Operational evidence | 2/10 | Completed evidence runner artifact | Structural gates only; Phase 7 blocked | `artifacts/live-evidence/LIVE_STAGING_EVIDENCE.md` when live passes | Partial | Yes | No | `make production-saas-evidence-runner` | Operations | P0 |
 
 ## Scoring rules
 

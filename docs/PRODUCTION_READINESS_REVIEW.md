@@ -56,6 +56,7 @@ See [LEGAL_COMPLIANCE_READINESS.md](LEGAL_COMPLIANCE_READINESS.md). Legal review
 
 ## Open risks
 
+- **Phase 7 (2026-05-31):** Live staging blocked — no `.env.staging`, GitHub Environment `staging` missing, all managed-service/OIDC secrets absent
 - Live staging not validated until evidence runner passes
 - Immutable audit/SIEM not live
 - WAF edge not enforced without cloud config

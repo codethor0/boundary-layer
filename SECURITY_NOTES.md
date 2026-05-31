@@ -17,7 +17,7 @@
 - Run `make production-saas-staging-readiness-check` and `make production-saas-managed-services-check` for real-env validation (NOT READY locally).
 - Run `make production-saas-check-example`, `make production-saas-staging-readiness-example`, and `make production-saas-managed-services-example` for mocked structural validation in CI (not live deployment proof).
 - Run `make deploy-staging-dry-run` for AWS ECS deploy dry run (no cloud deploy).
-- Run `make live-staging-validation-package` only with `RUN_LIVE_STAGING_CHECKS=true` and full staging secrets.
+- Phase 7 (2026-05-31): Live staging blocked locally — configure `.env.staging` or GitHub Environment `staging` before running `make production-saas-evidence-runner`.
 - Staging runbook: [docs/STAGING_DEPLOYMENT_RUNBOOK.md](docs/STAGING_DEPLOYMENT_RUNBOOK.md).
 - Object storage (`apps/api/storage.py`) and secret manager (`apps/api/secrets.py`) adapters use lazy SDK imports — live bucket/secret connectivity is validated only in live mode.
 - Audit export (`apps/api/audit_export.py`) supports local Postgres sink; external immutable sinks fail closed until implemented.
