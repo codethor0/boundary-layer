@@ -56,7 +56,8 @@ See [LEGAL_COMPLIANCE_READINESS.md](LEGAL_COMPLIANCE_READINESS.md). Legal review
 
 ## Open risks
 
-- **Phase 7 (2026-05-31):** Live staging blocked — no `.env.staging`, GitHub Environment `staging` missing, all managed-service/OIDC secrets absent
+- **Phase 8 (2026-05-31):** AWS CLI missing, GitHub CLI auth invalid, Terraform skeleton — no staging account provisioned
+- **Phase 7 (2026-05-31):** Live staging blocked — no `.env.staging`, GitHub Environment `staging` missing
 - Live staging not validated until evidence runner passes
 - Immutable audit/SIEM not live
 - WAF edge not enforced without cloud config
