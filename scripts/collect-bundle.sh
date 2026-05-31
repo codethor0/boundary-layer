@@ -57,7 +57,7 @@ Generated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| fastapi | 0.115.6 | HTTP API framework |
+| fastapi | 0.136.3 | HTTP API framework |
 | uvicorn | 0.34.0 | ASGI server |
 | httpx | 0.28.1 | HTTP client |
 | pydantic | 2.10.4 | Request validation |

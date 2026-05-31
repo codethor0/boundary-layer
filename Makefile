@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint validate validate-prod validate-e2e bundle clean fmt prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint validate validate-prod validate-e2e bug-hunt-prod bundle clean fmt prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -57,6 +57,9 @@ validate-prod:
 
 validate-e2e:
 	bash scripts/validate-e2e.sh
+
+bug-hunt-prod:
+	bash scripts/bug-hunt-prod.sh
 
 backup:
 	bash scripts/backup-postgres.sh

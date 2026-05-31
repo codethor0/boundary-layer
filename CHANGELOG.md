@@ -2,6 +2,12 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.3.2
+
+- Upgrade FastAPI to 0.136.3 to resolve Starlette CVEs flagged by pip-audit
+- Extend production validation with rate-limit (429) and webhook storage cap (413) checks
+- Add `scripts/bug-hunt-prod.sh` for standalone production adversarial QA
+
 ## v1.3.1
 
 - Fix nginx rate limiting to return HTTP 429 instead of misleading 503 responses

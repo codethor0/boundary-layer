@@ -5,8 +5,8 @@
 </p>
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
-![Version](https://img.shields.io/badge/version-v1.3.0-blue)
-![Tests](https://img.shields.io/badge/tests-162%20passing-brightgreen)
+![Version](https://img.shields.io/badge/version-v1.3.2-blue)
+![Tests](https://img.shields.io/badge/tests-177%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
