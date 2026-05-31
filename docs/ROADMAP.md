@@ -91,6 +91,12 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.3.4 (Complete)
+
+- Tag alignment with 10/10 polish docs (`make smoke`, `make demo`, `make validate-alerts`)
+- Fresh-volume Postgres restore proof (`make validate-restore-fresh-volume`)
+- Sanitized demo transcript asset (`make capture-demo`, `docs/assets/demo-transcript.txt`)
+
 ## v1.3.3 (Complete)
 
 - Production readiness audit fixes, CI Redis/TLS and Security Scan fixes, rate-limit fail-closed, live validation and bundle hygiene verified

@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint smoke demo validate validate-alerts validate-prod validate-e2e bug-hunt-prod bundle clean fmt help prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint smoke demo validate validate-alerts validate-restore-fresh-volume capture-demo validate-prod validate-e2e bug-hunt-prod bundle clean fmt help prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -61,6 +61,12 @@ validate:
 validate-alerts:
 	bash scripts/validate-alerts.sh
 
+validate-restore-fresh-volume:
+	bash scripts/validate-restore-fresh-volume.sh
+
+capture-demo:
+	bash scripts/capture-demo-transcript.sh
+
 validate-prod:
 	bash scripts/validate-prod.sh
 
@@ -94,6 +100,8 @@ help:
 	@echo "  make lint           Run ruff"
 	@echo "  make validate       Full local validation gate (includes validate-alerts)"
 	@echo "  make validate-alerts Extended alert delivery (circuit breaker + authz)"
+	@echo "  make validate-restore-fresh-volume Fresh-volume Postgres backup/restore proof"
+	@echo "  make capture-demo         Generate sanitized docs/assets/demo-transcript.txt"
 	@echo "  make validate-prod  Production-like local validation profile"
 	@echo "  make validate-e2e   Full test + lint + prod + local validation"
 	@echo "  make bundle         Create local review ZIP in ~/Downloads/"
