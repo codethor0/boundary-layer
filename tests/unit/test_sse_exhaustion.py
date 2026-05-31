@@ -110,6 +110,26 @@ def test_sse_vulnerable_endpoint():
     assert data["blocked"] is False
 
 
+def test_sse_hardened_default_endpoint():
+    response = client.post(
+        "/labs/sse-exhaustion/run",
+        json={"mode": "hardened"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["blocked"] is True
+    assert any("rejected" in event.lower() for event in data["events"])
+
+
+def test_sse_hardened_within_cap_endpoint():
+    response = client.post(
+        "/labs/sse-exhaustion/run",
+        json={"mode": "hardened", "requested_streams": 25},
+    )
+    assert response.status_code == 200
+    assert response.json()["blocked"] is False
+
+
 def test_sse_hardened_endpoint():
     response = client.post(
         "/labs/sse-exhaustion/run",

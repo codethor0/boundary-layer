@@ -11,6 +11,14 @@ All notable changes to BoundaryLayer are documented here.
 - Authz alert delivery validated in `make validate` alongside circuit breaker alert
 - Release title pattern: local lab polish and validation (not hosted SaaS readiness)
 
+### v1.3.4 gap closure (post-tag)
+
+- Fix restore seed field: `requested_writes: 25` (was ignored `event_count`)
+- Extend `make validate-alerts` to six deterministic alerts (circuit breaker, authz, redis tamper, write storm, SSE backpressure, prompt deletion)
+- Clarify SSE hardened `blocked` semantics in docs, validate gate, and tests
+- Add explicit restore volume reset warnings in README, BACKUP_RESTORE, TROUBLESHOOTING, and Makefile help
+- Assert exact `write_storm_events=25` in fresh-volume restore validation
+
 Known limitations (unchanged):
 
 - Local defensive security lab only; not a hosted production SaaS

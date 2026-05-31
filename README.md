@@ -44,7 +44,7 @@ make validate-prod   # production-like profile on machines you control
 make bug-hunt-prod   # optional adversarial checks
 ```
 
-**Demo preview:** Sanitized terminal output from `make smoke` and `make demo` is in [docs/assets/demo-transcript.txt](docs/assets/demo-transcript.txt).
+**Demo preview:** Sanitized terminal output from `make smoke` and `make demo` is in [docs/assets/demo-transcript.txt](docs/assets/demo-transcript.txt). See [docs/assets/demo-preview.md](docs/assets/demo-preview.md) for a short guide (no GIF unless you capture one locally with optional tooling).
 
 ```
 PASS health: {"status":"ok","service":"boundary-layer-api","version":"1.3.4",...}
@@ -164,7 +164,9 @@ make prod-up
 
 See [docs/PRODUCTION.md](docs/PRODUCTION.md) for full deployment guidance.
 
-Backup and restore scripts exist for the production-like profile, but validation currently proves **table-scoped** recovery for `write_storm_events` only—not a full fresh-volume database disaster recovery simulation. See [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
+Backup and restore scripts exist for the production-like profile. `make validate` proves table-scoped `write_storm_events` recovery; `make validate-restore-fresh-volume` proves full-database restore into a fresh Compose volume (seeds `requested_writes: 25`). See [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
+
+**Warning:** `make validate-restore-fresh-volume` resets BoundaryLayer's local Docker Compose volumes. It is safe for the lab, but it will delete local lab data.
 
 ## Architecture at a Glance
 
@@ -363,13 +365,13 @@ See [docs/CONTROLS_MAP.md](docs/CONTROLS_MAP.md) for lab-to-alert mapping. Metri
 |--------|---------|
 | `make smoke` | Fast sanity check (~30s): health, labs list, metrics, Redis pair |
 | `make demo` | Guided demo: Redis, prompt cache, circuit breaker alert poll |
-| `make validate-alerts` | Extended alert delivery: circuit breaker + authz |
-| `make validate-restore-fresh-volume` | Fresh-volume Postgres backup/restore proof (destroys dev volumes) |
+| `make validate-alerts` | Extended alert delivery: six deterministic alerts |
+| `make validate-restore-fresh-volume` | Fresh-volume Postgres backup/restore proof (resets local Compose volumes) |
 | `make capture-demo` | Generate sanitized `docs/assets/demo-transcript.txt` |
 | `make validate` | Full local gate (tests, lint, all labs, metrics, alerts) |
 | `make validate-prod` | Production-like profile on controlled local machines |
 
-The authoritative local gate is `make validate` (184 tests, lint, all labs, metrics, alert delivery including circuit breaker and authz via `validate-alerts`).
+The authoritative local gate is `make validate` (186 tests, lint, all labs, metrics, alert delivery including six alerts via `validate-alerts`).
 
 ## Visual Identity
 
@@ -388,10 +390,10 @@ Generated reports, command transcripts, local bundles, editor files, and build p
 | `make down` | Stop Docker Compose services |
 | `make smoke` | Fast sanity check (requires stack up) |
 | `make demo` | Guided demo with alert poll (requires stack up) |
-| `make test` | Run pytest (184 tests) |
+| `make test` | Run pytest (186 tests) |
 | `make lint` | Run ruff lint and format checks |
-| `make validate-alerts` | Extended alert delivery checks |
-| `make validate-restore-fresh-volume` | Fresh-volume Postgres backup/restore proof |
+| `make validate-alerts` | Extended alert delivery (6 deterministic alerts) |
+| `make validate-restore-fresh-volume` | Fresh-volume Postgres proof (resets local Compose volumes) |
 | `make capture-demo` | Generate sanitized demo transcript |
 | `make validate` | Full validation pipeline |
 | `make validate-e2e` | Full test + lint + prod + local validation |

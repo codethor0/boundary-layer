@@ -103,7 +103,16 @@ curl -sf http://localhost:8081/alerts
 
 Expected alert name: `BoundaryLayerAuthzDenied`.
 
-Run `make validate-alerts` to automate circuit breaker and authz delivery checks.
+Run `make validate-alerts` to automate delivery checks for six deterministic alerts:
+
+- `BoundaryLayerInferenceCircuitBreakerOpen`
+- `BoundaryLayerAuthzDenied`
+- `BoundaryLayerRedisTamperRejected`
+- `BoundaryLayerPostgresWriteStormMitigated`
+- `BoundaryLayerSSEBackpressureTriggered`
+- `BoundaryLayerPromptDeletionIncomplete`
+
+`make validate` includes the same extended alert gate via `validate-alerts`.
 
 ## Troubleshooting: alert does not appear
 
@@ -127,7 +136,7 @@ docker compose logs alertmanager --tail=100
 |---------|---------|
 | `make smoke` | Fast sanity check |
 | `make demo` | Guided demo with alert poll |
-| `make validate-alerts` | Circuit breaker + authz alert delivery |
+| `make validate-alerts` | Six deterministic alert delivery checks |
 | `make validate` | Full local validation gate |
 
 ## Related
