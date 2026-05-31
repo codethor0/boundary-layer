@@ -7,6 +7,8 @@ Thank you for contributing. BoundaryLayer values small, testable, documented cha
 ```bash
 make setup
 make up
+make smoke
+make demo
 make test
 make validate
 ```
@@ -49,6 +51,8 @@ Use the pull request template and confirm:
 ## Definition of Done
 
 See project README and [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) for full criteria. Changes must pass tests, lint, and relevant validation.
+
+Adding a new lab? Follow [docs/ADD_A_LAB.md](docs/ADD_A_LAB.md).
 
 ## Repository Hygiene
 

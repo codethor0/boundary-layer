@@ -1,4 +1,4 @@
-.PHONY: setup up down test lint validate validate-prod validate-e2e bug-hunt-prod bundle clean fmt prod-render-config prod-up prod-down backup restore
+.PHONY: setup up down test lint smoke demo validate validate-alerts validate-prod validate-e2e bug-hunt-prod bundle clean fmt help prod-render-config prod-up prod-down backup restore
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -49,8 +49,17 @@ lint:
 fmt:
 	$(RUFF) format apps/ labs/ tests/
 
+smoke:
+	bash scripts/smoke.sh
+
+demo:
+	bash scripts/demo.sh
+
 validate:
 	bash scripts/validate.sh
+
+validate-alerts:
+	bash scripts/validate-alerts.sh
 
 validate-prod:
 	bash scripts/validate-prod.sh
@@ -73,3 +82,18 @@ bundle:
 
 clean:
 	bash scripts/clean.sh
+
+help:
+	@echo "BoundaryLayer Makefile targets:"
+	@echo "  make setup          Create venv and install dependencies"
+	@echo "  make up             Start Docker Compose dev stack"
+	@echo "  make down           Stop Docker Compose dev stack"
+	@echo "  make smoke          Fast sanity check (health, redis pair, metrics)"
+	@echo "  make demo           Guided demo with circuit breaker alert poll"
+	@echo "  make test           Run pytest"
+	@echo "  make lint           Run ruff"
+	@echo "  make validate       Full local validation gate (includes validate-alerts)"
+	@echo "  make validate-alerts Extended alert delivery (circuit breaker + authz)"
+	@echo "  make validate-prod  Production-like local validation profile"
+	@echo "  make validate-e2e   Full test + lint + prod + local validation"
+	@echo "  make bundle         Create local review ZIP in ~/Downloads/"

@@ -23,6 +23,8 @@ make test
 make lint
 docker compose down -v
 make up
+make smoke
+make demo
 make validate
 ```
 
@@ -30,8 +32,9 @@ Expected results:
 
 - 184 tests passing
 - Lint clean
+- `make smoke` and `make demo` exit 0
 - `make validate` exits 0
-- Alert delivery validation confirms `BoundaryLayerInferenceCircuitBreakerOpen`
+- Alert delivery validation confirms `BoundaryLayerInferenceCircuitBreakerOpen` and `BoundaryLayerAuthzDenied` (`make validate-alerts`)
 
 ## Service health checks
 
@@ -48,7 +51,7 @@ curl -sf http://localhost:8081/health
 Expected API health:
 
 ```json
-{"status":"ok","service":"boundary-layer-api","version":"1.0.10"}
+{"status":"ok","service":"boundary-layer-api","version":"1.3.3"}
 ```
 
 Version string must match the current release tag.
