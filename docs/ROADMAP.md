@@ -91,6 +91,10 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.3.2 (Complete)
+
+- Security dependency upgrade (FastAPI/Starlette) and production bug-hunt validation gate
+
 ## v1.3.1 (Complete)
 
 - Bug-fix pass: nginx 429 rate limits, Redis limiter resilience, webhook storage cap, test env isolation

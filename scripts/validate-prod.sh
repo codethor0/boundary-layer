@@ -59,7 +59,7 @@ echo "==> Starting production stack"
 sleep 15
 
 echo "==> TLS health check"
-"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.3.1"'
+"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.3.2"'
 
 echo "==> Readiness check"
 "${CURL_FAIL[@]}" \
@@ -138,6 +138,39 @@ done
 
 echo "==> Postgres backup smoke test"
 bash scripts/backup-postgres.sh
+
+echo "==> Rate limit returns 429 not 503 under burst"
+declare -A rate_counts=()
+for _ in $(seq 1 120); do
+  code="$("${CURL[@]}" -o /dev/null -w "%{http_code}" \
+    -H "Authorization: Bearer ${BOUNDARY_LAYER_API_KEY}" \
+    "${API_URL}/labs")" || true
+  rate_counts["${code}"]=$(( ${rate_counts["${code}"]:-0} + 1 ))
+done
+[[ -n "${rate_counts[429]:-}" ]] || {
+  echo "Expected HTTP 429 under burst; got: ${!rate_counts[*]}" >&2
+  exit 1
+}
+[[ -z "${rate_counts[503]:-}" ]] || {
+  echo "Unexpected HTTP 503 under burst" >&2
+  exit 1
+}
+
+echo "==> Webhook storage cap enforced"
+"${PROD_COMPOSE[@]}" exec -T alert-webhook \
+  curl -sf -X DELETE \
+  -H "Authorization: Bearer ${BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN}" \
+  http://localhost:8080/alerts >/dev/null || true
+webhook_code="$("${PROD_COMPOSE[@]}" exec -T alert-webhook \
+  curl -s -o /dev/null -w "%{http_code}" \
+  -X POST http://localhost:8080/alerts \
+  -H "Authorization: Bearer ${BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d "$(python3 -c 'import json; print(json.dumps({"alerts":[{"labels":{"a":"x"}}]*1001}))')")"
+[[ "${webhook_code}" == "413" ]] || {
+  echo "Expected HTTP 413 when webhook store exceeds cap; got ${webhook_code}" >&2
+  exit 1
+}
 
 echo "==> Stopping production stack"
 "${PROD_COMPOSE[@]}" down -v --remove-orphans >/dev/null 2>&1 || true

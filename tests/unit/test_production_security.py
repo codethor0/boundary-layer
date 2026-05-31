@@ -93,7 +93,7 @@ def _test_settings(**overrides):
         "rate_limit_window_seconds": 60,
         "rate_limit_backend": "memory",
         "expose_openapi": True,
-        "app_version": "1.3.1",
+        "app_version": "1.3.2",
     }
     defaults.update(overrides)
     return config.Settings.model_construct(**defaults)
