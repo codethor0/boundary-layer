@@ -18,7 +18,7 @@ BoundaryLayer **ships and validates** the first two modes today. **Production Sa
 
 | Metric | Before this pass | After this pass |
 |--------|------------------|-----------------|
-| Production SaaS readiness | **6/10** | **6/10** (no live staging credentials in this pass) |
+| Production SaaS readiness | **6/10** | **6/10** (Phase 7 live staging blocked) |
 
 ### Scoring rules
 
@@ -34,7 +34,9 @@ Source of truth: [PRODUCTION_10_10_EVIDENCE_MATRIX.md](PRODUCTION_10_10_EVIDENCE
 
 Do not call BoundaryLayer Production SaaS ready until all 10/10 evidence exists.
 
-Phase 6 (prior) added staging deployment runbook and live validation package. Phase Fast Track adds evidence matrix, prereq gate, evidence runner, WAF/audit/DR live checks, SBOM/container scan scripts, and production readiness review template.
+**Phase 7 (2026-05-31):** Live staging blocked — no `.env.staging`, GitHub Environment `staging` not found. Evidence runner not run. Score remains 6/10.
+
+Phase 6 (prior) added staging deployment runbook. Fast Track added evidence matrix and evidence runner. Phase 7 confirmed prerequisites missing.
 
 ## Gap audit matrix
 
