@@ -1,20 +1,27 @@
 # Dependency Report
 
+## Fast Track advisory remediation (Phase Fast Track)
+
+Upgraded pinned dependencies with available fixes:
+
+| Package | Before | After | Advisory IDs addressed |
+|---------|--------|-------|------------------------|
+| PyJWT | 2.10.1 | 2.12.0 | PYSEC-2026-120, PYSEC-2025-183 |
+| cryptography | 44.0.1 | 46.0.7 | PYSEC-2026-35, GHSA-r6ph-v2qm-q3c2, PYSEC-2026-36 |
+
+Verify with:
+
+```bash
+pip-audit -r apps/api/requirements.txt
+```
+
+Compensating controls if future advisories appear without fixes: pin review in CI Security Scan, Trivy container scan, minimal dependency surface.
+
 ## Phase 6 additions
 
-No new **required** runtime dependencies. Phase 6 adds operator scripts and documentation only; cloud CLIs (`aws`, `terraform`) remain optional.
+No new **required** runtime dependencies. Phase 6 adds operator scripts and documentation only; cloud CLIs remain optional.
 
-## Phase 5 additions
-
-No new **required** runtime dependencies were added in Phase 5.
-
-Live managed-service checks use existing dependencies (`psycopg`, `redis`, `httpx`) when `RUN_LIVE_STAGING_CHECKS=true`. Cloud SDKs remain optional (lazy import) as documented in Phase 4.
-
-## Phase 4 additions
-
-No new **required** runtime dependencies were added in Phase 4.
-
-Cloud adapter SDKs are **optional** and loaded lazily:
+## Optional cloud SDKs (lazy import)
 
 | Adapter | Optional package |
 |---------|------------------|
@@ -26,7 +33,3 @@ Cloud adapter SDKs are **optional** and loaded lazily:
 | Vault | `hvac` |
 
 Object storage and secret manager adapters fail clearly when optional SDKs are not installed. Local lab and CI do not require cloud SDKs.
-
-## Known advisories (unchanged)
-
-Run `pip-audit -r apps/api/requirements.txt` before release. Prior advisories on pinned `pyjwt` and `cryptography` versions should be tracked and upgraded in a dedicated dependency pass.

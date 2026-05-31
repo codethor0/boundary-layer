@@ -160,7 +160,7 @@ BoundaryLayer is **not** a hosted Production SaaS product. The supported release
 | Production-like local validation | `production-like` | Supported (`make prod-up`, `make validate-prod`) |
 | Hosted Production SaaS | `production-saas` | **Not shipped** — structural staging gates + optional live validation (gated) |
 
-Production SaaS score: **6/10** (live staging not validated unless `RUN_LIVE_STAGING_CHECKS=true` against real infrastructure).
+Production SaaS score: **6/10** — capped until live staging validation passes (`make production-saas-evidence-runner`). Dry-runs and structural checks are not live evidence.
 
 See [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md) and [NEXT_STEPS.md](NEXT_STEPS.md).
 
@@ -183,11 +183,17 @@ make container-build                            # build image tagged with git SH
 make container-smoke-local                      # local container /health smoke
 make deploy-staging-dry-run                     # AWS ECS deploy dry run (no deploy)
 make live-staging-validation-package            # full live validation (gated)
-make waf-readiness-check                        # structural WAF readiness
+make check-live-staging-prereqs                 # verify live env (names only)
+make production-saas-evidence-runner          # full evidence chain
+make waf-live-check                             # live WAF (skipped if not configured)
+make audit-sink-live-check                      # live audit sink check
+make dr-restore-live-check                      # DR backup verify (CONFIRM_STAGING_DR_TEST)
+make generate-sbom                              # SBOM when syft installed
+make container-security-scan                    # image scan when trivy/grype installed
 make staging-deploy-dry-run                     # IaC deploy dry run (requires env)
 ```
 
-See [docs/STAGING_DEPLOYMENT_RUNBOOK.md](docs/STAGING_DEPLOYMENT_RUNBOOK.md) and [docs/STAGING_ENVIRONMENT_CONTRACT.md](docs/STAGING_ENVIRONMENT_CONTRACT.md) (never commit real values).
+See [docs/PRODUCTION_10_10_EVIDENCE_MATRIX.md](docs/PRODUCTION_10_10_EVIDENCE_MATRIX.md) and [docs/STAGING_DEPLOYMENT_RUNBOOK.md](docs/STAGING_DEPLOYMENT_RUNBOOK.md) (never commit real values).
 
 ## Production Deployment (production-like profile, v1.3.5)
 

@@ -14,11 +14,27 @@ BoundaryLayer **ships and validates** the first two modes today. **Production Sa
 
 ## Overall score
 
+> **Production SaaS score is capped at 6/10 until live staging validation passes.** Dry-runs, scaffolds, and structural checks do not count as live production evidence.
+
 | Metric | Before this pass | After this pass |
 |--------|------------------|-----------------|
-| Production SaaS readiness | **6/10** | **6/10** (live staging not deployed in this pass) |
+| Production SaaS readiness | **6/10** | **6/10** (no live staging credentials in this pass) |
 
-Phase 6 adds staging deployment runbook, secrets inventory, GitHub Environment setup guide, container build/smoke scripts, AWS ECS deploy dry-run script, live staging validation package, WAF readiness check, DR/on-call and legal/compliance starter docs, and upgraded staging-deploy workflow. **Score remains 6/10** until live staging deploy and managed-service checks pass with documented evidence. Score may move to **7/10** or **8/10** only after `LIVE STAGING VALIDATION PASS` against real infrastructure.
+### Scoring rules
+
+| Score | Requirements |
+|-------|----------------|
+| **6/10** | Structural readiness, local lab, scaffolds, dry runs |
+| **7/10** | Live staging deploy; managed DB/Redis/object storage/secret manager/OIDC pass |
+| **8/10** | CI/CD deploy pipeline, live smoke, rollback, WAF enabled, audit export, alert routing validated |
+| **9/10** | DR restore drill, on-call tested, SLOs, DAST/SBOM/signing, operational evidence |
+| **10/10** | Legal/compliance approved, incident response tested, production readiness review signed |
+
+Source of truth: [PRODUCTION_10_10_EVIDENCE_MATRIX.md](PRODUCTION_10_10_EVIDENCE_MATRIX.md)
+
+Do not call BoundaryLayer Production SaaS ready until all 10/10 evidence exists.
+
+Phase 6 (prior) added staging deployment runbook and live validation package. Phase Fast Track adds evidence matrix, prereq gate, evidence runner, WAF/audit/DR live checks, SBOM/container scan scripts, and production readiness review template.
 
 ## Gap audit matrix
 
@@ -187,7 +203,8 @@ Production SaaS work is **additive** and **profile-gated**.
 
 ## Related documents
 
-- [AUTH_TENANCY_DESIGN.md](AUTH_TENANCY_DESIGN.md)
+- [PRODUCTION_10_10_EVIDENCE_MATRIX.md](PRODUCTION_10_10_EVIDENCE_MATRIX.md)
+- [PRODUCTION_READINESS_REVIEW.md](PRODUCTION_READINESS_REVIEW.md)
 - [TENANCY_DATA_MODEL.md](TENANCY_DATA_MODEL.md)
 - [DEPLOYMENT_ARCHITECTURE.md](DEPLOYMENT_ARCHITECTURE.md)
 - [SAAS_SECURITY_CHECKLIST.md](SAAS_SECURITY_CHECKLIST.md)
