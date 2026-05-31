@@ -34,6 +34,17 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     if settings.run_migrations:
         _run_migrations(settings)
+    if settings.is_production_saas:
+        try:
+            from apps.api.tenancy import init_tenancy_schema
+
+            init_tenancy_schema()
+            logger.info("tenancy schema initialized")
+        except Exception as exc:
+            logger.exception("tenancy schema initialization failed")
+            raise RuntimeError(
+                "Tenancy schema initialization failed in production-saas profile"
+            ) from exc
     logger.info(
         "BoundaryLayer API started env=%s profile=%s auth_enabled=%s",
         settings.boundary_layer_env,

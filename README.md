@@ -6,7 +6,7 @@
 
 ![CI](https://github.com/codethor0/boundary-layer/actions/workflows/ci.yml/badge.svg)
 ![Version](https://img.shields.io/badge/version-v1.3.5-blue)
-![Tests](https://img.shields.io/badge/tests-184%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-232%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -158,13 +158,14 @@ BoundaryLayer is **not** a hosted Production SaaS product. The supported release
 |------|---------|--------|
 | Local lab | `local-lab` | Supported (`make up`, `make validate`) |
 | Production-like local validation | `production-like` | Supported (`make prod-up`, `make validate-prod`) |
-| Hosted Production SaaS | `production-saas` | **Not shipped** — design docs and fail-closed config gate only |
+| Hosted Production SaaS | `production-saas` | **Not shipped** — OIDC auth, tenant schema, and fail-closed config gate only |
 
 See [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md) and [NEXT_STEPS.md](NEXT_STEPS.md).
 
 ```bash
 make production-saas-check          # expects NOT READY on a dev machine
 make production-saas-check-example  # mocked pass with example env vars
+make production-saas-auth-smoke     # deterministic auth/tenancy unit smoke
 ```
 
 ## Production Deployment (production-like profile, v1.3.5)
@@ -407,7 +408,7 @@ Generated reports, command transcripts, local bundles, editor files, and build p
 | `make down` | Stop Docker Compose services |
 | `make smoke` | Fast sanity check (requires stack up) |
 | `make demo` | Guided demo with alert poll (requires stack up) |
-| `make test` | Run pytest (186 tests) |
+| `make test` | Run pytest (232 tests) |
 | `make lint` | Run ruff lint and format checks |
 | `make validate-alerts` | Extended alert delivery (6 deterministic alerts) |
 | `make validate-restore-fresh-volume` | Fresh-volume Postgres proof (resets local Compose volumes) |

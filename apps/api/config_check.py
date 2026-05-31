@@ -43,6 +43,9 @@ def _settings_from_merged(merged: dict[str, str]) -> Settings:
         {
             "boundary_layer_profile": PRODUCTION_SAAS_PROFILE,
             "boundary_layer_env": merged.get("BOUNDARY_LAYER_ENV", "production"),
+            "auth_enabled": _env_bool(
+                merged.get("BOUNDARY_LAYER_AUTH_ENABLED", "true")
+            ),
             "auth_provider": merged.get("BOUNDARY_LAYER_AUTH_PROVIDER", ""),
             "database_url": merged.get("DATABASE_URL", ""),
             "redis_url": merged.get("REDIS_URL", ""),
@@ -61,6 +64,18 @@ def _settings_from_merged(merged: dict[str, str]) -> Settings:
             "audit_log_enabled": _env_bool(
                 merged.get("BOUNDARY_LAYER_AUDIT_LOG_ENABLED")
             ),
+            "oidc_issuer_url": merged.get("OIDC_ISSUER_URL", ""),
+            "oidc_audience": merged.get("OIDC_AUDIENCE", ""),
+            "oidc_jwks_url": merged.get("OIDC_JWKS_URL", ""),
+            "oidc_algorithms": merged.get("OIDC_ALGORITHMS", "RS256"),
+            "oidc_required_claims": merged.get("OIDC_REQUIRED_CLAIMS", ""),
+            "oidc_tenant_claim": merged.get(
+                "OIDC_TENANT_CLAIM", "https://boundarylayer.dev/tenant_id"
+            ),
+            "oidc_roles_claim": merged.get(
+                "OIDC_ROLES_CLAIM", "https://boundarylayer.dev/roles"
+            ),
+            "oidc_subject_claim": merged.get("OIDC_SUBJECT_CLAIM", "sub"),
             "api_key": merged.get("BOUNDARY_LAYER_API_KEY", ""),
             "postgres_password": merged.get("POSTGRES_PASSWORD", ""),
             "redis_password": merged.get("REDIS_PASSWORD", ""),

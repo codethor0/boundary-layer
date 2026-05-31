@@ -1,28 +1,28 @@
 # Next Steps
 
-BoundaryLayer v1.3.5 is a **complete local defensive security lab** with a published GitHub release. Production SaaS is **not shipped**.
+BoundaryLayer v1.3.5 is a **complete local defensive security lab** with a published GitHub release. Production SaaS Phase 1 adds auth/tenancy scaffolding but **hosted SaaS is not shipped**.
 
-## Immediate priorities (Production SaaS foundation)
+## Immediate priorities (Production SaaS Phase 2)
 
-1. **Implement OIDC authentication middleware** — JWT validation, user provisioning, no change to local-lab profile behavior.
-2. **Add tenant and membership tables** — Alembic migration behind `production-saas` profile only; see [docs/TENANCY_DATA_MODEL.md](docs/TENANCY_DATA_MODEL.md).
-3. **Tenant-scope Redis and future object storage keys** — namespace helper used by labs when profile is production-saas.
-4. **Terraform staging environment** — managed Postgres, Redis, secret manager, private networking; see [docs/DEPLOYMENT_ARCHITECTURE.md](docs/DEPLOYMENT_ARCHITECTURE.md).
-5. **Audit log writer** — append-only table + structured events for lab runs and admin actions.
-6. **Extend CI with production-saas-check gate** — fail PR if mocked example check regresses.
+1. **Tenant-scope all lab tables and queries** — add `tenant_id` to lab persistence paths; Alembic migration behind `production-saas` profile.
+2. **Wire live OIDC provider in staging** — Auth0/Clerk/Cognito with RS256/JWKS; keep `oidc-test` for unit tests only.
+3. **Extend audit logging** — lab run events, admin actions, immutable retention policy.
+4. **Terraform staging environment** — managed Postgres, Redis, secret manager, private networking.
+5. **Extend CI** — `make production-saas-auth-smoke` gate + membership integration tests against Compose Postgres.
+6. **Object storage backend** — S3/GCS/R2 adapter for file-upload lab in production-saas.
 
 ## Do not do yet
 
 - Do not expose `docker-compose.yml` to the public internet.
 - Do not claim Production SaaS readiness in README or release notes.
 - Do not remove vulnerable lab modes from local-lab profile.
-- Do not add billing until auth and tenancy are proven.
+- Do not add billing until tenant isolation is proven on all tables.
 
 ## Recommended next surgical prompt
 
-**BoundaryLayer Production SaaS Phase 1 — OIDC Auth and Tenant Schema Implementation**
+**BoundaryLayer Production SaaS Phase 2 — Tenant-Scoped Lab Data and Staging OIDC**
 
-Scope: implement JWT middleware, tenant/membership models, cross-tenant denial tests, and staging-only deploy — without breaking `make validate` on local-lab profile.
+Scope: migrate lab tables to tenant-scoped schema, extend cross-tenant denial tests to all labs, add staging OIDC integration — without breaking `make validate` on `local-lab` profile.
 
 ## References
 

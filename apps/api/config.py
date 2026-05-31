@@ -3,9 +3,25 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from urllib.parse import urlparse
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+SUPPORTED_AUTH_PROVIDERS = frozenset({"oidc", "oidc-test"})
+
+INSECURE_SECRET_KEY_MARKERS = (
+    "changeme",
+    "change-me",
+    "local-dev-hmac-secret-change-me",
+    "your-secret-here",
+    "placeholder-secret",
+)
+
+
+def is_valid_https_url(value: str) -> bool:
+    parsed = urlparse(value.strip())
+    return parsed.scheme == "https" and bool(parsed.netloc)
 
 
 class Settings(BaseSettings):
@@ -141,6 +157,30 @@ class Settings(BaseSettings):
         validation_alias="BOUNDARY_LAYER_AUDIT_LOG_ENABLED",
     )
 
+    oidc_issuer_url: str = Field(default="", validation_alias="OIDC_ISSUER_URL")
+    oidc_audience: str = Field(default="", validation_alias="OIDC_AUDIENCE")
+    oidc_jwks_url: str = Field(default="", validation_alias="OIDC_JWKS_URL")
+    oidc_algorithms: str = Field(
+        default="RS256",
+        validation_alias="OIDC_ALGORITHMS",
+    )
+    oidc_required_claims: str = Field(
+        default="",
+        validation_alias="OIDC_REQUIRED_CLAIMS",
+    )
+    oidc_tenant_claim: str = Field(
+        default="https://boundarylayer.dev/tenant_id",
+        validation_alias="OIDC_TENANT_CLAIM",
+    )
+    oidc_roles_claim: str = Field(
+        default="https://boundarylayer.dev/roles",
+        validation_alias="OIDC_ROLES_CLAIM",
+    )
+    oidc_subject_claim: str = Field(
+        default="sub",
+        validation_alias="OIDC_SUBJECT_CLAIM",
+    )
+
     @field_validator("boundary_layer_profile")
     @classmethod
     def normalize_profile(cls, value: str) -> str:
@@ -209,6 +249,27 @@ class Settings(BaseSettings):
             return self
 
         issues: list[str] = []
+        provider = self.auth_provider.strip().lower()
+        if provider not in SUPPORTED_AUTH_PROVIDERS:
+            issues.append(
+                "BOUNDARY_LAYER_AUTH_PROVIDER must be one of: "
+                + ", ".join(sorted(SUPPORTED_AUTH_PROVIDERS))
+            )
+        if not self.auth_enabled:
+            issues.append("BOUNDARY_LAYER_AUTH_ENABLED must be true")
+        if not self.oidc_issuer_url.strip() or not is_valid_https_url(
+            self.oidc_issuer_url
+        ):
+            issues.append("OIDC_ISSUER_URL must be a valid https URL")
+        if not self.oidc_audience.strip():
+            issues.append("OIDC_AUDIENCE is required")
+        if not self.oidc_jwks_url.strip() or not is_valid_https_url(self.oidc_jwks_url):
+            issues.append("OIDC_JWKS_URL must be a valid https URL")
+        algorithms = self.oidc_algorithms_list
+        if not algorithms:
+            issues.append("OIDC_ALGORITHMS is required")
+        elif any(algorithm.lower() == "none" for algorithm in algorithms):
+            issues.append("OIDC_ALGORITHMS must not allow none")
         if not self.auth_provider.strip():
             issues.append("BOUNDARY_LAYER_AUTH_PROVIDER is required")
         if not self.database_url.strip():
@@ -217,8 +278,12 @@ class Settings(BaseSettings):
             issues.append("REDIS_URL is required")
         if len(self.secret_key.strip()) < 32:
             issues.append("BOUNDARY_LAYER_SECRET_KEY must be at least 32 characters")
+        elif self._secret_key_is_insecure():
+            issues.append("BOUNDARY_LAYER_SECRET_KEY must not use insecure defaults")
         if not self.allowed_origins.strip():
             issues.append("BOUNDARY_LAYER_ALLOWED_ORIGINS is required")
+        elif self._origins_allow_wildcard(self.allowed_origins):
+            issues.append("BOUNDARY_LAYER_ALLOWED_ORIGINS must not use wildcards")
         if not self.public_base_url.strip():
             issues.append("BOUNDARY_LAYER_PUBLIC_BASE_URL is required")
         if not self.secure_cookies:
@@ -241,6 +306,38 @@ class Settings(BaseSettings):
         if issues:
             raise ValueError("; ".join(issues))
         return self
+
+    def _secret_key_is_insecure(self) -> bool:
+        normalized = self.secret_key.strip().lower()
+        if len(normalized) < 32:
+            return True
+        return normalized in INSECURE_SECRET_KEY_MARKERS
+
+    @staticmethod
+    def _origins_allow_wildcard(origins: str) -> bool:
+        for origin in origins.split(","):
+            cleaned = origin.strip()
+            if cleaned == "*" or cleaned.endswith("/*"):
+                return True
+        return False
+
+    @property
+    def oidc_algorithms_list(self) -> list[str]:
+        if not self.oidc_algorithms.strip():
+            return []
+        return [
+            part.strip() for part in self.oidc_algorithms.split(",") if part.strip()
+        ]
+
+    @property
+    def oidc_required_claims_list(self) -> list[str]:
+        if not self.oidc_required_claims.strip():
+            return []
+        return [
+            part.strip()
+            for part in self.oidc_required_claims.split(",")
+            if part.strip()
+        ]
 
     @property
     def is_production_saas(self) -> bool:

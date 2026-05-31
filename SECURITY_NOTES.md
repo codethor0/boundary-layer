@@ -11,9 +11,11 @@
 
 ## Production SaaS Profile (`production-saas`)
 
-- **Not shipped.** Fail-closed startup gate only.
-- Requires OIDC provider, managed DB/Redis URLs, secret manager values, audit logging, object storage backend, and CORS allowlist.
+- **Not shipped.** Phase 1 adds OIDC JWT middleware, tenant/membership/audit schema, and route protection.
+- Requires OIDC settings, managed DB/Redis URLs, secret manager values, audit logging, object storage backend, and CORS allowlist.
 - Run `make production-saas-check` locally; it should report NOT READY until real SaaS infrastructure exists.
+- Run `make production-saas-auth-smoke` for deterministic auth/tenancy unit tests (no external IdP).
+- Audit events are database-backed foundation only — not immutable production audit logging yet.
 - See [docs/PRODUCTION_SAAS_READINESS.md](docs/PRODUCTION_SAAS_READINESS.md).
 
 ## Safe-Use Disclaimer
