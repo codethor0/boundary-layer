@@ -21,7 +21,7 @@ class Settings(BaseSettings):
         default="development",
         validation_alias="BOUNDARY_LAYER_ENV",
     )
-    app_version: str = "1.1.0"
+    app_version: str = "1.2.0"
 
     api_host: str = Field(default="0.0.0.0", validation_alias="API_HOST")
     api_port: int = Field(default=8000, validation_alias="API_PORT")
@@ -57,6 +57,26 @@ class Settings(BaseSettings):
     rate_limit_window_seconds: int = Field(
         default=60,
         validation_alias="BOUNDARY_LAYER_RATE_LIMIT_WINDOW_SECONDS",
+    )
+    rate_limit_backend: str = Field(
+        default="memory",
+        validation_alias="BOUNDARY_LAYER_RATE_LIMIT_BACKEND",
+    )
+
+    postgres_password: str = Field(default="", validation_alias="POSTGRES_PASSWORD")
+    redis_password: str = Field(default="", validation_alias="REDIS_PASSWORD")
+    session_hmac_secret: str = Field(
+        default="",
+        validation_alias="SESSION_HMAC_SECRET",
+    )
+
+    forwarded_allow_ips: str = Field(
+        default="127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
+        validation_alias="BOUNDARY_LAYER_FORWARDED_ALLOW_IPS",
+    )
+    expose_openapi: bool = Field(
+        default=True,
+        validation_alias="BOUNDARY_LAYER_EXPOSE_OPENAPI",
     )
 
     cors_enabled: bool = Field(
@@ -98,8 +118,10 @@ class Settings(BaseSettings):
         self.auth_enabled = True
         self.metrics_auth_required = True
         self.rate_limit_enabled = True
+        self.rate_limit_backend = "redis"
         self.log_json = True
         self.run_migrations = True
+        self.expose_openapi = False
         return self
 
     @model_validator(mode="after")
@@ -122,6 +144,13 @@ class Settings(BaseSettings):
             raise ValueError(
                 "BOUNDARY_LAYER_METRICS_TOKEN must be at least 24 characters"
             )
+        for name, value in (
+            ("POSTGRES_PASSWORD", self.postgres_password),
+            ("REDIS_PASSWORD", self.redis_password),
+            ("SESSION_HMAC_SECRET", self.session_hmac_secret),
+        ):
+            if len(value.strip()) < 16:
+                raise ValueError(f"{name} must be at least 16 characters in production")
         return self
 
     @property

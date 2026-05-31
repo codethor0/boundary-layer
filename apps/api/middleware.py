@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from collections import defaultdict, deque
 from collections.abc import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -13,8 +12,11 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from apps.api.config import Settings, get_settings
+from apps.api.rate_limit import build_rate_limiter
 
 logger = logging.getLogger("boundary_layer.api")
+
+PRODUCTION_LOCKDOWN_PATHS = frozenset({"/docs", "/redoc", "/openapi.json"})
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
@@ -68,12 +70,27 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class ProductionLockdownMiddleware(BaseHTTPMiddleware):
+    """Hide documentation and schema endpoints in production."""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        settings = get_settings()
+        if (
+            settings.is_production
+            and not settings.expose_openapi
+            and request.url.path in PRODUCTION_LOCKDOWN_PATHS
+        ):
+            return JSONResponse(status_code=404, content={"detail": "Not Found"})
+        return await call_next(request)
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Simple in-memory sliding-window rate limiter keyed by client IP."""
+    """Sliding-window rate limiter with optional Redis backend."""
 
     def __init__(self, app):
         super().__init__(app)
-        self._events: dict[str, deque[float]] = defaultdict(deque)
+        self._limiter = None
+        self._backend = None
 
     def _client_key(self, request: Request) -> str:
         forwarded = request.headers.get("X-Forwarded-For")
@@ -83,32 +100,32 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return request.client.host
         return "unknown"
 
+    def _get_limiter(self, settings: Settings):
+        if self._limiter is None or self._backend != settings.rate_limit_backend:
+            self._backend = settings.rate_limit_backend
+            self._limiter = build_rate_limiter(settings.rate_limit_backend)
+        return self._limiter
+
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         settings = get_settings()
         if not settings.rate_limit_enabled:
             return await call_next(request)
-        if request.url.path == "/health":
+        if request.url.path in {"/health", "/ready"}:
             return await call_next(request)
 
-        now = time.monotonic()
         window = settings.rate_limit_window_seconds
         limit = settings.rate_limit_requests
         key = self._client_key(request)
-        bucket = self._events[key]
+        allowed, remaining = self._get_limiter(settings).allow(key, limit, window)
 
-        while bucket and now - bucket[0] > window:
-            bucket.popleft()
-
-        if len(bucket) >= limit:
+        if not allowed:
             return JSONResponse(
                 status_code=429,
                 content={"detail": "Rate limit exceeded"},
                 headers={"Retry-After": str(window)},
             )
 
-        bucket.append(now)
         response = await call_next(request)
-        remaining = max(limit - len(bucket), 0)
         response.headers["X-RateLimit-Limit"] = str(limit)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
         response.headers["X-RateLimit-Window-Seconds"] = str(window)

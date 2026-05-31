@@ -2,6 +2,14 @@
 
 All notable changes to BoundaryLayer are documented here.
 
+## v1.2.0
+
+- Harden production containers with non-root users, read-only root filesystems, and resource limits
+- Replace in-memory rate limiting with Redis-backed distributed limiter in production
+- Lock down production surface area: authenticated `/ready`, disabled OpenAPI, no public Prometheus/Alertmanager via nginx
+- Restrict uvicorn forwarded-allow-ips, strengthen nginx TLS settings, bind ingress to localhost by default
+- Validate production data-store secret strength at startup and add CI `validate-prod` workflow
+
 ## v1.1.0
 
 - Added production deployment profile with API authentication, metrics protection, and rate limiting

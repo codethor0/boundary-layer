@@ -1,0 +1,48 @@
+name: Production Validate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: make setup
+
+      - name: Generate production env file
+        run: |
+          python3 - <<'PY'
+          import secrets
+          from pathlib import Path
+
+          values = {
+              "BOUNDARY_LAYER_ENV": "production",
+              "BOUNDARY_LAYER_API_KEY": secrets.token_urlsafe(32),
+              "BOUNDARY_LAYER_METRICS_TOKEN": secrets.token_urlsafe(32),
+              "BOUNDARY_LAYER_ALERT_WEBHOOK_TOKEN": secrets.token_urlsafe(32),
+              "POSTGRES_PASSWORD": secrets.token_urlsafe(24),
+              "SESSION_HMAC_SECRET": secrets.token_urlsafe(24),
+              "REDIS_PASSWORD": secrets.token_urlsafe(24),
+              "BOUNDARY_LAYER_TRUSTED_HOSTS": "boundary-layer.local,nginx,localhost,api",
+          }
+          content = "\n".join(f"{key}={value}" for key, value in values.items()) + "\n"
+          Path(".env.production").write_text(content)
+          PY
+
+      - name: Run production validation
+        run: make validate-prod

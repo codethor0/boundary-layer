@@ -56,10 +56,22 @@ echo "==> Starting production stack"
 sleep 15
 
 echo "==> TLS health check"
-"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.1.0"'
+"${CURL_FAIL[@]}" "${API_URL}/health" | grep -q '"version":"1.2.0"'
 
 echo "==> Readiness check"
-"${CURL_FAIL[@]}" "${API_URL}/ready" | grep -q '"status":"ready"'
+"${CURL_FAIL[@]}" \
+  -H "Authorization: Bearer ${BOUNDARY_LAYER_METRICS_TOKEN}" \
+  "${API_URL}/ready" | grep -q '"status":"ready"'
+
+echo "==> OpenAPI docs disabled in production"
+code="$("${CURL[@]}" -o /dev/null -w "%{http_code}" "${API_URL}/docs")" || true
+[[ "$code" == "404" ]]
+
+echo "==> Observability UIs not exposed via nginx"
+code="$("${CURL[@]}" -o /dev/null -w "%{http_code}" "${API_URL}/prometheus/")" || true
+[[ "$code" == "404" ]]
+code="$("${CURL[@]}" -o /dev/null -w "%{http_code}" "${API_URL}/alertmanager/")" || true
+[[ "$code" == "404" ]]
 
 echo "==> Unauthenticated lab access rejected"
 code="$("${CURL[@]}" -o /dev/null -w "%{http_code}" \

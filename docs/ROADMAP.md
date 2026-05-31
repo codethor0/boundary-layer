@@ -91,6 +91,10 @@
 
 - Final live Docker release gate documentation and validation
 
+## v1.2.0 (Complete)
+
+- Production hardening pass: non-root containers, Redis rate limiting, ingress lockdown, CI prod gate
+
 ## v1.1.0 (Complete)
 
 - Production deployment profile with API auth, metrics protection, rate limiting, and TLS ingress
@@ -106,4 +110,7 @@
 
 ## Future
 
+- CA-backed TLS certificate automation and rotation runbook
+- Image vulnerability scanning in CI (Trivy/Hadolint)
+- Optional Postgres/Redis TLS for hostile-network deployments
 - Optional PNG exports of logo assets for platforms that require raster images

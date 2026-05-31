@@ -25,11 +25,15 @@ BoundaryLayer is for defensive education, secure engineering, and controlled loc
 - API key authentication required on lab routes
 - Metrics endpoint requires bearer token
 - Vulnerable lab modes disabled
-- Rate limiting enabled
+- Rate limiting uses Redis-backed distributed counters in production
 - Redis and PostgreSQL are internal-only (no host ports)
-- TLS termination at Nginx on port 8443
+- TLS termination at Nginx on port 8443 (bound to localhost by default)
 - Alert webhook requires bearer token
-- Alertmanager templates support Slack and PagerDuty receivers
+- OpenAPI/docs endpoints disabled in production
+- `/ready` requires metrics bearer token; dependency details are sanitized
+- Prometheus and Alertmanager UIs are internal-only (not proxied through nginx)
+- Application containers run as non-root with read-only root filesystems
+- CI runs `make validate-prod` on main via `.github/workflows/prod-validate.yml`
 
 See [docs/PRODUCTION.md](docs/PRODUCTION.md) for deployment steps.
 

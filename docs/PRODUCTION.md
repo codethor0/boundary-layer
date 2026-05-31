@@ -1,6 +1,6 @@
 # Production Deployment
 
-BoundaryLayer v1.1.0 adds a production deployment profile while preserving the local lab stack in `docker-compose.yml`.
+BoundaryLayer v1.2.0 adds a production deployment profile while preserving the local lab stack in `docker-compose.yml`.
 
 ## What Production Adds
 
@@ -9,13 +9,16 @@ BoundaryLayer v1.1.0 adds a production deployment profile while preserving the l
 | API authentication | Disabled by default | Required API key (Bearer or `X-API-Key`) |
 | Metrics access | Open | Bearer token required |
 | Vulnerable lab mode | Enabled | Disabled |
-| Rate limiting | Disabled | Enabled (120 req/min default) |
+| Rate limiting | Disabled | Redis-backed (120 req/min default) + nginx burst limit |
 | Structured logging | Plain text | JSON logs |
 | Database migrations | On-demand `init_db()` | Alembic on startup |
 | TLS ingress | None | Nginx on `:8443` |
 | Data stores on host | Exposed | Internal network only |
 | Alert webhook | Open | Bearer token required |
 | External alerts | Local webhook only | Authenticated local webhook (Slack/PagerDuty templates commented in config) |
+| OpenAPI / docs | Enabled | Disabled |
+| Observability UI | Localhost ports | Internal-only (not exposed via nginx) |
+| Container hardening | Dev defaults | Non-root, read-only rootfs, resource limits |
 
 ## Quick Start (Production Profile)
 
@@ -69,6 +72,7 @@ Production mode (`BOUNDARY_LAYER_ENV=production`) automatically enables:
 - `BOUNDARY_LAYER_METRICS_AUTH_REQUIRED=true`
 - `BOUNDARY_LAYER_ALLOW_VULNERABLE=false`
 - `BOUNDARY_LAYER_RATE_LIMIT_ENABLED=true`
+- `BOUNDARY_LAYER_RATE_LIMIT_BACKEND=redis`
 - `BOUNDARY_LAYER_LOG_JSON=true`
 - `BOUNDARY_LAYER_RUN_MIGRATIONS=true`
 
