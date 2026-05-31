@@ -2,44 +2,41 @@
 
 BoundaryLayer v1.3.5 local lab: **ready**. Production SaaS: **6/10** (capped until live staging evidence exists).
 
-## Phase 7 result: LIVE STAGING BLOCKED
+## Phase 8 result: LIVE STAGING BLOCKED (provisioning not executed)
 
-Live validation did not run. Missing:
+Phase 8 stopped at operator prerequisites:
 
-1. Untracked local `.env.staging` **or** GitHub Environment `staging` (environment does not exist yet — HTTP 404)
-2. All managed-service, OIDC, and staging smoke variables listed in `make check-live-staging-prereqs` output
+1. **AWS access missing** — AWS CLI not installed; no `aws sts get-caller-identity`
+2. **GitHub CLI access missing** — invalid keyring token; cannot create Environment `staging`
+3. **Terraform skeleton** — IaC not executable; see `docs/PHASE_8A_STAGING_IAC_PLAN.md`
+4. No `.env.staging`; template added as `.env.staging.example`
 
-## Exact next commands (when credentials exist)
+No terraform apply, no ECR push, no deploy, no live evidence runner.
+
+## Operator runbook (required before Phase 8B)
+
+Follow **`docs/PHASE_8_OPERATOR_RUNBOOK.md`** in order:
+
+1. Install/configure AWS CLI and `gh auth login`
+2. Implement Phase 8A IaC (`docs/PHASE_8A_STAGING_IAC_PLAN.md`)
+3. `terraform apply` in staging account (operator review)
+4. Create GitHub Environment `staging` and set secrets (commands in runbook)
+5. Copy `.env.staging.example` -> untracked `.env.staging`
+6. Build/push image, deploy, run live evidence chain
+
+## Exact next commands (after credentials + IaC)
 
 ```bash
-# 1. Create GitHub Environment "staging" and add secrets per docs/STAGING_SECRETS_INVENTORY.md
-#    OR create untracked .env.staging locally (never commit)
-
-# 2. Verify prerequisites (names only, no secret values printed)
+cp .env.staging.example .env.staging   # edit locally, never commit
+set -a && source .env.staging && set +a
 export RUN_LIVE_STAGING_CHECKS=true
-# source .env.staging  # if using local file
 make check-live-staging-prereqs
-
-# 3. Run full evidence chain
 make production-saas-evidence-runner
-
-# 4. Fill docs/LIVE_STAGING_EVIDENCE_TEMPLATE.md from sanitized output
 ```
-
-Manual CI: `.github/workflows/production-saas-live-validation.yml` (requires GitHub Environment `staging`).
-
-## AWS staging provisioning (prerequisite)
-
-Follow `docs/STAGING_DEPLOYMENT_RUNBOOK.md`:
-
-1. Create staging AWS account resources (RDS, ElastiCache, S3, ECR, ECS, WAF)
-2. Configure OIDC provider and issue tenant A/B test JWTs
-3. Create GitHub Environment `staging` with all secrets
-4. Deploy via `staging-deploy` workflow with reviewer approval
 
 ## Recommended next prompt
 
-**BoundaryLayer Production SaaS Phase 8 — Provision Staging AWS Account and Run Live Evidence Runner**
+**BoundaryLayer Production SaaS Phase 8B — Apply Staging Terraform and Run Live Evidence Runner**
 
 ## References
 

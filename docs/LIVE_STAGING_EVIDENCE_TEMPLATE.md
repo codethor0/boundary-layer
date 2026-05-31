@@ -4,6 +4,8 @@ Fill this document **after** a successful live staging validation run. Store com
 
 **Do not include real secrets, passwords, or JWT values.**
 
+Copy `.env.staging.example` to untracked `.env.staging` before local live runs. See `docs/PHASE_8_OPERATOR_RUNBOOK.md`.
+
 ## Deployment metadata
 
 | Field | Value |

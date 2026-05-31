@@ -1,6 +1,7 @@
 # Local environment
 .env
 .env.staging
+!.env.staging.example
 .venv/
 venv/
 
