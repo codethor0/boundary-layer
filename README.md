@@ -25,37 +25,28 @@ The model is only the interpreter. The boundary decides the blast radius.
 
 **What does it teach?** Each lab runs in `vulnerable` or `hardened` mode so you can compare unsafe defaults to defensive controls, with Prometheus metrics and local Alertmanager delivery.
 
-**Fastest path (about 5 minutes):**
+**Best first demo (about 5 minutes):**
 
 ```bash
 git clone https://github.com/codethor0/boundary-layer.git
 cd boundary-layer
 make setup
 make up
+make smoke
+make demo
+```
+
+**Full validation (advanced, several minutes):**
+
+```bash
 make validate
+make validate-prod   # production-like profile on machines you control
+make bug-hunt-prod   # optional adversarial checks
 ```
 
-**Try one lab pair first (Redis tampering):**
+Screenshots/GIFs are planned. See [docs/DEMO_ASSETS.md](docs/DEMO_ASSETS.md) for capture flow.
 
-```bash
-curl -sf -X POST http://localhost:8000/labs/redis/run \
-  -H "Content-Type: application/json" -d '{"mode":"vulnerable"}'
-curl -sf -X POST http://localhost:8000/labs/redis/run \
-  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
-curl -sf http://localhost:8000/metrics | grep boundary_layer_redis
-```
-
-**Trigger a local alert (circuit breaker):**
-
-```bash
-curl -sf -X DELETE http://localhost:8081/alerts
-curl -sf -X POST http://localhost:8000/labs/circuit-breaker/run \
-  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
-# Wait up to 60 seconds, then:
-curl -sf http://localhost:8081/alerts
-```
-
-For a facilitator-led walkthrough, see [docs/WORKSHOP.md](docs/WORKSHOP.md). For full terminal examples, see [docs/EXAMPLES.md](docs/EXAMPLES.md).
+For a facilitator-led walkthrough, see [docs/WORKSHOP.md](docs/WORKSHOP.md). For copy-paste curl examples, see [docs/EXAMPLES.md](docs/EXAMPLES.md). For common Docker/port issues, see [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
 ### What you should see
 
@@ -89,8 +80,14 @@ BoundaryLayer is a **local lab**, not a hosted production SaaS. Do not expose th
 
 | If you want to… | Read |
 |-----------------|------|
-| Run your first lab in 5–30 minutes | [docs/WORKSHOP.md](docs/WORKSHOP.md) or [docs/DEMO.md](docs/DEMO.md) |
+| Run your first lab in 5–30 minutes | [docs/WORKSHOP.md](docs/WORKSHOP.md), `make smoke`, `make demo` |
 | See copy-paste curl examples and sample JSON | [docs/EXAMPLES.md](docs/EXAMPLES.md) |
+| Understand live vs simulated lab realism | [docs/LIVE_VS_SIMULATED.md](docs/LIVE_VS_SIMULATED.md) |
+| Browse metrics and PromQL examples | [docs/METRICS.md](docs/METRICS.md) |
+| Walk through Prometheus and Alertmanager | [docs/OBSERVABILITY_WALKTHROUGH.md](docs/OBSERVABILITY_WALKTHROUGH.md) |
+| Fix Docker, port, or alert issues | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
+| Add a new lab (contributors) | [docs/ADD_A_LAB.md](docs/ADD_A_LAB.md) |
+| Plan terminal GIFs or README screenshots | [docs/DEMO_ASSETS.md](docs/DEMO_ASSETS.md) |
 | Understand services, metrics, and lab behavior | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Review threats and trust boundaries | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) |
 | Map labs to controls and alert rules | [docs/CONTROLS_MAP.md](docs/CONTROLS_MAP.md) |
@@ -100,15 +97,29 @@ BoundaryLayer is a **local lab**, not a hosted production SaaS. Do not expose th
 | Release, tag, or publish (maintainers) | [CHANGELOG.md](CHANGELOG.md), [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md), [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md) |
 | Browse diagrams | [docs/DIAGRAMS.md](docs/DIAGRAMS.md) or the architecture section below |
 
-Optional deep dives: [docs/DEEP_QA.md](docs/DEEP_QA.md), [docs/LIVE_RELEASE_GATE.md](docs/LIVE_RELEASE_GATE.md), [docs/GOVERNANCE_MODEL.md](docs/GOVERNANCE_MODEL.md), [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
+Optional deep dives: [docs/DEEP_QA.md](docs/DEEP_QA.md), [docs/LIVE_RELEASE_GATE.md](docs/LIVE_RELEASE_GATE.md), [docs/GOVERNANCE_MODEL.md](docs/GOVERNANCE_MODEL.md), [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md), [docs/DEMO.md](docs/DEMO.md).
 
 ## What BoundaryLayer Is
 
-BoundaryLayer is a local LLM infrastructure security lab. It simulates the blast radius around LLM applications after the model is tricked: tool routing, session state, authorization, file handling, data lifecycle, write pressure, streaming, inference backpressure, cache isolation, and alert delivery.
+A local Docker Compose lab with FastAPI orchestrator, live Redis and PostgreSQL where relevant, Prometheus metrics, Alertmanager routing to a local webhook, and nine paired vulnerable/hardened labs. No external LLM API dependency.
 
-It runs as a Docker Compose stack with a FastAPI orchestrator, live Redis and PostgreSQL integrations, Prometheus metrics, and Alertmanager routing to a local webhook. There is no external LLM API dependency.
+BoundaryLayer includes a deterministic **mock LLM** service (`mock-llm:8080`) for demos and extension points. Current lab runners are deterministic and mostly execute **in-process**. Live labs use Redis and PostgreSQL directly—they do not call the mock LLM HTTP API during normal lab runs.
 
-BoundaryLayer includes a deterministic **mock LLM** service (`mock-llm:8080`) for local demos and extension points. Current lab runners are deterministic and mostly execute **in-process** so they remain fast, repeatable, and safe. Where labs use live infrastructure, they use Redis and PostgreSQL directly—they do not call the mock LLM HTTP API during normal lab runs.
+## Live vs Simulated Labs
+
+| Lab | Realism |
+|-----|---------|
+| Tool Router | In-process simulation |
+| Redis Tampering | Live Redis (+ fallback) |
+| AuthZ | In-process simulation |
+| File Upload | Metadata simulation (not real parsers) |
+| Governance | Live PostgreSQL (+ fallback) |
+| Write Storm | Live PostgreSQL (bounded inserts) |
+| Circuit Breaker | Synthetic work units |
+| SSE Exhaustion | Synthetic streams (no real sockets) |
+| Prompt Cache | Live Redis (+ fallback) |
+
+Full matrix: [docs/LIVE_VS_SIMULATED.md](docs/LIVE_VS_SIMULATED.md).
 
 ## Why It Exists
 
@@ -335,17 +346,19 @@ curl -sf http://localhost:8000/metrics | head -40
 curl -sf http://localhost:8081/alerts
 ```
 
-See [docs/CONTROLS_MAP.md](docs/CONTROLS_MAP.md) for lab-to-alert mapping.
+See [docs/CONTROLS_MAP.md](docs/CONTROLS_MAP.md) for lab-to-alert mapping. Metric catalog: [docs/METRICS.md](docs/METRICS.md). Walkthrough: [docs/OBSERVABILITY_WALKTHROUGH.md](docs/OBSERVABILITY_WALKTHROUGH.md).
 
 ## End-to-End Validation
 
-The authoritative local gate is `make validate` (184 tests, lint, all labs, metrics, alert delivery including `BoundaryLayerInferenceCircuitBreakerOpen`).
+| Target | Purpose |
+|--------|---------|
+| `make smoke` | Fast sanity check (~30s): health, labs list, metrics, Redis pair |
+| `make demo` | Guided demo: Redis, prompt cache, circuit breaker alert poll |
+| `make validate-alerts` | Extended alert delivery: circuit breaker + authz |
+| `make validate` | Full local gate (tests, lint, all labs, metrics, alerts) |
+| `make validate-prod` | Production-like profile on controlled local machines |
 
-```bash
-make validate
-```
-
-See [docs/E2E_VALIDATION.md](docs/E2E_VALIDATION.md), [docs/LIVE_RELEASE_GATE.md](docs/LIVE_RELEASE_GATE.md), and [docs/DEEP_QA.md](docs/DEEP_QA.md) for deeper gates. Terminal examples: [docs/EXAMPLES.md](docs/EXAMPLES.md).
+The authoritative local gate is `make validate` (184 tests, lint, all labs, metrics, alert delivery including circuit breaker and authz via `validate-alerts`).
 
 ## Visual Identity
 
@@ -362,14 +375,18 @@ Generated reports, command transcripts, local bundles, editor files, and build p
 | `make setup` | Create virtualenv and install dependencies |
 | `make up` | Build and start Docker Compose services |
 | `make down` | Stop Docker Compose services |
+| `make smoke` | Fast sanity check (requires stack up) |
+| `make demo` | Guided demo with alert poll (requires stack up) |
 | `make test` | Run pytest (184 tests) |
-| `make validate-e2e` | Full test + lint + prod + local validation |
-| `make backup` | Backup Postgres to `backups/postgres/` |
-| `make validate-prod` | Run production stack validation (requires `.env.production`) |
 | `make lint` | Run ruff lint and format checks |
+| `make validate-alerts` | Extended alert delivery checks |
 | `make validate` | Full validation pipeline |
+| `make validate-e2e` | Full test + lint + prod + local validation |
+| `make validate-prod` | Production-like local validation profile |
+| `make backup` | Backup Postgres to `backups/postgres/` |
 | `make bundle` | Create local review ZIP in `~/Downloads/` |
 | `make clean` | Stop services and remove generated caches |
+| `make help` | List Makefile targets |
 
 ## Continuous Integration
 
@@ -395,9 +412,11 @@ See [SECURITY.md](SECURITY.md) and [SECURITY_NOTES.md](SECURITY_NOTES.md).
 
 ## Release
 
-- [CHANGELOG.md](CHANGELOG.md) — release history (tag `v1.3.3` exists; GitHub Release page may still be pending)
+- [CHANGELOG.md](CHANGELOG.md) — release history
 - [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
 - [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md)
+
+**Tag vs main:** Release tag `v1.3.3` points to the validated release commit (`0060b02`). Post-release documentation polish may exist on `main` (for example commit `7854aa7`). For the latest docs, use `main`. For the exact tagged code snapshot, check out `v1.3.3`. Future patch releases (for example `v1.3.4`) can align tag and docs if needed. Do not retag published releases.
 
 ## License
 

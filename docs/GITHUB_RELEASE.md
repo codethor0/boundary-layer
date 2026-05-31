@@ -75,20 +75,25 @@ gh repo create codethor0/boundary-layer \
 
 ## Release process
 
+Preferred release title: **BoundaryLayer vX.Y.Z — Local Lab Validation and Release Hardening**
+
+Do not use "Production Readiness" alone. Production-like validation is for controlled local machines, not hosted SaaS readiness.
+
 1. Run `make test`
 2. Run `make lint`
 3. Run `docker compose down -v`
 4. Run `make up`
-5. Run `make validate`
-6. Confirm no prompt artifacts are tracked in Git
-7. Confirm generated reports are untracked
-8. Confirm CI hygiene checks pass locally:
+5. Run `make smoke` and `make demo`
+6. Run `make validate`
+7. Confirm no prompt artifacts are tracked in Git
+8. Confirm generated reports are untracked
+9. Confirm CI hygiene checks pass locally:
    ```bash
    git ls-files | grep -Ei '(^|/)\.cursor/|COMMAND_TRANSCRIPT|VALIDATION_LOG|TEST_RESULTS|IMPLEMENTATION_REPORT|DEPENDENCY_REPORT|NEXT_STEPS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|cursor-prompt|agent-prompt|agent-report' && exit 1 || true
    ```
-9. Tag release: `git tag -a vX.Y.Z -m "BoundaryLayer vX.Y.Z"`
-10. Push branch and tag: `git push origin main && git push origin vX.Y.Z`
-11. Create GitHub release from tag using notes from `CHANGELOG.md`
+10. Tag release: `git tag -a vX.Y.Z -m "BoundaryLayer vX.Y.Z — Local Lab Validation and Release Hardening"`
+11. Push branch and tag: `git push origin main && git push origin vX.Y.Z`
+12. Create GitHub release from tag using notes from `CHANGELOG.md` with the preferred title above
 
 ## Continuous integration
 
@@ -109,16 +114,17 @@ git push origin v1.0.0
 ## Release notes template
 
 ```markdown
-## BoundaryLayer v1.0.0
+## BoundaryLayer vX.Y.Z — Local Lab Validation and Release Hardening
 
-First public release of BoundaryLayer, an open-source LLM infrastructure security lab.
+Local defensive AI infrastructure security lab release. Not a hosted SaaS product.
 
 ### Highlights
 
 - Nine security labs with vulnerable and hardened modes
-- Live Redis and PostgreSQL integration
+- Live Redis and PostgreSQL integration where relevant
 - Prometheus metrics and Alertmanager local alert routing
-- 177 passing tests
+- `make smoke`, `make demo`, and `make validate-alerts` for fast onboarding
+- 184 passing tests
 - Docker Compose local stack
 
 ### Quick start
@@ -127,7 +133,8 @@ git clone https://github.com/codethor0/boundary-layer.git
 cd boundary-layer
 make setup
 make up
-make validate
+make smoke
+make demo
 
 See CHANGELOG.md for version history.
 ```

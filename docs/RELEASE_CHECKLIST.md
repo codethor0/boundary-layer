@@ -2,18 +2,34 @@
 
 Use this checklist before tagging a BoundaryLayer release or publishing a GitHub release.
 
+## Release title pattern
+
+Preferred GitHub release title:
+
+**BoundaryLayer vX.Y.Z — Local Lab Validation and Release Hardening**
+
+Avoid using "Production Readiness" alone. **Production-like** means controlled local validation on machines you operate—not hosted SaaS readiness.
+
+## Tag vs main
+
+- The release tag points to the validated release commit.
+- Post-release documentation polish may land on `main` after the tag.
+- For latest docs, use `main`. For the exact tagged code snapshot, check out the tag.
+- Consider a patch release (for example `v1.3.4`) if docs and tag should align; do not retag published releases.
+
 ## Pre-release validation
 
 - [ ] Run `make setup`
 - [ ] Run `make test` (184 tests passing)
 - [ ] Run `make lint`
 - [ ] Run `docker compose down -v && make up`
+- [ ] Run `make smoke` and `make demo`
 - [ ] Run `make validate` or follow [E2E_VALIDATION.md](E2E_VALIDATION.md) for live Docker checks
 - [ ] Run secret scan (included in `make validate`)
 - [ ] Verify Prometheus health at http://localhost:9090/-/healthy
 - [ ] Verify Alertmanager health at http://localhost:9093/-/healthy
 - [ ] Verify alert webhook health at http://localhost:8081/health
-- [ ] Confirm `BoundaryLayerInferenceCircuitBreakerOpen` alert delivery (included in validate)
+- [ ] Confirm `BoundaryLayerInferenceCircuitBreakerOpen` and `BoundaryLayerAuthzDenied` alert delivery (`make validate-alerts`)
 
 ## Repository hygiene
 

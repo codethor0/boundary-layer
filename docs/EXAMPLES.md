@@ -1,205 +1,215 @@
-# Terminal Output Examples
+# BoundaryLayer Examples
 
-Representative API responses from a local BoundaryLayer stack. Values are sanitized and truncated for readability. These are not validation transcripts.
+Copy-paste curl examples for all nine labs. Stack must be running (`make up`).
 
-## GET /health
+Examples are abbreviated. Exact event text may vary slightly as validation scripts evolve.
+
+Current API version (from `GET /health`): `1.3.3` (or read live from `/health` instead of hardcoding).
+
+## Health
 
 ```bash
 curl -sf http://localhost:8000/health
 ```
 
 ```json
-{
-  "status": "ok",
-  "service": "boundary-layer-api",
-  "version": "1.0.10"
-}
+{"status":"ok","service":"boundary-layer-api","version":"1.3.3","environment":"development"}
 ```
 
-## GET /labs
+## List labs
 
 ```bash
 curl -sf http://localhost:8000/labs
 ```
 
-```json
-{
-  "labs": [
-    {
-      "id": "tool-router",
-      "name": "Tool Router Injection Lab",
-      "path": "/labs/tool-router/run",
-      "description": "Poisoned retrieved content influences simulated tool requests."
-    },
-    {
-      "id": "redis",
-      "name": "Redis State Tampering Lab",
-      "path": "/labs/redis/run",
-      "description": "Predictable or unsigned session values can be modified."
-    }
-  ]
-}
+## Tool Router Injection
+
+**Infrastructure:** deterministic in-process simulation.
+
+```bash
+curl -sf -X POST http://localhost:8000/labs/tool-router/run \
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable"}'
+curl -sf -X POST http://localhost:8000/labs/tool-router/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
 ```
 
-The live response lists all nine labs. Output above shows the first two entries only.
+| Mode | Notice | Metric | Alert |
+|------|--------|--------|-------|
+| vulnerable | Poisoned retrieval routes to destructive tool | `boundary_layer_lab_runs_total{lab="tool-router",result="allowed"}` | — |
+| hardened | Injection pattern blocked before tool dispatch | `boundary_layer_tool_injection_blocked_total` | `BoundaryLayerToolInjectionBlockedSpike` (on sustained increase) |
 
-## Redis vulnerable mode
+Excerpt (hardened): `"blocked": true`, `"control"` mentions tool allowlist or injection filtering.
+
+## Redis State Tampering
+
+**Infrastructure:** live Redis plus deterministic fallback.
 
 ```bash
 curl -sf -X POST http://localhost:8000/labs/redis/run \
-  -H "Content-Type: application/json" \
-  -d '{"mode":"vulnerable"}'
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable"}'
+curl -sf -X POST http://localhost:8000/labs/redis/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
 ```
 
-```json
-{
-  "lab": "redis",
-  "mode": "vulnerable",
-  "blocked": false,
-  "risk": "redis_state_tampering",
-  "control": "none",
-  "events": [
-    "Stored unsigned session blob",
-    "Tampered session role from viewer to admin",
-    "Accepted tampered session; privilege escalation succeeded"
-  ],
-  "summary": "Vulnerable mode accepted a tampered session blob; role escalated from viewer to admin."
-}
-```
+| Mode | Notice | Metric | Alert |
+|------|--------|--------|-------|
+| vulnerable | Tampered session blob accepted; role escalates | `boundary_layer_lab_runs_total{lab="redis",result="allowed"}` | — |
+| hardened | HMAC verification rejects tamper | `boundary_layer_redis_tamper_rejected_total` | `BoundaryLayerRedisTamperRejected` |
 
-## Redis hardened mode
+Excerpt (vulnerable): `"blocked": false`, summary mentions privilege escalation.
+
+Excerpt (hardened): `"blocked": true`, `"control": "HMAC session integrity verification"`.
+
+## Flat AuthN/AuthZ
+
+**Infrastructure:** deterministic in-process simulation.
 
 ```bash
-curl -sf -X POST http://localhost:8000/labs/redis/run \
+curl -sf -X POST http://localhost:8000/labs/authz/run \
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable"}'
+curl -sf -X POST http://localhost:8000/labs/authz/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
+```
+
+| Mode | Notice | Metric | Alert |
+|------|--------|--------|-------|
+| vulnerable | Broad token invokes restricted admin tool | `boundary_layer_lab_runs_total{lab="authz",result="allowed"}` | — |
+| hardened | Restricted tool denied for token scope | `boundary_layer_authz_denied_total` | `BoundaryLayerAuthzDenied` |
+
+Excerpt (hardened): `"blocked": true`, summary mentions authorization denial.
+
+## File Upload Injection
+
+**Infrastructure:** deterministic metadata/content simulation (not real parser sandboxing).
+
+```bash
+curl -sf -X POST http://localhost:8000/labs/file-upload/run \
   -H "Content-Type: application/json" \
-  -d '{"mode":"hardened"}'
+  -d '{"mode":"vulnerable","file_type":"pdf","content_hint":"hidden instruction"}'
+curl -sf -X POST http://localhost:8000/labs/file-upload/run \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"hardened","file_type":"pdf","content_hint":"hidden instruction"}'
 ```
 
-```json
-{
-  "lab": "redis",
-  "mode": "hardened",
-  "blocked": true,
-  "risk": "redis_state_tampering",
-  "control": "hmac_session_integrity",
-  "events": [
-    "Stored HMAC-signed session token: eyJ1c2VyIjogImRlbW8i...",
-    "Rejected tampered session; HMAC verification failed"
-  ],
-  "summary": "Hardened mode rejected tampered session; privilege escalation blocked."
-}
+| Mode | Notice | Metric | Alert |
+|------|--------|--------|-------|
+| vulnerable | Unsafe extraction path accepts hidden instruction | `boundary_layer_file_upload_extractions_total` | — |
+| hardened | Sandbox, wrapping, or egress block applied | `boundary_layer_file_upload_hidden_instruction_detected_total` | `BoundaryLayerFileUploadHiddenInstructionDetected` |
+
+Excerpt (hardened): `"blocked": true`, control mentions sandbox or untrusted wrapping.
+
+## Prompt Governance
+
+**Infrastructure:** live PostgreSQL plus fallback.
+
+```bash
+curl -sf -X POST http://localhost:8000/labs/governance/run \
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable"}'
+curl -sf -X POST http://localhost:8000/labs/governance/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
 ```
 
-## Circuit breaker hardened mode
+| Mode | Notice | Metric | Alert |
+|------|--------|--------|-------|
+| vulnerable | Deletion leaves orphan downstream records | `boundary_layer_prompt_deletion_orphan_records_total` | `BoundaryLayerPromptDeletionIncomplete` |
+| hardened | Deletion audit completes with cascade checks | `boundary_layer_governance_deletion_audits_total` | — |
 
-Default request load is 250 work units. Safe capacity is 100, so the breaker opens and work is shed.
+Excerpt (vulnerable): `"blocked": false`, summary mentions orphaned records.
+
+## PostgreSQL Write Storm
+
+**Infrastructure:** live PostgreSQL bounded synthetic inserts.
+
+```bash
+curl -sf -X POST http://localhost:8000/labs/postgres-write-storm/run \
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable","event_count":50}'
+curl -sf -X POST http://localhost:8000/labs/postgres-write-storm/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened","event_count":50}'
+```
+
+| Mode | Notice | Metric | Alert |
+|------|--------|--------|-------|
+| vulnerable | Unbounded synthetic writes accepted | `boundary_layer_postgres_write_storm_events_total` | `BoundaryLayerPostgresWriteStormDetected` |
+| hardened | Write budget blocks excess inserts | `boundary_layer_postgres_write_storm_blocked_writes_total` | `BoundaryLayerPostgresWriteStormMitigated` |
+
+Excerpt (hardened): `"blocked": true`, control mentions write budget.
+
+## Circuit Breaker
+
+**Infrastructure:** deterministic synthetic work units.
 
 ```bash
 curl -sf -X POST http://localhost:8000/labs/circuit-breaker/run \
-  -H "Content-Type: application/json" \
-  -d '{"mode":"hardened"}'
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable"}'
+curl -sf -X POST http://localhost:8000/labs/circuit-breaker/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
 ```
 
-```json
-{
-  "lab": "circuit-breaker",
-  "mode": "hardened",
-  "blocked": true,
-  "risk": "inference_backpressure",
-  "control": "capacity_limit_and_circuit_breaker",
-  "events": [
-    "Requested work units: 250",
-    "Safe capacity: 100",
-    "Circuit breaker opened; shedding excess work"
-  ],
-  "summary": "Hardened mode accepted 100 work units, shed 150, circuit breaker state open."
-}
-```
+| Mode | Notice | Metric | Alert |
+|------|--------|--------|-------|
+| vulnerable | High load accepted; simulated failures rise | `boundary_layer_inference_simulated_failures_total` | — |
+| hardened | Circuit opens; work shed at safe capacity | `boundary_layer_inference_circuit_breaker_state` = 1 | `BoundaryLayerInferenceCircuitBreakerOpen` |
 
-## Prompt cache vulnerable mode
+Excerpt (hardened): `"blocked": true`, events mention load shedding.
 
-```bash
-curl -sf -X POST http://localhost:8000/labs/prompt-cache-isolation/run \
-  -H "Content-Type: application/json" \
-  -d '{"mode":"vulnerable"}'
-```
-
-```json
-{
-  "lab": "prompt-cache-isolation",
-  "mode": "vulnerable",
-  "blocked": false,
-  "risk": "prompt_cache_cross_tenant_bleed",
-  "control": "none",
-  "events": [
-    "Tenant A wrote shared cache entry",
-    "Tenant B lookup hit Tenant A cache entry"
-  ],
-  "summary": "Vulnerable mode allowed Tenant B to hit Tenant A's shared prompt cache entry."
-}
-```
-
-## Prompt cache hardened mode
-
-```bash
-curl -sf -X POST http://localhost:8000/labs/prompt-cache-isolation/run \
-  -H "Content-Type: application/json" \
-  -d '{"mode":"hardened"}'
-```
-
-```json
-{
-  "lab": "prompt-cache-isolation",
-  "mode": "hardened",
-  "blocked": true,
-  "risk": "prompt_cache_cross_tenant_bleed",
-  "control": "tenant_scoped_cache_keys",
-  "events": [
-    "Tenant A wrote tenant-scoped cache entry",
-    "Tenant B lookup used isolated namespace; no cross-tenant hit"
-  ],
-  "summary": "Hardened mode prevented cross-tenant prompt cache bleed using tenant namespaces."
-}
-```
-
-## Alert webhook output
-
-After clearing the store and triggering the circuit breaker alert path:
+Trigger alert delivery (clear webhook first):
 
 ```bash
 curl -sf -X DELETE http://localhost:8081/alerts
+curl -sf -X POST http://localhost:8000/labs/circuit-breaker/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
+# Wait up to 60 seconds
 curl -sf http://localhost:8081/alerts
 ```
 
-Empty store:
+## SSE Exhaustion
 
-```json
-{
-  "count": 0,
-  "alerts": []
-}
+**Infrastructure:** deterministic synthetic stream units (no real sockets).
+
+```bash
+curl -sf -X POST http://localhost:8000/labs/sse-exhaustion/run \
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable","requested_streams":20}'
+curl -sf -X POST http://localhost:8000/labs/sse-exhaustion/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened","requested_streams":20}'
 ```
 
-After Prometheus and Alertmanager route a firing alert (may take up to 60 seconds):
+| Mode | Notice | Metric | Alert |
+|------|--------|--------|-------|
+| vulnerable | Streams exceed tenant cap; pressure rises | `boundary_layer_sse_active_streams` | `BoundaryLayerSSEStreamExhaustionDetected` |
+| hardened | Rejection or cleanup applied | `boundary_layer_sse_cleanup_applied_total` | `BoundaryLayerSSECleanupApplied` |
 
-```json
-{
-  "count": 1,
-  "alerts": [
-    {
-      "status": "firing",
-      "labels": {
-        "alertname": "BoundaryLayerInferenceCircuitBreakerOpen",
-        "severity": "warning"
-      },
-      "annotations": {
-        "summary": "Inference circuit breaker is open"
-      }
-    }
-  ]
-}
+Excerpt (hardened): `"blocked": true`, control mentions stream cap or cleanup.
+
+## Prompt Cache Isolation
+
+**Infrastructure:** live Redis plus fallback.
+
+```bash
+curl -sf -X POST http://localhost:8000/labs/prompt-cache-isolation/run \
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable"}'
+curl -sf -X POST http://localhost:8000/labs/prompt-cache-isolation/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
 ```
 
-Label and annotation text may vary slightly with Prometheus rule evaluation timing.
+| Mode | Notice | Metric | Alert |
+|------|--------|--------|-------|
+| vulnerable | Shared cache key allows cross-tenant bleed | `boundary_layer_prompt_cache_cross_tenant_bleed_total` | `BoundaryLayerPromptCacheCrossTenantBleed` |
+| hardened | Tenant-scoped namespace enforced | `boundary_layer_prompt_cache_isolation_applied_total` | `BoundaryLayerPromptCacheIsolationApplied` |
 
-For live Docker verification commands, see [E2E_VALIDATION.md](E2E_VALIDATION.md).
+Excerpt (vulnerable): `"blocked": false`, summary mentions cross-tenant bleed.
+
+Excerpt (hardened): `"blocked": true`, control mentions tenant-scoped isolation.
+
+## Metrics snapshot
+
+```bash
+curl -sf http://localhost:8000/metrics | grep boundary_layer_ | head -30
+```
+
+See [docs/METRICS.md](METRICS.md) for the full catalog.
+
+## Related
+
+- [WORKSHOP.md](WORKSHOP.md) — facilitator walkthrough
+- [LIVE_VS_SIMULATED.md](LIVE_VS_SIMULATED.md) — realism matrix
+- [OBSERVABILITY_WALKTHROUGH.md](OBSERVABILITY_WALKTHROUGH.md) — Prometheus and Alertmanager

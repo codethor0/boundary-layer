@@ -30,7 +30,34 @@ Restore runs against the currently running Postgres container. Stop write traffi
 
 `make validate` and `make validate-prod` include a backup/restore **roundtrip smoke test** that drops and restores the `write_storm_events` table from a `pg_dump` backup. This proves the scripts work and basic table-level recovery is possible.
 
-It is **not** a full fresh-volume database disaster recovery simulation. Restoring an entire Postgres data directory into a new volume is documented below but not exercised by the default validation gates. Fresh-volume restore validation is recommended future work for maintainers.
+It is **not** a full fresh-volume database disaster recovery simulation. Restoring an entire Postgres data directory into a new volume is documented below but not exercised by the default validation gates.
+
+### What table-scoped restore proves
+
+- `pg_dump` / `pg_restore` scripts run successfully against the live compose Postgres container.
+- The `write_storm_events` table can be dropped and recovered from a compressed backup without manual SQL surgery.
+- Backup and restore scripts detect dev vs production-like compose project names.
+
+### What it does not prove
+
+- Recovery of the entire Postgres data directory into a **new Docker volume** with zero manual steps.
+- Point-in-time recovery, replication failover, or off-host backup integrity.
+- Redis session/cache recovery (Redis is ephemeral in the lab by design).
+
+### Planned fresh-volume restore validation
+
+Future maintainers can add `scripts/validate-restore-fresh-volume.sh` (not wired into `make validate` until reliable):
+
+1. `docker compose down -v` — destroy dev volumes.
+2. `make up` — create fresh Postgres volume.
+3. Seed labs (governance + write storm runs) to populate tables.
+4. `make backup` — write timestamped dump.
+5. `docker compose down -v` again — simulate volume loss.
+6. `make up` — empty database.
+7. `make restore BACKUP=...` — restore full dump (not table-only).
+8. Assert row counts in `write_storm_events` and governance audit tables match pre-loss expectations.
+
+This script is optional and high-impact; document results in `VALIDATION_LOG.md` locally only. Do not commit generated reports.
 
 ## Production schedule (recommended)
 

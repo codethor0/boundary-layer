@@ -36,12 +36,18 @@ git clone https://github.com/codethor0/boundary-layer.git
 cd boundary-layer
 make setup
 make up
-curl -sf http://localhost:8000/health
+make smoke
 ```
 
-Expected: JSON with `"status":"ok"` and `"version":"1.3.3"`.
+Expected: smoke prints `PASS health` with `"version":"1.3.3"`.
 
-Optional gate for facilitators:
+Guided demo with alert poll:
+
+```bash
+make demo
+```
+
+Optional full gate for facilitators:
 
 ```bash
 make validate
@@ -132,13 +138,18 @@ curl -sf http://localhost:8081/alerts
 
 Expected: `"count"` greater than zero and alert name `BoundaryLayerInferenceCircuitBreakerOpen`.
 
-Optional: run hardened authz and confirm `boundary_layer_authz_denied_total` increments (alert rule exists; delivery timing may vary):
+Optional: run hardened authz and confirm alert delivery (included in `make validate-alerts`):
 
 ```bash
+curl -sf -X DELETE http://localhost:8081/alerts
 curl -sf -X POST http://localhost:8000/labs/authz/run \
   -H "Content-Type: application/json" -d '{"mode":"hardened"}'
 curl -sf http://localhost:8000/metrics | grep boundary_layer_authz_denied_total
+# Wait up to 60 seconds
+curl -sf http://localhost:8081/alerts
 ```
+
+Expected alert name: `BoundaryLayerAuthzDenied`.
 
 ## Discussion questions
 
@@ -156,7 +167,9 @@ make down
 
 ## Related docs
 
-- Quick demo: [DEMO.md](DEMO.md)
+- Quick demo: `make demo` or [DEMO.md](DEMO.md)
 - Sample JSON: [EXAMPLES.md](EXAMPLES.md)
+- Observability: [OBSERVABILITY_WALKTHROUGH.md](OBSERVABILITY_WALKTHROUGH.md)
+- Troubleshooting: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - Controls and alert mapping: [CONTROLS_MAP.md](CONTROLS_MAP.md)
 - Production-like profile (controlled local machines only): [PRODUCTION.md](PRODUCTION.md)

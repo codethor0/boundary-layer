@@ -652,38 +652,8 @@ else
 fi
 
 echo "==> Alert delivery validation"
-CLEAR_CMD="curl -sf -X DELETE ${ALERT_WEBHOOK_URL}/alerts"
-eval "$CLEAR_CMD" >/dev/null
-log_step "Clear alert webhook store" "$CLEAR_CMD" "PASS"
-
-TRIGGER_CMD="curl -sf -X POST ${API_URL}/labs/circuit-breaker/run -H 'Content-Type: application/json' -d '{\"mode\":\"hardened\",\"requested_work_units\":250}'"
-eval "$TRIGGER_CMD" >/dev/null
-CB_STATE=$(curl -sf "${API_URL}/metrics" | rg "^boundary_layer_inference_circuit_breaker_state " | awk '{print $2}' | head -1)
-if [[ "${CB_STATE}" == "1" || "${CB_STATE}" == "1.0" ]]; then
-  log_step "Circuit breaker metric open before alert poll" "grep boundary_layer_inference_circuit_breaker_state" "PASS"
-else
-  log_step "Circuit breaker metric open before alert poll" "grep boundary_layer_inference_circuit_breaker_state" "FAIL" "Expected 1, got ${CB_STATE}"
-  exit 1
-fi
-
-EXPECTED_ALERT="BoundaryLayerInferenceCircuitBreakerOpen"
-DELIVERED=false
-POLL_CMD="curl -sf ${ALERT_WEBHOOK_URL}/alerts"
-for _ in $(seq 1 30); do
-  ALERT_BODY=$(curl -sf "${ALERT_WEBHOOK_URL}/alerts" || true)
-  if echo "$ALERT_BODY" | grep -q "${EXPECTED_ALERT}"; then
-    DELIVERED=true
-    break
-  fi
-  sleep 2
-done
-if [[ "${DELIVERED}" == "true" ]]; then
-  log_step "Alert delivered to webhook" "$POLL_CMD" "PASS"
-  echo "$ALERT_BODY" >> "$LOG_FILE"
-else
-  log_step "Alert delivered to webhook" "$POLL_CMD" "FAIL" "Expected alert ${EXPECTED_ALERT} within 60 seconds"
-  exit 1
-fi
+export LOG_FILE
+bash scripts/validate-alerts.sh
 
 echo "==> Logo SVG validation"
 python3 - <<'PY'
