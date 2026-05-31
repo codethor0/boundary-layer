@@ -24,7 +24,14 @@ Accepts all requested streams (default 250) with no cap, idle timeout, or cleanu
 
 ### Hardened
 
-Applies tenant stream cap (50), idle timeout (30s), and cleanup. Rejects excess streams when requested count exceeds the cap. Returns `blocked: true` when excess streams are rejected.
+Applies tenant stream cap (50), idle timeout (30s), and cleanup. Rejects excess streams when requested count exceeds the cap.
+
+| Scenario | `requested_streams` | `blocked` | Accepted | Rejected |
+|----------|---------------------|-----------|----------|----------|
+| Default over-cap | 250 (default) | `true` | 50 | 200 |
+| Within cap | 25 or 50 | `false` | same as requested | 0 |
+
+Returns `blocked: true` only when excess streams are rejected. Within-cap requests return `blocked: false` even in hardened mode.
 
 Optional request fields:
 

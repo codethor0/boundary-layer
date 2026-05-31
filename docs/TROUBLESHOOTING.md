@@ -154,7 +154,7 @@ make demo
 
 ## Fresh-volume restore validation fails
 
-`make validate-restore-fresh-volume` destroys dev Compose volumes. Run only on a machine you control.
+`make validate-restore-fresh-volume` resets BoundaryLayer's local Docker Compose volumes. It is safe for the lab, but it will delete local lab data. Run only on a machine you control.
 
 ```bash
 docker compose down -v
@@ -170,9 +170,9 @@ If restore row counts mismatch, inspect Postgres logs and retry after `make up`.
 |---------|-------------|
 | `make smoke` | Fast sanity (~30s) |
 | `make demo` | Guided demo with alert poll |
-| `make validate-alerts` | Extended alert delivery |
+| `make validate-alerts` | Extended alert delivery (6 alerts) |
 | `make validate` | Full local gate (several minutes) |
-| `make validate-restore-fresh-volume` | Fresh-volume Postgres proof (destroys dev volumes) |
+| `make validate-restore-fresh-volume` | Fresh-volume Postgres proof (resets local Compose volumes) |
 | `make validate-prod` | Production-like profile on controlled machines |
 
 Collect logs:

@@ -47,11 +47,13 @@ make validate-restore-fresh-volume
 This local-only proof:
 
 1. Destroys dev Compose volumes (`docker compose down -v`).
-2. Starts a fresh stack and seeds governance (hardened) + write storm lab data.
+2. Starts a fresh stack and seeds governance (hardened) + write storm lab data (`requested_writes: 25`).
 3. Creates a full `pg_dump` backup via `scripts/backup-postgres.sh`.
 4. Destroys volumes again (simulated volume loss).
 5. Restores the full dump into a fresh Postgres volume via `scripts/restore-postgres.sh`.
-6. Verifies row counts in `write_storm_events` and `deletion_audit` match pre-loss counts.
+6. Verifies row counts in `write_storm_events` (expected 25) and `deletion_audit` match pre-loss counts.
+
+**Warning:** `make validate-restore-fresh-volume` resets BoundaryLayer's local Docker Compose volumes. It is safe for the lab, but it will delete local lab data.
 
 Temporary backups land in `backups/postgres/restore-validation/` (gitignored) unless `KEEP_RESTORE_ARTIFACTS=true`.
 

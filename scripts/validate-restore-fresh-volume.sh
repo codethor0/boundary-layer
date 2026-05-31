@@ -56,13 +56,15 @@ start_stack() {
   wait_for_api
 }
 
+SEED_REQUESTED_WRITES=25
+
 seed_lab_data() {
-  log "Seeding governance and write storm lab data"
+  log "Seeding governance (hardened) and write storm (vulnerable, requested_writes=${SEED_REQUESTED_WRITES})"
   curl -sf -X POST "${API_URL}/labs/governance/run" \
     -H "Content-Type: application/json" -d '{"mode":"hardened"}' >/dev/null \
     || fail "governance lab run failed"
   curl -sf -X POST "${API_URL}/labs/postgres-write-storm/run" \
-    -H "Content-Type: application/json" -d '{"mode":"vulnerable","event_count":25}' >/dev/null \
+    -H "Content-Type: application/json" -d "{\"mode\":\"vulnerable\",\"requested_writes\":${SEED_REQUESTED_WRITES}}" >/dev/null \
     || fail "postgres write storm lab run failed"
 }
 
@@ -80,6 +82,9 @@ AUDIT_BEFORE="$(table_count deletion_audit)"
 
 if [[ "${WS_BEFORE}" -lt 1 ]]; then
   fail "Expected write_storm_events rows before backup, got ${WS_BEFORE}"
+fi
+if [[ "${WS_BEFORE}" -ne "${SEED_REQUESTED_WRITES}" ]]; then
+  fail "Expected write_storm_events=${SEED_REQUESTED_WRITES} before backup, got ${WS_BEFORE}"
 fi
 if [[ "${AUDIT_BEFORE}" -lt 1 ]]; then
   fail "Expected deletion_audit rows before backup, got ${AUDIT_BEFORE}"
@@ -109,6 +114,9 @@ log "Row counts after restore: write_storm_events=${WS_AFTER}, deletion_audit=${
 
 if [[ "${WS_AFTER}" -lt "${WS_BEFORE}" ]]; then
   fail "write_storm_events count dropped (${WS_BEFORE} -> ${WS_AFTER})"
+fi
+if [[ "${WS_AFTER}" -ne "${SEED_REQUESTED_WRITES}" ]]; then
+  fail "Expected write_storm_events=${SEED_REQUESTED_WRITES} after restore, got ${WS_AFTER}"
 fi
 if [[ "${AUDIT_AFTER}" -lt "${AUDIT_BEFORE}" ]]; then
   fail "deletion_audit count dropped (${AUDIT_BEFORE} -> ${AUDIT_AFTER})"

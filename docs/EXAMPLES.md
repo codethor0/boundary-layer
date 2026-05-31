@@ -122,9 +122,9 @@ Excerpt (vulnerable): `"blocked": false`, summary mentions orphaned records.
 
 ```bash
 curl -sf -X POST http://localhost:8000/labs/postgres-write-storm/run \
-  -H "Content-Type: application/json" -d '{"mode":"vulnerable","event_count":50}'
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable","requested_writes":50}'
 curl -sf -X POST http://localhost:8000/labs/postgres-write-storm/run \
-  -H "Content-Type: application/json" -d '{"mode":"hardened","event_count":50}'
+  -H "Content-Type: application/json" -d '{"mode":"hardened","requested_writes":50}'
 ```
 
 | Mode | Notice | Metric | Alert |
@@ -166,19 +166,36 @@ curl -sf http://localhost:8081/alerts
 
 **Infrastructure:** deterministic synthetic stream units (no real sockets).
 
+Default request uses `requested_streams: 250`. Use explicit counts to contrast within-cap vs over-cap behavior.
+
+**Default contrast (250 streams — mitigation visible):**
+
 ```bash
 curl -sf -X POST http://localhost:8000/labs/sse-exhaustion/run \
-  -H "Content-Type: application/json" -d '{"mode":"vulnerable","requested_streams":20}'
+  -H "Content-Type: application/json" -d '{"mode":"vulnerable"}'
 curl -sf -X POST http://localhost:8000/labs/sse-exhaustion/run \
-  -H "Content-Type: application/json" -d '{"mode":"hardened","requested_streams":20}'
+  -H "Content-Type: application/json" -d '{"mode":"hardened"}'
+```
+
+| Mode | Default (250 streams) | `blocked` | Accepted | Rejected |
+|------|----------------------|-----------|----------|----------|
+| vulnerable | No cap | `false` | 250 | 0 |
+| hardened | Cap 50 + cleanup | `true` | 50 | 200 |
+
+**Within-cap hardened (no rejection):**
+
+```bash
+curl -sf -X POST http://localhost:8000/labs/sse-exhaustion/run \
+  -H "Content-Type: application/json" -d '{"mode":"hardened","requested_streams":25}'
 ```
 
 | Mode | Notice | Metric | Alert |
 |------|--------|--------|-------|
 | vulnerable | Streams exceed tenant cap; pressure rises | `boundary_layer_sse_active_streams` | `BoundaryLayerSSEStreamExhaustionDetected` |
-| hardened | Rejection or cleanup applied | `boundary_layer_sse_cleanup_applied_total` | `BoundaryLayerSSECleanupApplied` |
+| hardened (default 250) | Excess streams rejected; cleanup applied | `boundary_layer_sse_rejected_streams_total` | `BoundaryLayerSSEBackpressureTriggered` |
+| hardened (within cap) | All requested streams accepted | `boundary_layer_sse_cleanup_applied_total` | — |
 
-Excerpt (hardened): `"blocked": true`, control mentions stream cap or cleanup.
+Excerpt (hardened default): `"blocked": true`, events mention rejected streams. Within-cap hardened returns `"blocked": false`.
 
 ## Prompt Cache Isolation
 

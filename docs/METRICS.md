@@ -95,6 +95,17 @@ curl -sf http://localhost:8081/alerts
 curl -sf -X DELETE http://localhost:8081/alerts
 ```
 
+Run `make validate-alerts` to automate end-to-end delivery for six deterministic alerts:
+
+| Alert | Lab trigger |
+|-------|-------------|
+| `BoundaryLayerInferenceCircuitBreakerOpen` | Circuit breaker hardened |
+| `BoundaryLayerAuthzDenied` | Authz hardened |
+| `BoundaryLayerRedisTamperRejected` | Redis hardened |
+| `BoundaryLayerPostgresWriteStormMitigated` | Write storm hardened (`requested_writes: 250`) |
+| `BoundaryLayerSSEBackpressureTriggered` | SSE exhaustion hardened default |
+| `BoundaryLayerPromptDeletionIncomplete` | Governance vulnerable |
+
 ## Related
 
 - [OBSERVABILITY_WALKTHROUGH.md](OBSERVABILITY_WALKTHROUGH.md)

@@ -36,7 +36,7 @@ Expected results:
 - Lint clean
 - `make smoke` and `make demo` exit 0
 - `make validate` exits 0
-- Alert delivery validation confirms `BoundaryLayerInferenceCircuitBreakerOpen` and `BoundaryLayerAuthzDenied` (`make validate-alerts`)
+- Alert delivery validation confirms six deterministic alerts (`make validate-alerts`)
 - Fresh-volume restore proof passes (`make validate-restore-fresh-volume`)
 
 ## Service health checks

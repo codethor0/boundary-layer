@@ -332,9 +332,18 @@ else
   exit 1
 fi
 
-curl -sf -X POST "${API_URL}/labs/sse-exhaustion/run" \
+SSE_HARD_DEFAULT=$(curl -sf -X POST "${API_URL}/labs/sse-exhaustion/run" \
   -H "Content-Type: application/json" \
-  -d '{"mode":"hardened"}' >/dev/null
+  -d '{"mode":"hardened"}')
+if echo "$SSE_HARD_DEFAULT" | grep -q '"blocked":true'; then
+  log_step "SSE hardened default rejects excess streams" \
+    "POST sse-exhaustion hardened default" "PASS"
+else
+  log_step "SSE hardened default rejects excess streams" \
+    "POST sse-exhaustion hardened default" "FAIL" \
+    "Expected blocked=true for default requested_streams=250"
+  exit 1
+fi
 if curl -sf "${API_URL}/metrics" | grep -q "boundary_layer_sse_rejected_streams_total"; then
   log_step "SSE rejected streams metric after hardened default run" \
     "grep boundary_layer_sse_rejected_streams_total" "PASS"
@@ -595,6 +604,37 @@ else
   exit 1
 fi
 
+echo "==> Prometheus health check"
+if curl -sf "${PROMETHEUS_URL}/-/healthy" >/dev/null; then
+  log_step "Prometheus health check" "curl -sf ${PROMETHEUS_URL}/-/healthy" "PASS"
+else
+  log_step "Prometheus health check" "curl -sf ${PROMETHEUS_URL}/-/healthy" "FAIL"
+  exit 1
+fi
+
+echo "==> Alertmanager health check"
+if curl -sf "${ALERTMANAGER_URL}/-/healthy" >/dev/null; then
+  log_step "Alertmanager health check" "curl -sf ${ALERTMANAGER_URL}/-/healthy" "PASS"
+else
+  log_step "Alertmanager health check" "curl -sf ${ALERTMANAGER_URL}/-/healthy" "FAIL"
+  exit 1
+fi
+
+echo "==> Alert webhook health check"
+WEBHOOK_HEALTH=$(curl -sf "${ALERT_WEBHOOK_URL}/health" || true)
+if echo "$WEBHOOK_HEALTH" | grep -q '"status":"ok"'; then
+  log_step "Alert webhook health check" "curl -sf ${ALERT_WEBHOOK_URL}/health" "PASS"
+else
+  log_step "Alert webhook health check" "curl -sf ${ALERT_WEBHOOK_URL}/health" "FAIL"
+  exit 1
+fi
+
+echo "==> Alert delivery validation"
+curl -sf -X DELETE "${ALERT_WEBHOOK_URL}/alerts" >/dev/null || true
+sleep 2
+export LOG_FILE
+bash scripts/validate-alerts.sh
+
 echo "==> API restart recovery"
 docker compose restart api >/dev/null
 API_READY=false
@@ -625,35 +665,6 @@ else
   log_step "Metrics after API restart" "curl -sf ${API_URL}/metrics" "FAIL"
   exit 1
 fi
-
-echo "==> Prometheus health check"
-if curl -sf "${PROMETHEUS_URL}/-/healthy" >/dev/null; then
-  log_step "Prometheus health check" "curl -sf ${PROMETHEUS_URL}/-/healthy" "PASS"
-else
-  log_step "Prometheus health check" "curl -sf ${PROMETHEUS_URL}/-/healthy" "FAIL"
-  exit 1
-fi
-
-echo "==> Alertmanager health check"
-if curl -sf "${ALERTMANAGER_URL}/-/healthy" >/dev/null; then
-  log_step "Alertmanager health check" "curl -sf ${ALERTMANAGER_URL}/-/healthy" "PASS"
-else
-  log_step "Alertmanager health check" "curl -sf ${ALERTMANAGER_URL}/-/healthy" "FAIL"
-  exit 1
-fi
-
-echo "==> Alert webhook health check"
-WEBHOOK_HEALTH=$(curl -sf "${ALERT_WEBHOOK_URL}/health" || true)
-if echo "$WEBHOOK_HEALTH" | grep -q '"status":"ok"'; then
-  log_step "Alert webhook health check" "curl -sf ${ALERT_WEBHOOK_URL}/health" "PASS"
-else
-  log_step "Alert webhook health check" "curl -sf ${ALERT_WEBHOOK_URL}/health" "FAIL"
-  exit 1
-fi
-
-echo "==> Alert delivery validation"
-export LOG_FILE
-bash scripts/validate-alerts.sh
 
 echo "==> Logo SVG validation"
 python3 - <<'PY'
