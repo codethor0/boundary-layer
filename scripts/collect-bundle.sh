@@ -202,7 +202,7 @@ fi
 echo "==> Creating ZIP at ${ZIP_PATH}"
 (
   cd "$STAGING_DIR"
-  zip -r "$ZIP_PATH" . -x "*.DS_Store" -x ".cursor/*"
+  zip -r "$ZIP_PATH" . -x "*.DS_Store"
 )
 
 echo "==> Verifying bundle contents"
@@ -214,11 +214,11 @@ BAD_PATTERNS=(
   ".venv"
   ".git/"
   ".env"
-  ".cursor/"
   "prompt-artifacts/"
-  "cursor-prompts/"
   "agent-prompts/"
-  "cursor_boundarylayer"
+  "conversation-exports/"
+  "assistant-transcripts/"
+  "editor-metadata/"
   "project_requiremen"
   "node_modules/"
 )

@@ -28,7 +28,7 @@ Use the pull request template and confirm:
 
 - No secrets committed
 - No generated reports committed (`VALIDATION_LOG.md`, `TEST_RESULTS.txt`, etc.)
-- No prompt, Cursor, or agent artifacts committed
+- No prompt, model transcript, local editor metadata, or agent artifacts committed
 - Docs updated when behavior changes
 
 ## Pull Request Guidelines
@@ -64,4 +64,4 @@ Generated validation reports and command transcripts belong in local ZIP bundles
 - `IMPLEMENTATION_REPORT.md`
 - `DEPENDENCY_REPORT.md`
 - `NEXT_STEPS.md`
-- `.cursor/` or other editor tooling directories
+- Local editor metadata or tooling directories

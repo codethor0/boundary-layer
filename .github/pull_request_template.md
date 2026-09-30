@@ -9,7 +9,7 @@
 - [ ] `make validate` passes locally, if Docker changes were made
 - [ ] No secrets committed
 - [ ] No generated reports committed
-- [ ] No prompt, Cursor, or agent artifacts committed
+- [ ] No prompt, model transcript, local editor metadata, or agent artifacts committed
 - [ ] Docs updated, if behavior changed
 
 ## Notes

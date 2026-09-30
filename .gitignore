@@ -29,7 +29,6 @@ GIT_STATUS.txt
 NEXT_STEPS.md
 TREE.txt
 docker-compose-logs.txt
-cursor_boundarylayer_project_requiremen*.md
 *project_requiremen*.md
 *implementation-prompt*
 *master-prompt*
@@ -40,17 +39,17 @@ artifacts/
 *.tar.gz
 
 # Tooling/workflow artifacts
-.cursor/
-.cursor/**
-.vscode/
-.idea/
+/.*
+!/.github/
+!/.github/**
 
 # Prompt and agent artifacts
 prompts/
 prompt-artifacts/
 agent-prompts/
 agent-reports/
-cursor-prompts/
+conversation-exports/
+assistant-transcripts/
 *_PROMPT.md
 *PROMPT*.md
 *prompt-artifact*
