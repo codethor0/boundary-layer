@@ -31,9 +31,9 @@ jobs:
       - name: Run lint
         run: make lint
 
-      - name: Verify no tooling or report artifacts are tracked
+      - name: Verify no local bundle or tooling artifacts are tracked
         run: |
-          git ls-files | grep -Ei 'COMMAND_TRANSCRIPT|VALIDATION_LOG|TEST_RESULTS|IMPLEMENTATION_REPORT|DEPENDENCY_REPORT|NEXT_STEPS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|conversation-export|assistant-transcript|agent-prompt|agent-report|project_requiremen' && exit 1 || true
+          git ls-files | grep -Ei 'COMMAND_TRANSCRIPT|TEST_RESULTS|GIT_STATUS|TREE|docker-compose-logs|prompt-artifact|conversation-export|assistant-transcript|agent-prompt|agent-report|project_requiremen' && exit 1 || true
 
       - name: Secret sanity scan on tracked source
         run: |

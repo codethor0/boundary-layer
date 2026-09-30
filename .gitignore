@@ -21,12 +21,8 @@ build/
 
 # BoundaryLayer generated reports and bundles
 COMMAND_TRANSCRIPT.txt
-IMPLEMENTATION_REPORT.md
-VALIDATION_LOG.md
 TEST_RESULTS.txt
-DEPENDENCY_REPORT.md
 GIT_STATUS.txt
-NEXT_STEPS.md
 TREE.txt
 docker-compose-logs.txt
 *project_requiremen*.md

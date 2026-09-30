@@ -27,7 +27,7 @@ Full Docker validation is not run in the default CI job. Run `make validate` loc
 Use the pull request template and confirm:
 
 - No secrets committed
-- No generated reports committed (`VALIDATION_LOG.md`, `TEST_RESULTS.txt`, etc.)
+- No local bundle outputs or generated transcripts committed (`TEST_RESULTS.txt`, `COMMAND_TRANSCRIPT.txt`, etc.)
 - No prompt, model transcript, local editor metadata, or agent artifacts committed
 - Docs updated when behavior changes
 
@@ -56,12 +56,11 @@ Adding a new lab? Follow [docs/ADD_A_LAB.md](docs/ADD_A_LAB.md).
 
 ## Repository Hygiene
 
-Generated validation reports and command transcripts belong in local ZIP bundles only. Do not commit:
+Maintained project documentation may include implementation, dependency, validation, and next-step records. Local bundle outputs and command transcripts belong in ZIP bundles only. Do not commit:
 
 - `COMMAND_TRANSCRIPT.txt`
-- `VALIDATION_LOG.md`
 - `TEST_RESULTS.txt`
-- `IMPLEMENTATION_REPORT.md`
-- `DEPENDENCY_REPORT.md`
-- `NEXT_STEPS.md`
+- `GIT_STATUS.txt`
+- `TREE.txt`
+- `docker-compose-logs.txt`
 - Local editor metadata or tooling directories
